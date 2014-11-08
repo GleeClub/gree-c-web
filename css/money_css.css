@@ -1,0 +1,52 @@
+#submit{
+	text-align: left;	
+}
+
+#title{
+	font-size:30px;
+	text-align: center;
+}
+
+#buttons{
+	text-align: left;
+}
+
+#officerOptions{
+	text-align: center;
+}
+#center{
+	text-align: center;
+}
+
+#form{
+	table-layout: fixed;
+	word-wrap: break-word;
+}
+
+#cellwrap{
+	width: 200px;
+}
+#commentsCell{
+	width: 150px;
+}
+
+#right{
+	text-align: right;
+}
+
+#left{
+	text-align: left;
+}
+
+#headings{
+	font-weight: bold;	
+}
+
+.thingy
+{
+	background-color: #FFFFFF;
+}
+
+tr.topborder td {
+	border-top: 1pt solid black;
+}

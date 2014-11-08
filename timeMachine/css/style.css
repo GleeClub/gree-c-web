@@ -1,0 +1,188 @@
+.block{
+	border-radius:5px;
+	background-color:rgba(255,255,255, .7);
+	padding:15px;
+	border:1px solid rgba(0, 0, 0, 0.1);
+	box-shadow:0 4px 7px rgba(0,0,0, .4);
+	margin:10px;
+	/*text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);*/
+	/*overflow:scroll;*/
+}
+
+body{
+	background-color:rgb(128,128,128);
+}
+
+#main{
+	/*try to make the top nav not overlap everything*/
+	/* This should probably be dynamically generated in JS:; navbar.style.height+10 */
+	margin-top:50px;
+}
+
+.lighter{
+	background:rgba(0,136,204,.2);
+}
+
+a:visited{
+	color: grey;
+}
+
+/*** Chatbox ***/
+
+.chatboxImage{
+	max-width:80%;
+	display:none;
+	cursor:pointer;
+}
+.chatboxSenderName{
+	text-align:right;
+	font-weight:bold;
+	float:right;
+	margin-left:5px;
+}
+
+.chatboxTimestamp{
+	/*display:none;*/
+	vertical-align:middle;
+	float:left;
+	text-align:left;
+	font-size:.75em;
+	font-weight:normal;
+}
+
+td.chatboxMessage{
+	height:2em;
+	padding:3px;
+	font-size:1em;
+}
+#chatboxTable td{
+	padding:5px;
+}
+
+#chatboxTable tr:hover td{
+	background-color:transparent;
+}
+
+#chatboxMessagesTable td{
+	vertical-align: middle;
+}
+
+#chatboxMessages{
+	overflow:hidden;
+}
+/* end chatbox */
+
+.messagesListName{
+	font-weight:bold;
+	font-size:1.5em;
+}
+
+.messagesListMessage{
+	font-size:.9em;
+}
+
+#messagesListTable td{
+	border:none;
+}
+
+#messagesListTable .dl-horizontal dt{
+	width:33%;
+}
+
+td.messageSender{
+	text-align:right;
+	min-width:200px;
+	width:20%;
+}
+
+.messageTime{
+	float:left;
+}
+
+#messageThreadTable tbody tr:hover td{
+	background-color:transparent;
+}
+#eventsTable tbody tr:hover td{
+	background:rgba(0,136,204,.2);
+}
+.highlight tbody tr:hover td{
+	background:rgba(0,136,204,.2);
+	cursor:pointer;
+}
+
+.every-other tbody tr:nth-child(even){
+	background:rgba(0,136,204,.2);
+}
+.other-every-other tbody tr:nth-child(odd){
+	background:rgba(0,136,204,.2);
+}
+
+td.eventDetialsKey{
+	text-align:right;
+	width:50%;
+}
+
+.no-highlight tbody tr:hover td{
+	background-color:transparent;
+}
+
+.event:hover{
+	cursor:pointer;
+}
+
+#eventDetails table td input{
+	width:100%;
+}
+
+/* Carpools */
+.driver{
+	text-align:left;
+}
+.person td{
+	width:20%;
+	text-align:center;
+}
+.person table{
+	width: 100%;
+}
+.person-hover:hover{
+	cursor:pointer;
+	background-color: rgba(0,136,204,.2);
+}
+
+.edit{
+	padding:3px;
+	border:1px solid rgba(0,0,0,.2);
+	border-radius:3px;
+	box-shadow:0 4px 7px rgba(0,0,0, .4);
+	margin:4px;
+}
+
+.carpoolLives, .carpoolName, .carpoolSpots, .carpoolConfirmed{
+	width:20%;
+}
+
+.page-header{
+	border:none;
+}
+
+/* edit members */
+.picture img{
+	width: 100px;
+}
+
+#editMemberTable td{
+	width: 10%;
+}
+/* end edit members */
+
+/* announcements */
+.announcement-title{
+	text-align: center;
+	font-weight: bold;
+}
+
+.announcement-textarea{
+	width: 100%;
+/* end announcements */
+}
