@@ -50,7 +50,7 @@ function actionOptions($userEmail){
 	<link rel="stylesheet" type="text/css" href="css/token-js/styles/token-input-facebook.css" />
 	
 	<script src="js/main.js"></script>
-	<title>Greasy Web</title>
+	<title>Gree-C-Web</title> <!-- retro -->
 </head>
 <body>
 	<div class="container-fluid">
