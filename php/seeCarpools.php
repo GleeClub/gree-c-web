@@ -81,7 +81,7 @@ while($row = mysql_fetch_array($result, MYSQL_ASSOC)){
 	$sql = "select `name` from `event` where `eventNo` = $eventNo";
 	$event = mysql_fetch_array(mysql_query($sql));
 	$html .= '</div>';//end passengers div
-	$html .= '<div style="display: inline-block; width: 100%"><a href="mailto:' . rawurlencode($emails) . '?subject=' . rawurlencode('Carpool for ' . $event['name']) . '" class="btn pull-right"><i class="icon-envelope"></i>&nbsp;Mail these SLOOTS</a></div>';
+	$html .= '<div style="display: inline-block; width: 100%"><a href="mailto:' . rawurlencode($emails) . '?cc=gleeclub_officers@lists.gatech.edu' . '?subject=' . rawurlencode('Carpool for ' . $event['name']) . '" class="btn pull-right"><i class="icon-envelope"></i>&nbsp;Mail these SLOOTS</a></div>';
 	$html .= "</div>";//end carpool div
 }
 $html .= "</div>";
