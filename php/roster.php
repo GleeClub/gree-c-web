@@ -130,9 +130,12 @@ if ($role == "Treasurer" || $role == "VP" || $role == "President")
 	echo "<br><br><table id='transac'></table>";
 	$result = mysql_fetch_array(mysql_query("select `gigRequirement` from `variables`"));
 	$gigreq = $result['gigRequirement'];
-	echo "<span class='pull-right' id='roster_ops'>Volunteer gig requirement:  <input type='text' id='gigreq' style='width: 20px; margin-bottom: 0px' value='$gigreq'><button class='btn' onclick='setGigReq($(\"#gigreq\").attr(\"value\"))'>Go</button><span class='spacer'></span><input type='checkbox' name='gigcheck' onclick='setGigCheck($(this).attr(\"checked\"))'";
+	echo "<span class='pull-right' id='roster_ops'>Volunteer gig requirement:  <input type='text' id='gigreq' style='width: 20px; margin-bottom: 0px' value='$gigreq'><button class='btn' onclick='setGigReq($(\"#gigreq\").attr(\"value\"))'>Go</button><span class='spacer'></span><div style='display: inline-block'><input type='checkbox' style='margin-top: -16px' name='gigcheck' onclick='setGigCheck($(this).attr(\"checked\"))'";
 	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
 	if ($result['gigCheck']) echo " checked";
-	echo "> <div style='display: inline-block'>Include gig requirement<br>in grade calculation</div><span class='spacer'></span><div class='btn-group'><button class='btn dropdown-toggle' data-toggle='dropdown' href='#'>Dues <span class='caret'></span></button><ul class='dropdown-menu'><li><a href='#' onclick='addDues(); return false;'>Apply semester dues</a></li><li><a href='#' onclick='addLateFee(); return false;'>Add late fee</a></li></ul></div><span class='spacer'></span><button type='button' class='btn' onclick='addMoneyForm()'>Add Transaction</button></span>";
+	echo "> <div style='display: inline-block'>Include gig requirement<br>in grade calculation</div></div><span class='spacer'></span><div class='btn-group'><button class='btn dropdown-toggle' data-toggle='dropdown' href='#'>Dues <span class='caret'></span></button><ul class='dropdown-menu'>";
+	echo "<li><a href='#' id='semdues' onclick='addDues(); return false;' data-placement='right' data-toggle='tooltip' title='Adds a $20 fee to the account of every active member who does not yet have a dues charge for this semester'>Apply semester dues</a></li>";
+	echo "<li><a href='#' id='latefee' onclick='addLateFee(); return false;' data-placement='right' data-toggle='tooltip' title='Adds a $5 fee to the account of every active member whose dues balance for this semester is not $0'>Add late fee</a></li>";
+	echo "</ul></div><span class='spacer'></span><button type='button' class='btn' onclick='addMoneyForm()'>Add Transaction</button></span>";
 }
 

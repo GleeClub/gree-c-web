@@ -73,12 +73,11 @@ while($row = mysql_fetch_array($events, MYSQL_ASSOC))
 	$eventDetails = getEventDetails($row['eventNo']);
 	$html = $html.  '
 	<tr class="event" id="'.$eventDetails['eventNo'].'">
-		<td>'.labelArea($eventDetails['type']).'</td>
+		<td style="">'.labelArea($eventDetails['type']).'</td>
 		<td>'.$eventDetails['name'].'</td>
-		<td>'.date("l, F d", strtotime($eventDetails["callTime"])).'</td>
-		<td>'.((strtotime($eventDetails['callTime']) > time() ) ? buttonArea($row['eventNo'], $eventDetails['type']) : '<span class="label label-inverse">This event is over</span>').'</td>
-	</tr>
-	';
+		<td style="">'.date("D, M d", strtotime($eventDetails["callTime"])).'</td>
+		<td style="">'.((strtotime($eventDetails['callTime']) > time() ) ? buttonArea($row['eventNo'], $eventDetails['type']) : '<span class="label label-inverse">This event is over</span>').'</td>
+	</tr>';
 }
 echo $html.'</table></div>';
 

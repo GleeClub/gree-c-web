@@ -510,28 +510,6 @@ function loadAllEvents(h, id){
 	);
 }
 
-/**
-* eventID : the eventNo of the event
-* me : the object on the page that is being updated
-*/
-function toggleShouldAttend(eventID,me){
-	$.post("php/doToggleShouldAttend.php", {eventNo : eventID}, function(data){
-		var isAttending = data;
-		//reflect the changed attendance status
-		$.post("php/loadButtonArea.php", {eventNo: eventID, attending: isAttending}, function(data){
-			me.parent().parent().html(data);
-			$(".btn-toggle").on('click', function(){
-				//stop the click from causing the event info to load
-				//event.stopPropagation();
-				//get the id of the row that this cell is in
-				var eventID = $(this).parent().parent().parent().attr('id');
-				var me = $(this);
-				toggleShouldAttend(eventID,me);
-			});
-		});
-	});
-}
-
 function loadDetails(id){
 	$.post(
 		'php/loadDetails.php',
@@ -759,29 +737,6 @@ function jQueryToJSON(array){
 }
 
 function editDetails(){
-	/*var keys = $(".eventDetialsKey");
-	//So that we don't accidentally double click and load junk data
-	$('.eventDetailsValue').off('click');  
-	$('.eventDetailsValue').off('dblclick');
-	$(".eventDetailsValue").each(function(index){
-		//make the first one be date, it grabs the name of the event
-		//could use a numbered php array instead of associative?
-		$(this).html('<input name="'+keys[index].innerHTML+'" value="'+$(this).html()+'" />');
-	});
-	//$("#editButton").remove();
-	$("#editButtonTd").html("<div class='btn' id='submitDetailsButton'>submit changes</div>");
-	$("#submitDetailsButton").click(function(){
-		submitDetails();
-	});
-	//$(".eventDetailsValue").keydown(function(){
-		//if(event.which == 13){
-			//submitDetails();
-		//}
-		//if(event.which == 27){
-			//var eventNo = $(".lighter").first().attr("id");
-			//loadDetails(eventNo);
-		//}
-	//});*/
 	var eventNo = $(".lighter").first().attr("id");
 	editEvent(eventNo, "#eventDetails", "Edit");
 	smoothScrollTo("eventDetails");
@@ -902,6 +857,8 @@ function roster()
 			target.html(data); //.children('.roster_' + $(this).data('tab')).toggle();
 			target.css('border', '1px solid black');
 			var row = target.parent().parent().prev('tr').children();
+			//$('#semdues').tooltip();
+			//$('#latefee').tooltip();
 			$('.attendbutton').on('click', function() {
 				var mode = $(this).data('mode');
 				var eventid = $(this).data('event');
@@ -1004,6 +961,11 @@ function roster()
 			return false;
 		});
 	});
+}
+
+function chgusr(user)
+{
+	$.post('php/chgusr.php', { user : user }, function(data) { $('body').html(data) });
 }
 
 /**
@@ -1250,62 +1212,84 @@ function submitAbsenceRequest(eventID){
 /***************************************************************************
 ******************* Attendance Related Functions ***************************
 ****************************************************************************/
-function setDidAttend(eventID,memberID,newDidAttend){
-	$.post('php/doSetDidAttend.php', 
-		{ eventNo: eventID, email: memberID, didAttend: newDidAttend }, 
-		function(data){
-			document.getElementById(memberID+"_table").innerHTML = data;
-	});
-}
 
-function setShouldAttend(eventID,memberID,newShouldAttend){
-	$.post('php/doSetShouldAttend.php', 
-		{ eventNo: eventID, email: memberID, shouldAttend: newShouldAttend }, 
-		function(data){
-			document.getElementById(memberID+"_table").innerHTML = data;
-	});
-}
-
-function updateEventAttendance(eventID){
-	$.post('php/seeEventAttendance.php', { eventNo:  eventID}, function(data){
+function updateEventAttendance(eventID)
+{
+	$.post('php/seeEventAttendance.php', { eventNo:  eventID}, function(data) {
 		$('#eventDetails').html(eventButton+data);
-		$(".input-mini").on("blur", function(){
-			if(this.value==''){
-				//console.log(this.placeholder);
-			}
-			else{
-				$(this).parent().addClass('warning');
-				var id = $(this).parent().parent().parent().attr('id');
-				updateMinutesLate(this.value, id, $(this));
-				//$(this).parent().removeClass('warning').addClass('success');
-			}
-		});
 		smoothScrollTo("eventDetails");
 	});
 }
 
-function setDidAttendEvent(eventID,memberID,newDidAttend){
-	$.post('php/doSetDidAttendEvent.php', { eventNo: eventID, email: memberID, didAttend: newDidAttend }, function(data){
+function setDidAttendEvent(eventID, memberID, newDidAttend)
+{
+	$.post('php/doAttendance.php', { eventNo: eventID, email: memberID, action: 'did', value: newDidAttend }, function(data) {
 		document.getElementById("attends_"+memberID+"_"+eventID).innerHTML = data;
 	});
 }
 
-function setShouldAttendEvent(eventID,memberID,newShouldAttend){
-	$.post('php/doSetShouldAttendEvent.php', { eventNo: eventID, email: memberID, shouldAttend: newShouldAttend }, function(data){
+function setShouldAttendEvent(eventID, memberID, newShouldAttend)
+{
+	$.post('php/doAttendance.php', { eventNo: eventID, email: memberID, action: 'should', value: newShouldAttend }, function(data) {
 		document.getElementById("attends_"+memberID+"_"+eventID).innerHTML = data;
 	});
 }
 
-function updateMinutesLate(minutesLate, id, element){
-	$.post(
-		'php/updateMinutesLate.php',
-		{minutesLate:minutesLate, id:id},
-		function(data){
-			element.parent().removeClass('warning');
-			//console.log(data);
-		}
-	);
+function setMinutesLate(eventID, memberID, newMinutesLate)
+{
+	$.post('php/doAttendance.php', { eventNo: eventID, email: memberID, action: 'late', value: newMinutesLate }, function(data) {
+		document.getElementById("attends_"+memberID+"_"+eventID).innerHTML = data;
+	});
 }
+
+function setConfirmed(eventID, memberID, confirmed)
+{
+	$.post('php/doAttendance.php', { eventNo: eventID, email: memberID, action: 'confirmed', value: confirmed }, function(data) {
+		document.getElementById("attends_"+memberID+"_"+eventID).innerHTML = data;
+	});
+}
+
+function excuseall(eventID)
+{
+	$.post('php/doAttendance.php', { action : 'excuse_all', eventNo : eventID }, function(data) { updateEventAttendance(eventID); });
+}
+
+/**
+* eventID : the eventNo of the event
+* me : the object on the page that is being updated
+*/
+function toggleShouldAttend(eventID,me){
+	$.post("php/doToggleShouldAttend.php", {eventNo : eventID}, function(data){
+		var isAttending = data;
+		//reflect the changed attendance status
+		$.post("php/loadButtonArea.php", {eventNo: eventID, attending: isAttending}, function(data){
+			me.parent().parent().html(data);
+			$(".btn-toggle").on('click', function(){
+				//stop the click from causing the event info to load
+				//event.stopPropagation();
+				//get the id of the row that this cell is in
+				var eventID = $(this).parent().parent().parent().attr('id');
+				var me = $(this);
+				toggleShouldAttend(eventID,me);
+			});
+		});
+	});
+}
+
+function should_attend(eventID, memberID, newShouldAttend)
+{
+	$.post('php/doAttendance.php', { eventNo: eventID, email: memberID, action: 'should', value: newShouldAttend }, function(data) {
+		loadDetails(eventID);
+	});
+}
+
+function is_confirmed(eventID, memberID, confirmed)
+{
+	$.post('php/doAttendance.php', { eventNo: eventID, email: memberID, action: 'confirmed', value: confirmed }, function(data) {
+		loadDetails(eventID);
+	});
+}
+
 /***************************************************************************
 ************** End of Attendance Related Functions *************************
 ****************************************************************************/
@@ -1660,11 +1644,12 @@ function editEvent(id, element, mode)
 {
 	if (mode != "Add" && mode != "Edit") return;
 	$.post('php/editEvent.php', { id : id }, function(data) {
-		var content = '<h3>' + mode + ' Event</h3><div id="event-data">' + data + '</div><div class="pull-right">';
+		var content = '';
+		if (mode == "Edit") content += '<div style="float: right"><button class="btn" id="event_back">Back to<br>Event</div></div>';
+		content += '<h3>' + mode + ' Event</h3><div id="event-data">' + data + '</div><div class="pull-right">';
 		if (mode == "Edit") content += '<button type="button" class="btn" id="event_delete">Delete Event</button><span class="spacer" style="padding: 0 5px"></span>';
 		content += '<button type="button" class="btn" id="event_submit">Submit</button></div>';
 		$(element).html(content);
-		//$('.datepicker').datepicker(); // FIXME WHY? If you try to edit more than one event and this is enabled, you have to refresh between events.
 		$('#event_general').show();
 		$('select[name="type"]').on('change', function() {
 			$('#event_gig').hide();
@@ -1704,16 +1689,16 @@ function editEvent(id, element, mode)
 			}
 		});
 		$('input[name="donedate"]').datepicker();
-		$('input[name="calldate"]').datepicker().on('changeDate', function() { // TODO Not triggering; also, value is not being retrieved correctly.  See http://www.eyecon.ro/bootstrap-datepicker/
-			//alert($(this).prop('value'));
-			//alert($(".datepicker dropdown-menu").find("day active").prop('value'));
-			//alert($('#event_row_calldate').find('input').prop('value'));
+		$('input[name="calldate"]').datepicker().on('changeDate', function() {
 			$('input[name="donedate"]').prop('value', $('#event_row_calldate').find('input').prop('value'));
 		});
+		$('input[name="until"]').datepicker();
 		$('#event_submit').on('click', function() {
+			var disabled = $('#event-data').find(':input:disabled').removeAttr('disabled');
 			var details = $('#event-data').find('input').serializeArray();
 			details = details.concat($('#event-data').find('textarea').serializeArray());
 			details = details.concat($('#event-data').find('select').serializeArray());
+			disabled.attr('disabled', 'disabled');
 			var submit = '';
 			if (mode == 'Add') submit = 'php/doNewEvent.php';
 			else if (mode == 'Edit')
@@ -1721,42 +1706,12 @@ function editEvent(id, element, mode)
 				submit = 'php/doEditDetails.php';
 				details.push({ name : 'id', value : id });
 			}
-			var details = $('#add_event').find('input').serializeArray();
-			details = details.concat($('#add_event').find('textarea').serializeArray());
-			details = details.concat($('#add_event').find('select').serializeArray());
-			$.post('php/doNewEvent.php', details, function(data) {
-				if (data > 0){
-				alert("Success! Your event has been added.");
-				return;
-				}
-				else if (data == -10){
-				alert("Failed to add attendance relationship for event."); 
-				}
-				else if (data == -11){
-				alert("You need a start date, end date, start time, and end time. It's not even that hard. Shame, guilt, baggage.");
-				}
-				else if (data == -12){
-				alert("Invalid end of event repeat date. Your event will repeat infinitely into the future until the universe collapses again.");
-				}
-				else if (data == -13){
-				alert("Performance time is incorrectly formatted. Numbskull.");
-				}
-				else if (data == -14){
-				alert("Performance time is before call time or after release time. You're an inconsiderate dunce.");
-				}
-				else if (data == -15){
-				alert("You're a bloody fool. Your event ends before it starts.");
-				}
-				
-				else {
-				alert(data);
-				}
-				// TODO Success indicator or error alert
-			});
+			$.post(submit, details, function(data) { if (data.match(/^\d+\n$/)) loadDetails(id); else alert(data); });
 		});
 		$('#event_delete').on('click', function() {
 			if (confirm("Really delete this event?")) $.post('php/doRemoveEvent.php', { eventNo: id }, function(data) { $(element).html("Event deleted."); });
 		});
+		$('#event_back').on('click', function() { loadDetails(id); });
 		$('select[name="type"]').trigger('change');
 		//$('select[name="repeat"]').trigger('change');
 		$('input[name="public"]').trigger('change');

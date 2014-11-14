@@ -101,8 +101,7 @@ foreach ($fields as $category => $catfields)
 					break;
 				case 'date':
 					if ($value == '') $value = date('Y-m-d');
-					$html .= "<div class='input-append date datepicker' data-date-format='yyyy-mm-dd' data-date='$value'><input type='text' name='$field[0]' value='$value' style='width: 100px'><span class='add-on'><i class='icon-th'></i></span></div>";
-					// BRICE $html .= "<input type='text' name='$field[0]' value='$today' style='width: 100px' data-date-format='yyyy-mm-dd' data-date='$today'>";
+					$html .= "<input type='text' name='$field[0]' value='$value' style='width: 100px' data-date-format='yyyy-mm-dd' data-date='$value'>";
 					break;
 				case 'time':
 					$html .= "<input type='text' name='$field[0]' value='$value' style='width: 60px' placeholder='0:00 PM'>";

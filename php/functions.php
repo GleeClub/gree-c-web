@@ -272,7 +272,7 @@ function buttonArea($eventNo, $typeNumber)
 		if($typeNumber == '3')
 		{
 			//not confirmed volunteer gig
-			if ($soon) $html = '<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
+			if ($soon) $html = "<span class='label'>Attending</span>"; //'<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
 			else $html = '<div class="btn btn-primary btn-confirm" style="width:90%;">I will attend</div> <div class="btn btn-warning btn-deny" style="width:90%;">I won\'t attend</div>';
 		}
 		else
@@ -287,8 +287,7 @@ function buttonArea($eventNo, $typeNumber)
 		$html = (($results['shouldAttend'] == '1') ? "<span class='label'>Attending</span>" : '<span class="label">Not attending</span>');
 
 		//if it s a volunteer gig, give them the opportunity to change their choice later
-		if($typeNumber == '3' && ! $soon)
-			$html .="<div><br><div class='btn btn-toggle'>I changed my mind</div></div>";
+		//if($typeNumber == '3' && ! $soon) $html .="<div><br><div class='btn btn-toggle'>I changed my mind</div></div>";
 	}
 	return $html;
 }
@@ -697,86 +696,16 @@ function getEventAttendanceRows($eventNo)
 		<td class='cellwrap'>Minutes Late</td>
 		<td class='cellwrap'>Should Attend</td>
 		<td class='cellwrap'>Did Attend</td>
+		<td class='cellwrap'>Confirmed</td>
 	</tr>";
 
-	//make rows for all of the members who have an attends relationship
-	$sql = "select * from member,attends where member.confirmed='1' AND attends.memberID=member.email AND attends.eventNo='$eventNo'order by member.section asc, member.lastName, member.firstName";
-	$attendingMembers = mysql_query($sql);
-
-	while($member=mysql_fetch_array($attendingMembers)){
-		$memberID = $member['email'];
-		$firstName = $member['firstName'];
-		$lastName = $member['lastName'];
-		$attendsID = "attends_".$memberID."_$eventNo";
-		$shouldAttend = $member['shouldAttend'];
-		$didAttend = $member['didAttend'];
-		$minutesLate = $member['minutesLate'];
-
-		//the member's name
-		$eventRows.= "
-		<tr id='$attendsID'>
-			<td id='$attendsID"."_name' class='data'>$firstName $lastName</td>";
-
-		//did the person attend
-		if($didAttend=="1")
-			$eventRows.="
-				<td id='$attendsID_did' align='center' class='data'><font color='green'>Yes</font></td>";
-		else if($shouldAttend=="1")
-			$eventRows.="
-				<td id='$attendsID_did' align='center' class='data'><font color='red'>No</font></td>";
-		else
-			$eventRows.="
-				<td id='$attendsID_did' align='center' class='data'>No</td>";	
-
-		//minutes late
-		$eventRows .= "<td align='center' class='data'>
-						<div class='control-group'>
-							<input type='text' placeholder='$minutesLate' class='input-mini' id='$memberID-minutesLate' />
-						</div>
-					</td>";
-
-		//add a button to change the whether the person should attend
-		if($shouldAttend=="1")
-			$eventRows.="
-			<td align='center' id='$attendsID_should_toggle' class='data'><button type='button' class='btn' onclick='setShouldAttendEvent(\"$eventNo\",\"$memberID\",\"0\")'>Shouldn't</button></td>";
-		else
-			$eventRows.="
-			<td align='center' id='$attendsID__should_toggle' class='data'><button type='button' class='btn' onclick='setShouldAttendEvent(\"$eventNo\",\"$memberID\",\"1\")'>Should</button></td>";
-
-		//add a button to change whether the person did attend
-		if($didAttend=="1")
-			$eventRows.="
-			<td align='center' id='$attendsID_did_toggle' class='data'><button type='button' class='btn' onclick='setDidAttendEvent(\"$eventNo\",\"$memberID\",\"0\")'>Wasn't there</button></td>";
-		else
-			$eventRows.="
-			<td align='center' id='$attendsID_did_toggle' class='data'><button type='button' class='btn' onclick='setDidAttendEvent(\"$eventNo\",\"$memberID\",\"1\")'>Was there</button></td>";		
-
-		//terminate the row
-		$eventRows.="
-		</tr>";
-	}
-
-	//make rows for all of the members who do not currently have anttends relationship
-	$sql = "SELECT distinct * FROM `member` WHERE NOT EXISTS(SELECT * FROM `attends` WHERE email=memberID AND eventNo='$eventNo') AND member.confirmed=1 order by section asc, lastName asc, firstName asc";
-	$notAttendingMembers = mysql_query($sql);
-	
-	while($member=mysql_fetch_array($notAttendingMembers)){
-		$memberID = $member['email'];
-		$firstName = $member['firstName'];
-		$lastName = $member['lastName'];
-		$attendsID = "attends_".$memberID."_$eventNo";
-		$shouldAttend = $member['shouldAttend'];
-		$didAttend = $member['didAttend'];
-		$minutesLate = $member['minutesLate'];
-
-		$eventRows.= "
-		<tr id='$attendsID'>
-			<td id='$attendsID"."_name' class='data'>$firstName $lastName</td>
-			<td align='center' class='data'>No</td>
-			<td align='center' class='data'>N/A</td>
-			<td align='center' id='$attendsID_should_toggle' class='data'><button type='button' class='btn' onclick='setShouldAttendEvent(\"$eventNo\",\"$memberID\",\"1\")'>Should</button></td>
-			<td align='center' id='$attendsID_did_toggle' class='data'><button type='button' class='btn' onclick='setDidAttendEvent(\"$eventNo\",\"$memberID\",\"1\")'>Was there</button></td>
-		</tr>";
+	$sections = mysql_query("select `typeName` from `sectionType` order by `typeNo` asc");
+	while ($sect = mysql_fetch_array($sections))
+	{
+		$section = $sect['typeName'];
+		$eventRows .= "<tr><td colspan=6><b>$section</b></td></tr>";
+		$members = mysql_query("select `email` from `member` where `confirmed` = '1' and `section` = '$section' order by `lastName` asc");
+		while ($member = mysql_fetch_array($members)) $eventRows .= '<tr id="attends_' . $member['email'] . '_' . $eventNo . '">' . getSingleEventAttendanceRow($eventNo, $member['email']) . '</tr>';
 	}
 
 	return $eventRows;
@@ -791,56 +720,49 @@ function getEventTypes()
 /**
 * Returns attendance info about the event for one member in the style used on the "update attendance" form
 **/
-function getSingleEventAttendanceRow($eventNo,$memberID)
+function getSingleEventAttendanceRow($eventNo, $memberID)
 {
-	$sql = "select * from member, attends where email='$memberID' and email=memberID and eventNo='$eventNo'";
-	$memberInfo = mysql_query($sql);
-	$member=mysql_fetch_array($memberInfo);
-	
-	$firstName = $member['firstName'];
-	$lastName = $member['lastName'];
-	$attendsID = "attends_".$memberID."_$eventNo";
-	$shouldAttend = $member['shouldAttend'];
-	$didAttend = $member['didAttend'];
-	$minutesLate = $member['minutesLate'];
+	$query = mysql_query("select * from `member`, `attends` where `email` = '$memberID' and `email` = `memberID` and `eventNo` = '$eventNo'");
+	if (mysql_num_rows($query) != 1)
+	{
+		$member = mysql_fetch_array(mysql_query("select * from `member` where `email` = '$memberID'"));
+		$firstName = $member['firstName'];
+		$lastName = $member['lastName'];
+		$shouldAttend = 0;
+		$didAttend = 0;
+		$minutesLate = 0;
+		$confirmed = 0;
+	}
+	else
+	{
+		$member = mysql_fetch_array($query);
+		$firstName = $member['firstName'];
+		$lastName = $member['lastName'];
+		$shouldAttend = $member['shouldAttend'];
+		$didAttend = $member['didAttend'];
+		$minutesLate = $member['minutesLate'];
+		$confirmed = $member['confirmed'];
+	}
 
 	//the member's name
-	$eventRow.= "
-		<td id='$attendsID"."_name' class='data'>$firstName $lastName</td>";
+	$eventRow .= "<td class='data'>$firstName $lastName</td>";
 
 	//did the person attend
-	if($didAttend=="1")
-		$eventRow.="
-			<td id='$attendsID_did' align='center' class='data'><font color='green'>Yes</font></td>";
-	else if($shouldAttend=="1")
-		$eventRow.="
-			<td id='$attendsID_did' align='center' class='data'><font color='red'>No</font></td>";
-	else
-		$eventRow.="
-			<td id='$attendsID_did' align='center' class='data'>No</td>";	
+	if ($didAttend == "1") $eventRow .= "<td id='$attendsID_did' align='center' class='data'><font color='green'>Yes</font></td>";
+	else if ($shouldAttend=="1") $eventRow .= "<td id='$attendsID_did' align='center' class='data'><font color='red'>No</font></td>";
+	else $eventRow .= "<td align='center' class='data'>No</td>";
 
 	//minutes late
-	$eventRow .= "<td align='center' class='data'>
-					<div class='control-group'>
-						<input type='text' placeholder='$minutesLate' class='input-mini' id='$memberID-minutesLate' />
-					</div>
-				</td>";
+	$eventRow .= "<td align='center' class='data'><input type='text' placeholder='$minutesLate' class='input-mini' id='$memberID-minutesLate' style='width: 40px; margin-bottom: 0px' /><button type='button' class='btn' onclick='setMinutesLate(\"$eventNo\", \"$memberID\", \$(this).parent().children(\".input-mini\").prop(\"value\"))'>Go</button></td>";
 
 	//add a button to change the whether the person should attend
-	if($shouldAttend=="1")
-		$eventRow.="
-		<td align='center' id='$attendsID_should_toggle' class='data'><button type='button' class='btn' onclick='setShouldAttendEvent(\"$eventNo\",\"$memberID\",\"0\")'>Shouldn't</button></td>";
-	else
-		$eventRow.="
-		<td align='center' id='$attendsID__should_toggle' class='data'><button type='button' class='btn' onclick='setShouldAttendEvent(\"$eventNo\",\"$memberID\",\"1\")'>Should</button></td>";
+	$eventRow .= "<td align='center' class='data'><input type='checkbox' onclick='setShouldAttendEvent(\"$eventNo\", \"$memberID\", " . (($shouldAttend + 1) % 2) . ")'" . ($shouldAttend ? ' checked' : '') . "></td>";
 
 	//add a button to change whether the person did attend
-	if($didAttend=="1")
-		$eventRow.="
-		<td align='center' id='$attendsID_did_toggle' class='data'><button type='button' class='btn' onclick='setDidAttendEvent(\"$eventNo\",\"$memberID\",\"0\")'>Wasn't there</button></td>";
-	else
-		$eventRow.="
-		<td align='center' id='$attendsID_did_toggle' class='data'><button type='button' class='btn' onclick='setDidAttendEvent(\"$eventNo\",\"$memberID\",\"1\")'>Was there</button></td>";		
+	$eventRow .= "<td align='center' class='data'><input type='checkbox' onclick='setDidAttendEvent(\"$eventNo\", \"$memberID\", " . (($didAttend + 1) % 2) . ")'" . ($didAttend ? ' checked' : '') . "></td>";
+
+	//confirmed
+	$eventRow .= "<td align='center' class='data'><input type='checkbox' onclick='setConfirmed(\"$eventNo\", \"$memberID\", " . (($confirmed + 1) % 2) . ")'" . ($confirmed ? ' checked' : '') . "></td>";
 
 	return $eventRow;
 }
@@ -860,7 +782,7 @@ function repertoire_delfile($id)
 	$query = "select `storage` from `mediaType` where `typeid` = '$type'";
 	$result = mysql_fetch_array(mysql_query($query));
 	if ($result[0] != 'local');
-	if (! preg_match('/^' . $musicdir . '/', $file) || preg_match('/\/\.\./', $file));
+	if (! preg_match('/^' . $musicdir . '/', $file) || preg_match('/\/\.\./', $file)); // FIXME
 	unlink($docroot . $file);
 	return true;
 }

@@ -8,6 +8,7 @@ $userEmail = $_COOKIE['email'];
 
 function eventEmail($eventNo,$type)
 {
+	GLOBAL $BASEURL;
 	$sql = "select * from eventType where typeNo='$type'";
 	$eventType  =  mysql_fetch_array(mysql_query($sql));
 	$typeName = $eventType['typeName'];
@@ -69,10 +70,10 @@ function eventEmail($eventNo,$type)
 // Add to event, and everyone's attending
 function createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, $gigcount, $allattend)
 {
-	if (! mysql_query("insert into event (name, callTime, releaseTime, points, comments, type, location, semester, gigcount) values ('$name', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount')")) die("-7");
+	if (! mysql_query("insert into event (name, callTime, releaseTime, points, comments, type, location, semester, gigcount) values ('$name', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount')")) die("Failed to create event");
 	$eventNo = mysql_insert_id();
 
-	if ($allattend) if (! mysql_query("INSERT INTO `attends` (`memberID`, `eventNo`) select `email`, '$eventNo' from `member` where `member`.`confirmed` = '1'")) die("-8");
+	if ($allattend) if (! mysql_query("INSERT INTO `attends` (`memberID`, `eventNo`) select `email`, '$eventNo' from `member` where `member`.`confirmed` = '1'")) die("Failed to insert attends relations for event");
 	return $eventNo;
 }
 
@@ -82,7 +83,7 @@ function createGig($name, $tutti, $call, $perform, $done, $location, $points, $s
 	$eventNo = createEvent($name, ($tutti ? 4 : 3), $call, $done, $location, $points, $sem, $comments, $gigcount, 1);
 	$publicval = $public ? 1 : 0;
 
-	if (! mysql_query("insert into `gig` (eventNo, performanceTime, uniform, cname, cemail, cphone, price, public, summary, description) values ('$eventNo', '$perform', '$uniform', '$cname', '$cemail', '$cphone', '$price', '$publicval', '$summary', '$description')")) die("-5");
+	if (! mysql_query("insert into `gig` (eventNo, performanceTime, uniform, cname, cemail, cphone, price, public, summary, description) values ('$eventNo', '$perform', '$uniform', '$cname', '$cemail', '$cphone', '$price', '$publicval', '$summary', '$description')")) die("Failed to create gig");
 	return $eventNo;
 }
 
@@ -97,7 +98,7 @@ function createRehearsal($name, $call, $done, $location, $points, $sem, $comment
 	$sectname = $row['typeName'];
 	$sql = "select `email` from `member` where `section` = '$sectname'";
 	$result = mysql_query($sql);
-	while ($row = mysql_fetch_array($result)) if (! mysql_query("INSERT INTO `attends` (`memberID`, `eventNo`) values ('" . $row['email'] . "', $eventNo)")) die("-10");
+	while ($row = mysql_fetch_array($result)) if (! mysql_query("INSERT INTO `attends` (`memberID`, `eventNo`) values ('" . $row['email'] . "', $eventNo)")) die("Failed to create attends relations for rehearsal");
 	return $eventNo;
 }
 
@@ -106,29 +107,29 @@ $eventNo = -1;
 $type = $_POST['type'];
 $repeat = $_POST['repeat'];
 
-if (! valid_date($_POST['calldate'])) die("-13");
-if (! valid_date($_POST['donedate'])) die("-14");
-if (! valid_time($_POST['calltime'])) die("-15");
-if (! valid_time($_POST['donetime'])) die("-11");
+if (! valid_date($_POST['calldate'])) die("Bad call date");
+if (! valid_date($_POST['donedate'])) die("Bad end date");
+if (! valid_time($_POST['calltime'])) die("Bad call time");
+if (! valid_time($_POST['donetime'])) die("Bad end time");
 
 $unixcall = strtotime($_POST['calltime'] . ' ' . $_POST['calldate']);
 $call = date('Y-m-d H:i:s', $unixcall);
 $unixdone = strtotime($_POST['donetime'] . ' ' . $_POST['donedate']);
 $done = date('Y-m-d H:i:s', $unixdone);
-if ($unixdone <= $unixcall) die("-12");
+if ($unixdone <= $unixcall) die("Event ends before it begins");
 
 if ($type == 0 || $type == 1 || $type == 2)
 {
 	if ($repeat != '' && $repeat != 'no')
 	{
-		if (! valid_date($_POST['until'])) die("-2");
+		if (! valid_date($_POST['until'])) die("Bad repeat-until date");
 		$dur = $unixdone - $unixcall;
 		if ($repeat == "daily") $interval = '+1 day';
 		else if ($repeat == "weekly") $interval = '+1 week';
 		else if ($repeat == "biweekly") $interval = '+2 weeks';
 		else if ($repeat == "monthly") $interval = '+1 month';
 		else if ($repeat == "yearly") $interval = '+1 year';
-		else die("-4");
+		else die("Bad repeat mode");
 		$end = strtotime('11:59 PM ' . $_POST['until']);
 		$cur = $unixcall;
 		while ($cur < $end)
@@ -146,15 +147,15 @@ if ($type == 0 || $type == 1 || $type == 2)
 }
 else if ($type == 3 || $type == 4)
 {
-	if (! valid_time($_POST['perftime'])) die("-9");
+	if (! valid_time($_POST['perftime'])) die("Bad performance time");
 	$unixperform = strtotime($_POST['perftime'] . ' ' . $_POST['calldate']);
 	$perform = date('Y-m-d H:i:s', $unixperform);
-	if ($unixperform < $unixcall || $unixperform > $unixdone) die("-6");
+	if ($unixperform < $unixcall || $unixperform > $unixdone) die("Performance time not between start and end");
 	$eventNo = createGig($_POST['name'], ($type == 4 ? true : false), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']), isset($_POST['public']), $_POST['summary'], $_POST['description']);
 }
-else die("-3");
+else die("Bad event type");
 
-if ($eventNo < 0) die("$eventNo");
+if ($eventNo < 0) die("Error $eventNo");
 if (($type == 3 || $type == 4) && $unixcall > strtotime('now')) eventEmail($eventNo, $type);
 echo "$eventNo";
 ?>
