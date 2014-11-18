@@ -1052,12 +1052,12 @@ function addLateFee()
 
 function setGigCheck(value)
 {
-	$.post('php/rosterAction.php', { action : 'gigcheck', value : (value == 'checked' ? 1 : 0) }, function(data) { if (data != 'OK') alert('Error:  ' + data); else roster(); });
+	$.post('php/rosterAction.php', { action : 'gigcheck', value : (value == 'checked' ? 1 : 0) }, function(data) { if (data != 'OK\n') alert('Error:  ' + data); else roster(); });
 }
 
 function setGigReq(value)
 {
-	$.post('php/rosterAction.php', { action : 'gigreq', value : value }, function(data) { if (data != 'OK') alert('Error:  ' + data); else roster(); });
+	$.post('php/rosterAction.php', { action : 'gigreq', value : value }, function(data) { if (data != 'OK\n') alert('Error:  ' + data); else roster(); });
 }
 
 function requestNotificationsPermission()

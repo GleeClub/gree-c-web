@@ -18,7 +18,7 @@ $memberID = $_POST['email'];
 $action = $_POST['action'];
 $value = mysql_real_escape_string($_POST['value']);
 $position = positionFromEmail($userEmail);
-if ($position != "President" && $position != "VP")
+if ($position != "Section Leader" && ! isOfficer($userEmail))
 {
 	if ($userEmail != $memberID) die("Access denied");
 	$event = mysql_fetch_array(mysql_query("select * from `event` where `eventNo` = '$eventNo'"));

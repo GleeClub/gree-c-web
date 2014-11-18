@@ -508,6 +508,7 @@ function attendance($memberID, $mode)
 		</thead>';
 	}
 	$score = 100;
+	$lastRehearsal = 0;
 	//make sure the member has some attends relationships
 	if(mysql_num_rows($attendses) == 0)
 	{
@@ -527,16 +528,19 @@ function attendance($memberID, $mode)
 		$time = $attends['time'];
 		$attendsID = "attends_".$memberID."_$eventNo";
 
-		//the point change
+		if ($type == "Rehearsal" && $didAttend == 1) $lastRehearsal = $time;
 		$pointChange = 0;
 		if($didAttend == '1')
 		{
-			if(($type=="Volunteer Gig" || ($type=="Sectional" && $shouldAttend=='0')) && $score < 100)
+			// Get back points for volunteer gigs and missed sectionals and extra sectionals
+			if(($type == "Volunteer Gig" || ($type == "Sectional" && $shouldAttend == '0')) && $score < 100)
 			{
 				if ($score + $points > 100) $pointChange += 100 - $score;
 				else $pointChange += $points;
-				$score += $points;
 			}
+			// If you haven't been to rehearsal in seven days, you can't get points for a volunteer gig
+			if (($type == "Volunteer Gig" || $type == "Tutti Gig") && $lastRehearsal != 0 && $lastRehearsal < $time - 604800) $pointChange = 0;
+			// Lose points equal to the percentage of the event missed, if they should attend
 			if ($minutesLate > 0 && $shouldAttend == '1')
 			{
 				if ($type == "Rehearsal") $delta = floatval($minutesLate) / 11.0;
@@ -551,17 +555,14 @@ function attendance($memberID, $mode)
 					else if ($type == "Tutti Gig") $delta *= 35.0;
 				}
 				$delta = round($delta, 2);
-				$score -= $delta;
 				$pointChange -= $delta;
 			}
 		}
-		else if ($shouldAttend=='1')
-		{
-			$score -= $points;
-			$pointChange -= $points;
-		}
+		// Lose the full point value if did not attend
+		else if ($shouldAttend == '1') $pointChange -= $points;
+		$score += $pointChange;
+		// Prevent the score from ever rising above 100
 		if ($score > 100) $score = 100;
-		//if ($score < 0) $score = 0;
 
 		if ($mode == 1)
 		{
@@ -569,19 +570,15 @@ function attendance($memberID, $mode)
 			$date = date("D, M j, Y",intval($time));
 			$eventRows .= "<tr id='$attendsID'><td class='data'>$eventName</td><td class='data'>$date</td><td align='left' class='data'>$type</td>";
 			
-			if ($shouldAttend == "1") $eventRows.="<td align='left' class='data'><input type='checkbox' class='attendbutton' data-mode='should' data-event='$eventNo' data-member='$memberID' data-val='0' checked></td>"; // eventNo, memberID, 0 1 0 1
-			else $eventRows .= "<td align='left' class='data'><input type='checkbox' class='attendbutton' data-mode='should' data-event='$eventNo' data-member='$memberID' data-val='1'></td>";
+			if ($shouldAttend) $checked = 'checked';
+			else $checked = '';
+			$newval = ($shouldAttend + 1) % 2;
+			$eventRows .= "<td align='left' class='data'><input type='checkbox' class='attendbutton' data-mode='should' data-event='$eventNo' data-member='$memberID' data-val='$newval' $checked></td>";
 			
-			if ($didAttend == "1") $eventRows .= "<td align='left' class='data'><input type='checkbox' class='attendbutton' data-mode='did' data-event='$eventNo' data-member='$memberID' data-val='0' checked></td>";
-			else $eventRows .= "<td align='left' class='data'><input type='checkbox' class='attendbutton' data-mode='did' data-event='$eventNo' data-member='$memberID' data-val='1'></td>";
-
-			//should the person have attended
-			//if($shouldAttend == "1") $eventRows .= "<td id='$attendsID_should' align='left' class='data'>Yes</td>";
-			//else $eventRows .= "<td id='$attendsID_should' align='left' class='data'>No</td>";
-
-			//did the person attend
-			//if($didAttend == "1") $eventRows .= "<td id='$attendsID_did' align='left' class='data'>Yes</td>";
-			//else $eventRows .= "<td id='$attendsID_did' align='left' class='data'>No</td>";
+			if ($didAttend) $checked = 'checked';
+			else $checked = '';
+			$newval = ($didAttend + 1) % 2;
+			$eventRows .= "<td align='left' class='data'><input type='checkbox' class='attendbutton' data-mode='did' data-event='$eventNo' data-member='$memberID' data-val='$newval' $checked></td>";
 
 			$eventRows .= "<td align='left'><input name='attendance-late' type='text' style='width:40px' value='$minutesLate'><button type='button' class='btn attendbutton' style='margin-top: -8px' data-mode='late' data-event='$eventNo' data-member='$memberID'>Go</button></td>";
 
@@ -607,11 +604,14 @@ function attendance($memberID, $mode)
 	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
 	if ($result['gigCheck'])
 	{
+		// Multiply the top half of the score by the fraction of volunteer gigs attended, if enabled
 		$query = mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`");
 		$gigcount = mysql_num_rows($query);
 		$score *= 0.5 + floatval($gigcount) * 0.5 / $GIG_REQ;
 	}
+	// Bound the final score between 0 and 100
 	if ($score > 100) $score = 100;
+	if ($score < 0) $score = 0;
 	$score = round($score, 2);
 	if ($mode == 0) return $score;
 	else return $tableOpen . $eventRows . $tableClose;
@@ -657,7 +657,7 @@ function rosterProp($member, $prop)
 		case "Grade":
 			$grade = attendance($member["email"], 0);
 			$html .= "<span class='gradecell'";
-			if ($member["registration"] == 1 && $grade < 60) $html .= " style=\"color: red\"";
+			if ($member["registration"] == 1 && $grade < 80) $html .= " style=\"color: red\"";
 			$html .= ">$grade</span>";
 			break;
 		case "Tie":

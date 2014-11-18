@@ -43,25 +43,18 @@
 require_once('./functions.php');
 mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect: ".mysql_error()); 
 mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
+$userEmail = $_COOKIE['email'];
+$eventNo = $_POST['eventNo'];
+if (! isOfficer($userEmail) && positionFromEmail($userEmail) != "Section Leader") die("Access denied");
+if (! isset($eventNo)) die("Missing event number");
 
-if(isset($_COOKIE['email']))
-{
-	$userEmail = $_COOKIE['email'];
+$sql = "select `name` from `event` where `eventNo` = '$eventNo'";
+$event = mysql_fetch_array(mysql_query($sql));
+$name = $event['name'];
 
-	if(isset($_POST['eventNo']) && isOfficer($userEmail))
-	{
-		$eventNo = $_POST['eventNo'];
-
-		$sql = "select `name` from `event` where `eventNo` = '$eventNo'";
-		$event = mysql_fetch_array(mysql_query($sql));
-		$name = $event['name'];
-		
-		$html ="<div class='pull-right'><button class='btn' onclick='excuseall($eventNo)'>Excuse All</button></div>
-		<p style='text-align: center; font-weight: bold;'>$name Attendance</p> 
-		<p id='attendanceList'><table id='$eventNo"."_table'>" . getEventAttendanceRows($eventNo) . "</table></p>";
-	}
-}
-else $html = "<(><)> Something went wrong <(><)>";
+$html ="<div class='pull-right'><button class='btn' onclick='excuseall($eventNo)'>Excuse All</button></div>
+<p style='text-align: center; font-weight: bold;'>$name Attendance</p> 
+<p id='attendanceList'><table id='$eventNo"."_table'>" . getEventAttendanceRows($eventNo) . "</table></p>";
 
 echo $html;
 ?>
