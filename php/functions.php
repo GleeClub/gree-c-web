@@ -607,7 +607,7 @@ function attendance($memberID, $mode)
 		// Multiply the top half of the score by the fraction of volunteer gigs attended, if enabled
 		$query = mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`");
 		$gigcount = mysql_num_rows($query);
-		$score *= 0.5 + floatval($gigcount) * 0.5 / $GIG_REQ;
+		$score *= 0.5 + min(floatval($gigcount) * 0.5 / $GIG_REQ, 0.5);
 	}
 	// Bound the final score between 0 and 100
 	if ($score > 100) $score = 100;

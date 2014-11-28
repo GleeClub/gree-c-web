@@ -75,7 +75,7 @@ while($row = mysql_fetch_array($events, MYSQL_ASSOC))
 	<tr class="event" id="'.$eventDetails['eventNo'].'">
 		<td style="">'.labelArea($eventDetails['type']).'</td>
 		<td>'.$eventDetails['name'].'</td>
-		<td style="">'.date("D, M d", strtotime($eventDetails["callTime"])).'</td>
+		<td style="min-width: 8em">'.date("D, M d", strtotime($eventDetails["callTime"])).'</td>
 		<td style="">'.((strtotime($eventDetails['callTime']) > time() ) ? buttonArea($row['eventNo'], $eventDetails['type']) : '<span class="label label-inverse">This event is over</span>').'</td>
 	</tr>';
 }

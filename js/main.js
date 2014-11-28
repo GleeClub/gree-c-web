@@ -518,7 +518,8 @@ function loadDetails(id){
 			if (data == "NULL") return;
 			$("#eventDetails").html(data);
 			$("#requestAbsenceButton").click(function(){
-				requestAbsence($("#requestAbsenceButton").attr("value"));
+				//requestAbsence($("#requestAbsenceButton").attr("value"));
+				requestAbsence(id);
 			});
 			$("#attendingButton").click(function(){
 				seeWhosAttending();
@@ -1199,7 +1200,8 @@ function submitAbsenceRequest(eventID){
 			//if they didn't specify a reason, give them a chance to try again
 			if($("#retryAbsenceButton").length>0){
 				$("#retryAbsenceButton").click(function(){
-					requestAbsence($("#retryAbsenceButton").attr("value"));
+					//requestAbsence($("#retryAbsenceButton").attr("value"));
+					requestAbsence(eventID);
 				});
 			}
 		});
@@ -1706,7 +1708,7 @@ function editEvent(id, element, mode)
 				submit = 'php/doEditDetails.php';
 				details.push({ name : 'id', value : id });
 			}
-			$.post(submit, details, function(data) { if (data.match(/^\d+\n$/)) loadDetails(id); else alert(data); });
+			$.post(submit, details, function(data) { if (data.match(/^\d+\n$/)) loadDetails(id); else alert("Event " + data + " created successfully."); });
 		});
 		$('#event_delete').on('click', function() {
 			if (confirm("Really delete this event?")) $.post('php/doRemoveEvent.php', { eventNo: id }, function(data) { $(element).html("Event deleted."); });

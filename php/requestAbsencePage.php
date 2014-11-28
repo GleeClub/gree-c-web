@@ -13,7 +13,7 @@ if(isset($_POST['eventNo'])){
 	$eventName = $event["name"];
 
 	//make a drop down of possible replacements
-	$sql = "SELECT * FROM `member`;";
+	$sql = "SELECT * FROM `member`";
 	$result= mysql_query($sql);
 	$dropdown="<select id='replacement'><option value='' id='null'>nobody :(</option>";
 	while($row = mysql_fetch_array($result)){
@@ -23,8 +23,7 @@ if(isset($_POST['eventNo'])){
 	$dropdown=$dropdown."</select>";
 
 
-	echo"
-		<div id='absenceRequestTable'>
+	echo "<div id='absenceRequestTable'>
 			<table>
 				<tr>
 					<td align='center' colspan='2'>Request Absence for ".$eventName."</td>
@@ -42,11 +41,8 @@ if(isset($_POST['eventNo'])){
 					<td><button type='button' id='submitAbsenceRequest'>beg for mercy</button></td>
 				</tr>
 			</table>
-		</div>
-	";
+		</div>";
 
 }
-else{
-	echo "It didn't work. :(";
-}
+else echo "It didn't work. :(";
 ?>

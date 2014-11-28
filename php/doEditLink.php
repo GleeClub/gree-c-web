@@ -39,7 +39,7 @@ else if ($action == "upload")
 	$name = $file['name'];
 	if ($name == '' || preg_match('/[^a-zA-Z0-9_., -]/', $name) || preg_match('/^\./', $name)) die("BAD_FNAME");
 	if (! move_uploaded_file($file['tmp_name'], $docroot . $musicdir . '/' . $name)) die("BAD_UPLOAD");
-	$query = "update `songLink` set `target` = '$musicdir/$name' where `id` = '$id'";
+	$query = "update `songLink` set `target` = '$name' where `id` = '$id'";
 	if (mysql_query($query)) echo "OK $musicdir/$name";
 	else die("FAIL");
 }
@@ -67,7 +67,7 @@ else if ($action == "update")
 	else if ($storage == 'remote')
 	{
 		if (! preg_match('/^http:\/\//', $target)) $target = 'http://$target';
-		if (! checklink($target)) die("BAD_LINK");
+		//if (! checklink($target)) die("BAD_LINK");
 	}
 	$query = "update `songLink` set `name` = '$name'" . ($storage == 'remote' ? ", `target` = '$target'" : "") . " where `id` = '$id'";
 	if (mysql_query($query)) echo "OK";
