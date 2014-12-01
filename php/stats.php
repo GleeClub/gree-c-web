@@ -57,12 +57,10 @@ function attendanceHistory($userEmail)
 	return '<h2>Attendance History</h2><h3>Score: '. attendance($userEmail, 0) . '</h3>' . attendance($userEmail, 2);
 }
 
-function gigReq($userEmail)
+function gigBlock($userEmail)
 {
 	global $CUR_SEM, $GIG_REQ;
-	//$sql = "select count(event.eventNo) as count from attends,event,eventType where memberID='$userEmail' and event.eventNo=attends.eventNo and event.gigCount = 1 and type=typeNo and typeName='Volunteer Gig' and didAttend='1' and semester='$CUR_SEM'";
-	$sql = "select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $userEmail . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`";
-	$count = mysql_num_rows(mysql_query($sql));
+	$count = gigreq($userEmail);
 	if ($count < $GIG_REQ) $precentProgress = floor(100 * $count / $GIG_REQ);
 	else $precentProgress = 100;
 
@@ -75,7 +73,7 @@ function gigReq($userEmail)
 
 function info($userEmail)
 {
-	global $CUR_SEM;
+	global $CUR_SEM, $DEPOSIT;
 	$html = "";
 	$sql = "select sum(`amount`) as `balance` from `transaction` where `memberID` = '$userEmail' and `type` = 'dues' and `semester` = '$CUR_SEM'";
 	$result = mysql_fetch_array(mysql_query($sql));
@@ -134,7 +132,7 @@ function announcements($userEmail)
 echo "<div class='block span5' id='attendanceHistory'>";
 echo attendanceHistory($userEmail);
 echo "</div><div class='span6 block' style='float:right'>";
-echo gigReq($userEmail, $semester);
+echo gigBlock($userEmail);
 echo info($userEmail);
 echo "</div><div class='span6 block' style='float:right'>";
 echo announcements($userEmail);

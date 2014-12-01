@@ -231,26 +231,10 @@ function getEventName($eventNo){
 }
 
 function getEventTypeLabelClass($number){
-	if($number == '1'){
-		//rehearsal
-		$class = 'label-info';
-		return $class;
-	}
-	if($number == '2'){
-		//sectional
-		$class = 'label-success';
-		return $class;
-	}
-	if($number == '3'){
-		//tutti
-		$class = 'label-warning';
-		return $class;
-	}
-	if($number == '4'){
-		//volunteer
-		$class = 'label-important';
-		return $class;
-	}
+	if($number == '1') return 'label-info';
+	if($number == '2') return 'label-success';
+	if($number == '3') return 'label-warning';
+	if($number == '4') return 'label-important';
 }
 
 function labelArea($type){
@@ -265,29 +249,33 @@ function buttonArea($eventNo, $typeNumber)
 	$soon = 0;
 	if (strtotime($results['callTime']) < time() + 86400) $soon = 1;
 	
-	$sql = "SELECT * FROM `attends` WHERE eventNo=$eventNo AND memberID='".$_COOKIE['email']."';";
-	$results = mysql_fetch_array(mysql_query($sql));
-	if($results['confirmed'] == '0')
+	$sql = mysql_query("SELECT * FROM `attends` WHERE eventNo=$eventNo AND memberID='".$_COOKIE['email']."';");
+	if (mysql_num_rows($sql) == 0) $html = "<span class='label'>Not attending</span>";
+	else
 	{
-		if($typeNumber == '3')
+		$results = mysql_fetch_array($sql);
+		if ($results['shouldAttend'] == '0')
 		{
-			//not confirmed volunteer gig
-			if ($soon) $html = "<span class='label'>Attending</span>"; //'<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
-			else $html = '<div class="btn btn-primary btn-confirm" style="width:90%;">I will attend</div> <div class="btn btn-warning btn-deny" style="width:90%;">I won\'t attend</div>';
+			$html = "<span class='label'>Not attending</span>";
 		}
 		else
 		{
-			//not confirmed, not volunteer gig
-			$html = '<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
+			if ($results['confirmed'] == '0')
+			{
+				if ($typeNumber == '3')
+				{
+					//not confirmed volunteer gig
+					if ($soon) $html = "<span class='label'>Attending</span>"; //'<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
+					else $html = '<div class="btn btn-primary btn-confirm" style="width:90%;">I will attend</div> <div class="btn btn-warning btn-deny" style="width:90%;">I won\'t attend</div>';
+				}
+				else
+				{
+					//not confirmed, not volunteer gig
+					$html = '<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
+				}
+			}
+			else $html = '<span class="label">Attending</span>';
 		}
-	}
-	else
-	{
-		//not confirmed
-		$html = (($results['shouldAttend'] == '1') ? "<span class='label'>Attending</span>" : '<span class="label">Not attending</span>');
-
-		//if it s a volunteer gig, give them the opportunity to change their choice later
-		//if($typeNumber == '3' && ! $soon) $html .="<div><br><div class='btn btn-toggle'>I changed my mind</div></div>";
 	}
 	return $html;
 }
@@ -381,7 +369,6 @@ function sendMessageEmail($to, $from, $message, $subjectField = "New Absence Req
 	<body>
 		<div class="container">
 			<p class="message">'.$message.'</p>
-			<p style="float:right;">-'.$from.'</p>
 		</div>
 	</body>
 	</html>
@@ -495,6 +482,7 @@ function attendance($memberID, $mode)
 			<th>Did Attend</th>
 			<th>Minutes Late</th>
 			<th>Point Change</th>
+			<th>Partial Grade</th>
 		</thead>';
 	}
 	else if ($mode == 2)
@@ -585,8 +573,11 @@ function attendance($memberID, $mode)
 			//make the point change red if it is negative
 			if ($pointChange > 0) $eventRows .= "<td align='left' class='data' style='color: green'>+$pointChange</td>";
 			else if ($pointChange < 0) $eventRows .= "<td align='left'  class='data' style='color: red'>$pointChange</td>";
-			else $eventRows .= "<td align='left'  class='data'>$pointChange</td>";
-			
+			else $eventRows .= "<td align='left' class='data'>$pointChange</td>";
+
+			if ($pointChange != 0) $eventRows .= "<td align='left' class='data'>$score</td>";
+			else $eventRows .= "<td align='left' class='data'> </td>";
+
 			$eventRows .= "</tr>";
 		}
 		else if ($mode == 2)
@@ -597,7 +588,7 @@ function attendance($memberID, $mode)
 			$eventRows .= "</td><td>";
 			if ($didAttend == "1") $eventRows .= "<i class='icon-ok'></i>";
 			else $eventRows .= "<i class='icon-remove'></i>";
-			$shouldAttend = ($row["shouldAttend"] == "0" ? "<i class='icon-remove'></i>" : "<i class='icon-ok'></i>");
+			$shouldAttend = ($shouldAttend == "0" ? "<i class='icon-remove'></i>" : "<i class='icon-ok'></i>");
 			$eventRows .= "<td>$pointChange</td></tr>";
 		}
 	}
@@ -615,6 +606,14 @@ function attendance($memberID, $mode)
 	$score = round($score, 2);
 	if ($mode == 0) return $score;
 	else return $tableOpen . $eventRows . $tableClose;
+}
+
+function gigreq($memberID)
+{
+	global $CUR_SEM;
+	$query = mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`");
+	$gigs = mysql_num_rows($query);
+	return $gigs;
 }
 
 function rosterProp($member, $prop)
@@ -648,8 +647,7 @@ function rosterProp($member, $prop)
 			else $html .= "<span class='duescell' style='color: red'>$balance</span>";
 			break;
 		case "Gigs":
-			$query = mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $member['email'] . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`");
-			$gigcount = mysql_num_rows($query);
+			$gigcount = gigreq($member["email"]);
 			if ($gigcount >= $GIG_REQ) $html .= "<span class='gigscell' style='color: green'>";
 			else $html .= "<span class='gigscell' style='color: red'>";
 			$html .= "$gigcount</span>";
