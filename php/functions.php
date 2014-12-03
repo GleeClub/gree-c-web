@@ -537,6 +537,7 @@ function attendance($memberID, $mode)
 				// Check gig count
 				if ($lastRehearsal == 0 && $lastRehearsal < $time - $WEEK) $gigcount += 1;
 			}*/
+			if ($type == "Volunteer Gig") $gigcount += 1;
 			// Lose points equal to the percentage of the event missed, if they should attend
 			if ($minutesLate > 0 && $shouldAttend == '1')
 			{
@@ -621,7 +622,7 @@ function attendance($memberID, $mode)
 function gigreq($memberID)
 {
 	global $CUR_SEM;
-	//return mysql_num_rows(mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`"));
+	return mysql_num_rows(mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`"));
 
 	$gigs = mysql_num_rows($query);
 	return $gigs;
