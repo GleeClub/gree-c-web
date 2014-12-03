@@ -465,7 +465,9 @@ function attendance($memberID, $mode)
 	// 0 for grade
 	// 1 for officer table
 	// 2 for member table
+	// 3 for gig count
 	global $CUR_SEM, $GIG_REQ;
+	$WEEK = 604800;
 	$sql = "select attends.eventNo,shouldAttend,didAttend,minutesLate,confirmed,UNIX_TIMESTAMP(callTime) as time,name,typeName,points from attends,event,eventType where attends.memberID='$memberID' and event.eventNo=attends.eventNo and callTime<=current_timestamp and event.type=eventType.typeNo and `event`.`semester`='".getCurrentSemester()."' order by callTime asc";
 	$attendses = mysql_query($sql);
 
@@ -496,11 +498,13 @@ function attendance($memberID, $mode)
 		</thead>';
 	}
 	$score = 100;
+	$gigcount = 0;
 	$lastRehearsal = 0;
 	//make sure the member has some attends relationships
 	if(mysql_num_rows($attendses) == 0)
 	{
 		if ($mode == 0) return $score;
+		else if ($mode == 3) return $gigcount;
 		else return $tableOpen . $eventRows . $tableClose;
 	}
 	while($attends = mysql_fetch_array($attendses))
@@ -516,7 +520,7 @@ function attendance($memberID, $mode)
 		$time = $attends['time'];
 		$attendsID = "attends_".$memberID."_$eventNo";
 
-		if ($type == "Rehearsal" && $didAttend == 1) $lastRehearsal = $time;
+		if ($type == "Rehearsal" && ($didAttend == 1 || $shouldAttend == 0)) $lastRehearsal = $time;
 		$pointChange = 0;
 		if($didAttend == '1')
 		{
@@ -527,7 +531,12 @@ function attendance($memberID, $mode)
 				else $pointChange += $points;
 			}
 			// If you haven't been to rehearsal in seven days, you can't get points for a volunteer gig
-			if (($type == "Volunteer Gig" || $type == "Tutti Gig") && $lastRehearsal != 0 && $lastRehearsal < $time - 604800) $pointChange = 0;
+			/*if (($type == "Volunteer Gig" || $type == "Tutti Gig") && $lastRehearsal != 0 && $lastRehearsal < $time - $WEEK) $pointChange = 0; // TODO Only prevent points if there has been a rehearsal in the last 7 days
+			if ($type == "Volunteer Gig")
+			{
+				// Check gig count
+				if ($lastRehearsal == 0 && $lastRehearsal < $time - $WEEK) $gigcount += 1;
+			}*/
 			// Lose points equal to the percentage of the event missed, if they should attend
 			if ($minutesLate > 0 && $shouldAttend == '1')
 			{
@@ -592,12 +601,13 @@ function attendance($memberID, $mode)
 			$eventRows .= "<td>$pointChange</td></tr>";
 		}
 	}
+	if ($mode == 3) return $gigcount;
 	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
 	if ($result['gigCheck'])
 	{
 		// Multiply the top half of the score by the fraction of volunteer gigs attended, if enabled
-		$query = mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`");
-		$gigcount = mysql_num_rows($query);
+		//$query = mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`");
+		//$gigcount = mysql_num_rows($query);
 		$score *= 0.5 + min(floatval($gigcount) * 0.5 / $GIG_REQ, 0.5);
 	}
 	// Bound the final score between 0 and 100
@@ -611,7 +621,8 @@ function attendance($memberID, $mode)
 function gigreq($memberID)
 {
 	global $CUR_SEM;
-	$query = mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`");
+	//return mysql_num_rows(mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`"));
+
 	$gigs = mysql_num_rows($query);
 	return $gigs;
 }
