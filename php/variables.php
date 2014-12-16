@@ -1,6 +1,6 @@
 <?php
 
-$SQLcurrentDatabase = 'test';
+$SQLcurrentDatabase = 'mensgleeclub';
 $SQLusername = 'chris';
 $SQLpassword = 'testing';
 $SQLhost="mysql.localhost"; // Host name
