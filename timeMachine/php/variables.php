@@ -3,7 +3,7 @@
 $SQLcurrentDatabase = 'test';
 $SQLusername = 'chris';
 $SQLpassword = 'testing';
-$SQLhost="web-db3.gatech.edu"; // Host name
+$SQLhost="mysql.localhost"; // Host name
 
 //get variables stored in the database (stuff that changes, like the current semester)
 mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect"); 
