@@ -3,7 +3,7 @@
 $SQLcurrentDatabase = 'test';
 $SQLusername = 'chris';
 $SQLpassword = 'testing';
-$SQLhost="web-db3.gatech.edu"; // Host name
+$SQLhost="mysql.localhost"; // Host name
 
 $docroot = "/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs";
 $musicdir = "/music";

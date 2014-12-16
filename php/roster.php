@@ -48,7 +48,7 @@ function member_table($conditions, $type = 'normal')
 	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
 	if ($officer)
 	{
-		$cols["Class"] = 40;
+		$cols["Enrollment"] = 40;
 	}
 	if ($role == "Treasurer" || $role == "VP" || $role == "President")
 	{
@@ -62,7 +62,7 @@ function member_table($conditions, $type = 'normal')
 		$showDetails = true;
 		$cols["Tie"] = 40;
 		$cols["Gigs"] = 40;
-		$cols["Grade"] = 60;
+		$cols["Score"] = 60;
 	}
 	if ($type == 'print')
 	{

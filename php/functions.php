@@ -643,7 +643,7 @@ function rosterProp($member, $prop)
 		case "Location":
 			$html .= $member["location"];
 			break;
-		case "Class":
+		case "Enrollment":
 			$html .= ($member["registration"] == 1) ? "<span style=\"color: blue\">class</span>" : "club";
 			break;
 		case "Balance":
@@ -664,7 +664,7 @@ function rosterProp($member, $prop)
 			else $html .= "<span class='gigscell' style='color: red'>";
 			$html .= "$gigcount</span>";
 			break;
-		case "Grade":
+		case "Score":
 			$grade = attendance($member["email"], 0);
 			$html .= "<span class='gradecell'";
 			if ($member["registration"] == 1 && $grade < 80) $html .= " style=\"color: red\"";
