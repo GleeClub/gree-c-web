@@ -114,6 +114,7 @@ if (isgig($event))
 {
 	$html .= '<div id="attendingButton" class="btn event-btn">See Who\'s<br>Attending</div>';
 	$html .= '<div id="carpoolsButton" class="btn event-btn">View<br>Carpools</div>';
+	$html .= '<div id="setlistButton" class="btn event-btn">Set<br>List</div>';
 }
 if(isOfficer($userEmail) || (positionFromEmail($userEmail) == 'Section Leader' && getEventType($event['type']) == "Sectional"))
 {

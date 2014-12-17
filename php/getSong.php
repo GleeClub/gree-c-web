@@ -3,16 +3,15 @@ require_once('variables.php');
 require_once('functions.php');
 mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword") or die("cannot connect"); 
 mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
+mysql_set_charset("utf8");
 $id = mysql_real_escape_string($_POST['id']);
-if (! isset($_COOKIE['email']))
-{
-	echo "You must be logged in to view repertoire.";
-	exit(0);
-}
-$query = "select `title`, `info`, `current` from `song` where `id` = '$id'";
+if (! isset($_COOKIE['email'])) die("You must be logged in to view repertoire.");
+$query = "select * from `song` where `id` = '$id'";
 $result = mysql_fetch_array(mysql_query($query));
 $title = $result['title'];
 $desc = $result['info'];
+$key = $result['key'];
+$pitch = $result['pitch'];
 $current = $result['current'];
 $query = "select `id`, `type`, `name`, `target` from `songLink` where `song` = '$id'";
 $sql = mysql_query($query);
@@ -31,7 +30,10 @@ while ($result = mysql_fetch_array($sql))
 	$typenames[] = $result['name'];
 	$storage[] = $result['storage'];
 }
-echo "<h2><span id=song_title>$title</span> <span id=repertoire_header style='font-size: 10pt;' data-current='$current'></span></h2><div id=song_desc><pre>$desc</pre></div><br><br>";
+$keyvals='?,A♭,A,A♯,B♭,B,C,C♯,D♭,D,D♯,E♭,E,F,F♯,G♭,G,G♯';
+echo "<h2><span id=song_title>$title</span> <span id=repertoire_header style='font-size: 10pt;' data-current='$current'></span></h2><div id=song_desc><pre>$desc</pre></div><br>";
+echo "Key: <span id='song_key' data-vals='$keyvals'>$key</span><br>";
+echo "Starting pitch: <span id='song_pitch' data-vals='$keyvals'>$pitch</span><br><br>";
 $k = 0;
 for ($j = 0; $j < count($typeids); $j++)
 {

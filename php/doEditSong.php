@@ -3,10 +3,12 @@ require_once('variables.php');
 require_once('functions.php');
 mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword") or die("cannot connect"); 
 mysql_select_db("$SQLcurrentDatabase") or die("cannot select DB");
+mysql_set_charset("utf8");
 $id = mysql_real_escape_string($_POST['id']);
 $action = mysql_real_escape_string($_POST['action']);
 $title = mysql_real_escape_string($_POST['name']);
 $info = mysql_real_escape_string($_POST['desc']);
+$note = mysql_real_escape_string($_POST['note']);
 $current = mysql_real_escape_string($_POST['current']);
 if (! isset($_COOKIE['email']) || ! isOfficer($_COOKIE['email']))
 {
@@ -42,6 +44,18 @@ else if ($action == "update")
 else if ($action == "current")
 {
 	$query = "update `song` set `current` = '$current' where `id` = '$id'";
+	if (mysql_query($query)) echo "OK";
+	else echo "FAIL";
+}
+else if ($action == "key")
+{
+	$query = "update `song` set `key` = '$note' where `id` = '$id'";
+	if (mysql_query($query)) echo "OK";
+	else echo "FAIL";
+}
+else if ($action == "pitch")
+{
+	$query = "update `song` set `pitch` = '$note' where `id` = '$id'";
 	if (mysql_query($query)) echo "OK";
 	else echo "FAIL";
 }

@@ -15,8 +15,8 @@ echo "<img class='span5' style='border:1px solid #021a40; margin-right: 10px;' s
 
 echo "<p><b>" .completeNameFromEmail($person)."</b></p>";
 echo "<table>";
-echo "<tr><td style='color: grey'>Email:</td><td>$person</td></tr>";
-echo "<tr><td style='color: grey'>Phone:</td><td>".phoneNumber($person)."</td></tr>";
+echo "<tr><td style='color: grey'>Email:</td><td><a href='$person'>$person</a></td></tr>";
+echo "<tr><td style='color: grey'>Phone:</td><td><a href='tel:" . phoneNumber($person) . "'>" . phoneNumber($person) . "</a></td></tr>";
 echo "<tr><td style='color: grey'>Section:</td><td>".sectionFromEmail($person)."</td></tr>";
 echo "<tr><td style='color: grey'>Position:</td><td>".getMemberAttribute('position', $person)."</td></tr>";
 echo "<tr><td style='color: grey'>Major:</td><td>".getMemberAttribute('major', $person)."</td></tr>";

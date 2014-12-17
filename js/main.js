@@ -52,7 +52,7 @@ function typeaheadCallback(query, process) {
 		});
 }
 function typeaheadUpdater(item){
-	window.location.hash = "profile="+idArr[item];
+	window.location.hash = "profile:"+idArr[item];
 	return item;
 }
 
@@ -80,7 +80,6 @@ function checkHash() {
 		else if(document.cookie.indexOf("email") == -1) loadLogin();
 		else if(h == "messages") loadMessages();
 		else if(h.indexOf("message") == 0) loadMessage(parseInt(h.substring(h.indexOf("id=")+3), 10));
-		else if(h.indexOf("profile=") == 0) loadProfile(h.substring(8));
 		else if(h == "newMessage") newMessage();
 		else if(h == "stats" || h == '') loadStats();
 		else if(h == 'allEvents' || h == 'rehearsal' || h == 'sectional' || h == 'tutti' || h == 'volunteer') loadAllEvents(h);
@@ -110,6 +109,8 @@ function checkHash() {
 			var arg = h.substring(h.indexOf(':') + 1);
 			if (query == 'event') loadAllEvents('allEvents', arg);
 			else if (query == 'minutes') showMinutes(arg);
+			else if (query == 'profile') loadProfile(arg);
+			else if (query == 'song') showRepertoire(arg);
 			else $('#main').html("What's a " + query + "?");
 		}
 		else $('#main').html("I don't exist.");
@@ -530,6 +531,9 @@ function loadDetails(id){
 			$("#attendanceButton").click(function(){
 				//this one is defined in loadDetails.php, because it requires a parameter
 			});
+			$("#setlistButton").click(function(){
+				setlist(id);
+			});
 			$("#editButton").on('click', function(){
 				editDetails();
 			});
@@ -538,6 +542,71 @@ function loadDetails(id){
 			smoothScrollTo("eventDetails");
 		}
 	);
+}
+
+function setlist(id)
+{
+	function fixorder(table)
+	{
+		var i = 1;
+		table.children('tr').each(function() {
+			$(this).attr('id', 'song' + i);
+			$(this).children(':eq(1)').html(i);
+			i += 1;
+		});
+	}
+
+	function add_del_handler()
+	{
+		$('.set_del').click(function() {
+			var row = $(this).parent().parent();
+			$.post('php/doEditSetlist.php', { action : "remove", event : id, order : row.attr('id').replace('song', '') }, function(data) {
+				if (data != 'OK') alert('Error: ' + data);
+				row.remove();
+				fixorder($('#set_table tbody'));
+			});
+			return false;
+		});
+	}
+
+	$.post('php/setlist.php', { event : id }, function(data) {
+		$("#eventDetails").html(data);
+		$("#back").click(function() { loadDetails(id); });
+		var editing = 0;
+		$("#set_edit").click(function() {
+			if (editing == 0)
+			{
+				$('#set_edit').html("Done");
+				$('#helpnote').css('display', 'block');
+				$('#add_set_row').css('display', 'table-row');
+				$('.delcol').css('display', 'table-cell');
+				$('#set_table tbody').disableSelection().sortable({ update : function() {
+					$.post('php/doEditSetlist.php', { action : "arrange", event : id, order : $(this).sortable('toArray').toString().replace(/song/g, '') }, function(data) {
+						if (data != 'OK') alert('Error: ' + data);
+						fixorder($('#set_table tbody'));
+					});
+				} });
+				$('#set_add_button').click(function() {
+					$('#set_empty').css('display', 'none');
+					$.post('php/doEditSetlist.php', { action : "add", event : id, song : $('#set_new').children(':selected').prop('value') }, function(data) {
+						$('#add_set_row').before(data);
+						add_del_handler();
+					});
+				});
+				add_del_handler();
+				editing = 1;
+			}
+			else
+			{
+				$('#set_edit').html("Edit");
+				$('.delcol').css('display', 'none');
+				$('#add_set_row').css('display', 'none');
+				$('#helpnote').css('display', 'none');
+				$('#set_table tbody').enableSelection().sortable('disable');
+				editing = 0;
+			}
+		});
+	});
 }
 
 function loadForgotPassword() {
@@ -2087,7 +2156,266 @@ function showMinutes(id)
 	});
 }
 
-function showRepertoire()
+function loadSong(songid, isOfficer)
+{
+	$.post('php/getSong.php', { id : songid }, function(data)
+	{
+		smoothScrollTo('repertoire_main');
+		$('#repertoire_main').html(data);
+		if (isOfficer)
+		{
+			var edit = 0;
+			$('#repertoire_main').prepend("<div class=pull-right style=\"padding-left: 10px; padding-right: 10px\"><img id=\"spinner\" src=\"/images/loading.gif\" style=\"width: 28px; height:28px; margin-right: 10px; display:none;\"><button class=btn id=repertoire_edit>Edit</button></div>");
+			$('#repertoire_edit').click(function() {
+				if (edit == 0)
+				{
+					edit = 1;
+					$('#repertoire_edit').html("Done");
+					$('#repertoire_header').html("<a id=\"edit_song\"><i class=\"icon-pencil\"></i></a> <a id=\"delete_song\"><i class=\"icon-remove\"></i></a> <a id=\"current_song\">" + ($('#repertoire_header').data('current') == '0' ? "Add to this semester" : "Remove from this semester") + "</a>");
+					$('.rep_actions').html("<a class=\"rep_add\" style=\"margin-left: 10px;\"><i class=\"icon-plus\"></i></button>");
+					var key_dropdown = "<select class=\"keyselect\" style=\"width: 60px\">";
+					var keyarr = $('#song_key').data('vals').split(',');
+					for (var i = 0; i < keyarr.length; i++) key_dropdown += "<option value=\"" + keyarr[i] + "\">" + keyarr[i] + "</option>";
+					key_dropdown += "</select>";
+					var song_key = $('#song_key').html();
+					$('#song_key').html(key_dropdown);
+					$('#song_key').find('option[value="' + song_key + '"]').prop('selected', 'true');
+					var song_pitch = $('#song_pitch').html();
+					$('#song_pitch').html(key_dropdown);
+					$('#song_pitch').find('option[value="' + song_pitch + '"]').prop('selected', 'true');
+					$('#song_key').change(function() {
+						$('#spinner').css('display', 'inline');
+						$.post('php/doEditSong.php', { id : songid, action : "key", note : $('#song_key').find('option:selected').prop('value') }, function(data) {
+							$('#spinner').css('display', 'none');
+							if (data != "OK") alert(data);
+						});
+					});
+					$('#song_pitch').change(function() {
+						$('#spinner').css('display', 'inline');
+						$.post('php/doEditSong.php', { id : songid, action : "pitch", note : $('#song_pitch').find('option:selected').prop('value') }, function(data) {
+							$('#spinner').css('display', 'none');
+							if (data != "OK") alert(data);
+						});
+					});
+					$('#current_song').click(function() {
+						$('#repertoire_header').data('current', $('#repertoire_header').data('current') == '0' ? '1' : '0');
+						$.post('php/doEditSong.php', { action : 'current', id : songid, current : $('#repertoire_header').data('current') }, function(data) {
+							if (data != "OK")
+							{
+								alert("Error:  " + data);
+								return;
+							}
+						});
+						if ($('#repertoire_header').data('current') == 0) $('#current_song').html("Add to this semester");
+						else $('#current_song').html("Remove from this semester");
+					});
+					$('.rep_add').click(function() {
+						var section = $(this).parent().attr('id').replace("actions_", "");
+						$('#spinner').css('display', 'inline');
+						$.post('php/doEditLink.php', { action : "new", type : section, song : songid }, function(data) {
+							$('#spinner').css('display', 'none');
+							if (data == 'FAIL') alert("Error:  " + data);
+							else
+							{
+								$('#block_' + section).append("<div id=\"file_" + data + "\"><span class=\"link_actions\"><a class=\"rep_remove\"><i class=\"icon-remove\"></i></a> <a class=\"rep_rename\"><i class=\"icon-pencil\"></i></a></span> <span class=\"link_main\"><a name=\"null\" href=\"#\" target=\"_blank\"></a></span></div>");
+								$('#file_' + data + ' .rep_rename').click(function() { link_edit($(this).parent().parent().attr('id').replace("file_", "")); });
+								$('#file_' + data + ' .rep_remove').click(function() { rep_remove($(this).parent().parent().attr('id').replace('file_', '')); });
+								link_edit(data, true);
+							}
+						});
+					});
+					$('.link_actions').html("<a class=\"rep_remove\"><i class=\"icon-remove\"></i></a> <a class=\"rep_rename\"><i class=\"icon-pencil\"></i></a>");
+					function rep_remove(linkid)
+					{
+						$('#spinner').css('display', 'inline');
+						var storage = $('#file_' + linkid).parent().find('.data-storage').html();
+						if (storage == 'remote')
+						{
+							$.post('php/doEditLink.php', { id : linkid, action : "delete" }, function(data) {
+								$('#spinner').css('display', 'none');
+								if (data == "OK") $('#file_' + linkid).remove();
+								else alert("Error:  " + data);
+							});
+							return;
+						}
+						$.post('php/doEditLink.php', { id : linkid, action : "delete" }, function(data) {
+							$('#spinner').css('display', 'none');
+							if (data == "OK") $('#file_' + linkid).remove();
+							else alert("Error:  " + data);
+						});
+					}
+					$('.rep_rename').click(function() { link_edit($(this).parent().parent().attr('id').replace("file_", ""), false); });
+					function link_edit(id, isnew)
+					{
+						$('.link_actions').css('display', 'none');
+						$('.rep_actions').css('display', 'none');
+						var storage = $('#file_' + id).parent().data('storage');
+						var typeid = $('#file_' + id).parent().data('typeid');
+						var link_main = $('#file_' + id).find('.link_main');
+						var oldtarget = link_main.find('a').prop('href');
+						var oldname = link_main.find('a').html();
+						var empty = link_main.find('a').prop('name') == 'null';
+						var nofile = "<span style=\"color: #888\">(No file specified)</span>";
+						var uploadfile = "<input type=\"file\" id=\"file_upload\">";
+						var delfile = "<button type=\"button\" id=\"file_remove\" class=\"btn\"><i class=\"icon-remove\"></i></button>";
+						function perform_upload()
+						{
+							$('#spinner').css('display', 'inline');
+							var form = new FormData();
+							form.append('action', 'upload');
+							form.append('id', id);
+							form.append('file', document.getElementById('file_upload').files[0]);
+							$.ajax({ url : 'php/doEditLink.php', type : 'POST', data : form, contentType : false, processData : false, success : function(data) {
+								$('#spinner').css('display', 'none');
+								if (/^OK /.test(data))
+								{
+									data = data.substr(3);
+									empty = false;
+									$('#static_target').html(data);
+									$('#file_upload').replaceWith(delfile);
+									$('#file_remove').click(perform_remove);
+									link_main.find('a').prop('name', '');
+								}
+								else
+								{
+									var msg;
+									if (data == 'BAD_FNAME') msg = "Bad filename.  Acceptable characters are:  A-Za-z0-9_., -";
+									else if (data == 'BAD_UPLOAD') msg = "The file could not be uploaded";
+									else msg = data;
+									alert("Error:  " + msg);
+								}
+							}, error : function(data) { $('#spinner').css('display', 'none'); alert("Error:  " + data); } });
+						}
+						function perform_remove()
+						{
+							$('#spinner').css('display', 'inline');
+							$.post('php/doEditLink.php', { action : "rmfile", id : id }, function(data) {
+								$('#spinner').css('display', 'none');
+								if (data == 'OK')
+								{
+									$('#file_remove').replaceWith(uploadfile);
+									$('#static_target').html(nofile);
+									$('#file_upload').change(perform_upload);
+									empty = true;
+								}
+								else alert("Error:  " + data);
+							});
+						}
+						link_main.html("<form method=\"post\" action=\"php/doEditLink.php\" id=\"link_form\" style=\"display: none; background: #DDD; border: 4px solid #AAA; border-radius: 4px; padding: 10px; margin: 4px 0px;\">Name:  <input type=\"text\" name=\"link_name\" id=\"link_name\"><br>Target:  </form>");
+						$('#link_name').prop('value', oldname);
+						if (storage == 'local')
+						{
+							$('#link_form').append("<span id=\"static_target\" style=\"padding-right: 10px;\">" + (empty ? nofile : oldtarget) + "</span>" + (empty ? uploadfile : delfile));
+							$('#static_target').prop('value', oldtarget);
+							if (empty) $('#file_upload').change(perform_upload);
+						}
+						else if (storage == 'remote')
+						{
+							if (typeid == 'video')
+							{
+								$('#link_form').append("<b>http://www.youtube.com/watch?v=</b>");
+								oldtarget = oldtarget.replace(/^http:\/\/www.youtube.com\/watch\?v=/, '');
+							}
+							$('#link_form').append("<input type=text name=\"link_target\" id=\"link_target\">");
+							$('#link_target').prop('value', oldtarget);
+							if (empty) $('#link_target').prop('value', '');
+						}
+						$('#link_form').append("<br><button type=\"button\" class=\"btn\" id=\"link_edit_cancel\" style=\"margin-right: 10px;\">Cancel</button><button type=\"submit\" class=\"btn btn-default\" id=\"link_edit_done\">Done</button>");
+						$('#link_form').slideDown(400);
+						$('#file_remove').click(perform_remove);
+						$('#link_form').submit(function() {
+							$('#spinner').css('display', 'inline');
+							var newname = $('#link_name').prop('value');
+							var newtarget = '';
+							if (newname == '') { alert("Name field cannot be empty."); return false; }
+							link_main.find('a').prop('name') == '';
+							if (storage == 'remote')
+							{
+								newtarget = $('#link_target').prop('value');
+								if (newtarget == '') { alert("Target field cannot be empty."); return false; }
+							}
+							else if (storage == 'local')
+							{
+								if (empty) { alert("Target field cannot be empty."); return false; }
+								newtarget = 'http://mensgleeclub.gatech.edu' + $('#static_target').html();
+							}
+							$.post('php/doEditLink.php', { id : id, action : "update", name : newname, target : newtarget }, function(data) {
+								$('#spinner').css('display', 'none');
+								if (data == 'OK')
+								{
+									link_main.html("<a href=\"" + (typeid == 'video' ? "http://www.youtube.com/watch?v=" : '') + newtarget + "\" target=\"_blank\">" + newname + "</a>");
+									$('.link_actions').css('display', 'inline');
+									$('.rep_actions').css('display', 'inline');
+								}
+								else alert("Error:  " + data);
+							});
+							return false;
+						});
+						$('#link_edit_cancel').click(function() {
+							if (isnew || empty) rep_remove(id);
+							else link_main.html("<a href=\"" + oldtarget + "\" target=\"_blank\">" + oldname + "</a>");
+							$('.link_actions').css('display', 'inline');
+							$('.rep_actions').css('display', 'inline');
+						});
+					}
+					$('#edit_song').click(function() {
+						// Song edit dialog:  name (text) and description (text)
+						$.post('php/songInfo.php', { id : songid, item : "name" }, function(data) { $('#song_edit_name').attr('value', data); });
+						$.post('php/songInfo.php', { id : songid, item : "desc" }, function(data) { $('#song_edit_desc').attr('value', data); });
+						$('#edit_song_accept').unbind('click');
+						$('#edit_song_accept').click(function() {
+							$('#spinner').css('display', 'inline');
+							$.post('php/doEditSong.php', { id : songid, action : "update", name : $('#song_edit_name').attr('value'), desc : $('#song_edit_desc').attr('value') }, function(data) {
+								$('#spinner').css('display', 'none');
+								if (data == "OK")
+								{
+									// Update information in main div
+									$('#row_' + songid).html($('#song_edit_name').attr('value'));
+									$('#song_title').html($('#song_edit_name').attr('value'));
+									$('#song_desc').html($('#song_edit_desc').attr('value'));
+								}
+								else alert("Error:  " + data);
+							});
+							$('#song_editor').modal('hide');
+						});
+						$('#song_editor').modal('show');
+					});
+					$('#delete_song_deny').click(function() { $('#confirm_delete_song').modal('hide'); });
+					$('#delete_song').click(function() {
+						// Confirm song deletion
+						$('#delete_song_confirm').unbind('click');
+						$('#delete_song_confirm').click(function() {
+							$.post('php/doEditSong.php', { id : songid, action : "delete" }, function(data) {
+								if (data == "OK")
+								{
+									// Update information in main div
+									$('#row_' + songid).remove();
+									$('#repertoire_main').html("Select a song to the left.");
+								}
+								else alert("Error:  " + data);
+							});
+							$('#confirm_delete_song').modal('hide');
+						});
+						$('#confirm_delete_song').modal('show');
+					});
+					$('.rep_remove').click(function() { rep_remove($(this).parent().parent().attr('id').replace('file_', '')); });
+				}
+				else
+				{
+					edit = 0;
+					$('#repertoire_edit').html("Edit");
+					$('#repertoire_header').html("");
+					$('.rep_actions').html("");
+					$('.link_actions').html("");
+					$('#song_key').html($('#song_key').find('option:selected').prop('value'));
+					$('#song_pitch').html($('#song_pitch').find('option:selected').prop('value'));
+				}
+			});
+		}
+	});
+}
+
+function showRepertoire(firstid)
 {
 	$.post('php/repertoireList.php', function(data) {
 		$('#main').html(data);
@@ -2123,239 +2451,12 @@ function showRepertoire()
 				var songid = $(this).attr('id').replace("row_", "");
 				$('.repertoire_row').parent().removeClass('lighter');
 				$(this).parent().addClass('lighter');
-				$.post('php/getSong.php', { id : songid }, function(data)
-				{
-					smoothScrollTo('repertoire_main');
-					$('#repertoire_main').html(data);
-					if (isOfficer)
-					{
-						var edit = 0;
-						$('#repertoire_main').prepend("<div class=pull-right style=\"padding-left: 10px; padding-right: 10px\"><img id=\"spinner\" src=\"/images/loading.gif\" style=\"width: 28px; height:28px; margin-right: 10px; display:none;\"><button class=btn id=repertoire_edit>Edit</button></div>");
-						$('#repertoire_edit').click(function() {
-							if (edit == 0)
-							{
-								edit = 1;
-								$('#repertoire_edit').html("Done");
-								$('#repertoire_header').html("<a id=\"edit_song\"><i class=\"icon-pencil\"></i></a> <a id=\"delete_song\"><i class=\"icon-remove\"></i></a> <a id=\"current_song\">" + ($('#repertoire_header').data('current') == '0' ? "Add to this semester" : "Remove from this semester") + "</a>");
-								$('.rep_actions').html("<a class=\"rep_add\" style=\"margin-left: 10px;\"><i class=\"icon-plus\"></i></button>");
-								$('#current_song').click(function() {
-									$('#repertoire_header').data('current', $('#repertoire_header').data('current') == '0' ? '1' : '0');
-									$.post('php/doEditSong.php', { action : 'current', id : songid, current : $('#repertoire_header').data('current') }, function(data) {
-										if (data != "OK")
-										{
-											alert("Error:  " + data);
-											return;thisthis
-										}
-									});
-									if ($('#repertoire_header').data('current') == 0) $('#current_song').html("Add to this semester");
-									else $('#current_song').html("Remove from this semester");
-								});
-								$('.rep_add').click(function() {
-									var section = $(this).parent().attr('id').replace("actions_", "");
-									$('#spinner').css('display', 'inline');
-									$.post('php/doEditLink.php', { action : "new", type : section, song : songid }, function(data) {
-										$('#spinner').css('display', 'none');
-										if (data == 'FAIL') alert("Error:  " + data);
-										else
-										{
-											$('#block_' + section).append("<div id=\"file_" + data + "\"><span class=\"link_actions\"><a class=\"rep_remove\"><i class=\"icon-remove\"></i></a> <a class=\"rep_rename\"><i class=\"icon-pencil\"></i></a></span> <span class=\"link_main\"><a name=\"null\" href=\"#\" target=\"_blank\"></a></span></div>");
-											$('#file_' + data + ' .rep_rename').click(function() { link_edit($(this).parent().parent().attr('id').replace("file_", "")); });
-											$('#file_' + data + ' .rep_remove').click(function() { rep_remove($(this).parent().parent().attr('id').replace('file_', '')); });
-											link_edit(data, true);
-										}
-									});
-								});
-								$('.link_actions').html("<a class=\"rep_remove\"><i class=\"icon-remove\"></i></a> <a class=\"rep_rename\"><i class=\"icon-pencil\"></i></a>");
-								function rep_remove(linkid)
-								{
-									$('#spinner').css('display', 'inline');
-									var storage = $('#file_' + linkid).parent().find('.data-storage').html();
-									if (storage == 'remote')
-									{
-										$.post('php/doEditLink.php', { id : linkid, action : "delete" }, function(data) {
-											$('#spinner').css('display', 'none');
-											if (data == "OK") $('#file_' + linkid).remove();
-											else alert("Error:  " + data);
-										});
-										return;
-									}
-									$.post('php/doEditLink.php', { id : linkid, action : "delete" }, function(data) {
-										$('#spinner').css('display', 'none');
-										if (data == "OK") $('#file_' + linkid).remove();
-										else alert("Error:  " + data);
-									});
-								}
-								$('.rep_rename').click(function() { link_edit($(this).parent().parent().attr('id').replace("file_", ""), false); });
-								function link_edit(id, isnew)
-								{
-									$('.link_actions').css('display', 'none');
-									$('.rep_actions').css('display', 'none');
-									var storage = $('#file_' + id).parent().data('storage');
-									var typeid = $('#file_' + id).parent().data('typeid');
-									var link_main = $('#file_' + id).find('.link_main');
-									var oldtarget = link_main.find('a').prop('href');
-									var oldname = link_main.find('a').html();
-									var empty = link_main.find('a').prop('name') == 'null';
-									var nofile = "<span style=\"color: #888\">(No file specified)</span>";
-									var uploadfile = "<input type=\"file\" id=\"file_upload\">";
-									var delfile = "<button type=\"button\" id=\"file_remove\" class=\"btn\"><i class=\"icon-remove\"></i></button>";
-									function perform_upload()
-									{
-										$('#spinner').css('display', 'inline');
-										var form = new FormData();
-										form.append('action', 'upload');
-										form.append('id', id);
-										form.append('file', document.getElementById('file_upload').files[0]);
-										$.ajax({ url : 'php/doEditLink.php', type : 'POST', data : form, contentType : false, processData : false, success : function(data) {
-											$('#spinner').css('display', 'none');
-											if (/^OK /.test(data))
-											{
-												data = data.substr(3);
-												empty = false;
-												$('#static_target').html(data);
-												$('#file_upload').replaceWith(delfile);
-												$('#file_remove').click(perform_remove);
-												link_main.find('a').prop('name', '');
-											}
-											else
-											{
-												var msg;
-												if (data == 'BAD_FNAME') msg = "Bad filename.  Acceptable characters are:  A-Za-z0-9_., -";
-												else if (data == 'BAD_UPLOAD') msg = "The file could not be uploaded";
-												else msg = data;
-												alert("Error:  " + msg);
-											}
-										}, error : function(data) { $('#spinner').css('display', 'none'); alert("Error:  " + data); } });
-									}
-									function perform_remove()
-									{
-										$('#spinner').css('display', 'inline');
-										$.post('php/doEditLink.php', { action : "rmfile", id : id }, function(data) {
-											$('#spinner').css('display', 'none');
-											if (data == 'OK')
-											{
-												$('#file_remove').replaceWith(uploadfile);
-												$('#static_target').html(nofile);
-												$('#file_upload').change(perform_upload);
-												empty = true;
-											}
-											else alert("Error:  " + data);
-										});
-									}
-									link_main.html("<form method=\"post\" action=\"php/doEditLink.php\" id=\"link_form\" style=\"display: none; background: #DDD; border: 4px solid #AAA; border-radius: 4px; padding: 10px; margin: 4px 0px;\">Name:  <input type=\"text\" name=\"link_name\" id=\"link_name\"><br>Target:  </form>");
-									$('#link_name').prop('value', oldname);
-									if (storage == 'local')
-									{
-										$('#link_form').append("<span id=\"static_target\" style=\"padding-right: 10px;\">" + (empty ? nofile : oldtarget) + "</span>" + (empty ? uploadfile : delfile));
-										$('#static_target').prop('value', oldtarget);
-										if (empty) $('#file_upload').change(perform_upload);
-									}
-									else if (storage == 'remote')
-									{
-										if (typeid == 'video')
-										{
-											$('#link_form').append("<b>http://www.youtube.com/watch?v=</b>");
-											oldtarget = oldtarget.replace(/^http:\/\/www.youtube.com\/watch\?v=/, '');
-										}
-										$('#link_form').append("<input type=text name=\"link_target\" id=\"link_target\">");
-										$('#link_target').prop('value', oldtarget);
-										if (empty) $('#link_target').prop('value', '');
-									}
-									$('#link_form').append("<br><button type=\"button\" class=\"btn\" id=\"link_edit_cancel\" style=\"margin-right: 10px;\">Cancel</button><button type=\"submit\" class=\"btn btn-default\" id=\"link_edit_done\">Done</button>");
-									$('#link_form').slideDown(400);
-									$('#file_remove').click(perform_remove);
-									$('#link_form').submit(function() {
-										$('#spinner').css('display', 'inline');
-										var newname = $('#link_name').prop('value');
-										var newtarget = '';
-										if (newname == '') { alert("Name field cannot be empty."); return false; }
-										link_main.find('a').prop('name') == '';
-										if (storage == 'remote')
-										{
-											newtarget = $('#link_target').prop('value');
-											if (newtarget == '') { alert("Target field cannot be empty."); return false; }
-										}
-										else if (storage == 'local')
-										{
-											if (empty) { alert("Target field cannot be empty."); return false; }
-											newtarget = 'http://mensgleeclub.gatech.edu' + $('#static_target').html();
-										}
-										$.post('php/doEditLink.php', { id : id, action : "update", name : newname, target : newtarget }, function(data) {
-											$('#spinner').css('display', 'none');
-											if (data == 'OK')
-											{
-												link_main.html("<a href=\"" + (typeid == 'video' ? "http://www.youtube.com/watch?v=" : '') + newtarget + "\" target=\"_blank\">" + newname + "</a>");
-												$('.link_actions').css('display', 'inline');
-												$('.rep_actions').css('display', 'inline');
-											}
-											else alert("Error:  " + data);
-										});
-										return false;
-									});
-									$('#link_edit_cancel').click(function() {
-										if (isnew || empty) rep_remove(id);
-										else link_main.html("<a href=\"" + oldtarget + "\" target=\"_blank\">" + oldname + "</a>");
-										$('.link_actions').css('display', 'inline');
-										$('.rep_actions').css('display', 'inline');
-									});
-								}
-								$('#edit_song').click(function() {
-									// Song edit dialog:  name (text) and description (text)
-									$.post('php/songInfo.php', { id : songid, item : "name" }, function(data) { $('#song_edit_name').attr('value', data); });
-									$.post('php/songInfo.php', { id : songid, item : "desc" }, function(data) { $('#song_edit_desc').attr('value', data); });
-									$('#edit_song_accept').unbind('click');
-									$('#edit_song_accept').click(function() {
-										$('#spinner').css('display', 'inline');
-										$.post('php/doEditSong.php', { id : songid, action : "update", name : $('#song_edit_name').attr('value'), desc : $('#song_edit_desc').attr('value') }, function(data) {
-											$('#spinner').css('display', 'none');
-											if (data == "OK")
-											{
-												// Update information in main div
-												$('#row_' + songid).html($('#song_edit_name').attr('value'));
-												$('#song_title').html($('#song_edit_name').attr('value'));
-												$('#song_desc').html($('#song_edit_desc').attr('value'));
-											}
-											else alert("Error:  " + data);
-										});
-										$('#song_editor').modal('hide');
-									});
-									$('#song_editor').modal('show');
-								});
-								$('#delete_song_deny').click(function() { $('#confirm_delete_song').modal('hide'); });
-								$('#delete_song').click(function() {
-									// Confirm song deletion
-									$('#delete_song_confirm').unbind('click');
-									$('#delete_song_confirm').click(function() {
-										$.post('php/doEditSong.php', { id : songid, action : "delete" }, function(data) {
-											if (data == "OK")
-											{
-												// Update information in main div
-												$('#row_' + songid).remove();
-												$('#repertoire_main').html("Select a song to the left.");
-											}
-											else alert("Error:  " + data);
-										});
-										$('#confirm_delete_song').modal('hide');
-									});
-									$('#confirm_delete_song').modal('show');
-								});
-								$('.rep_remove').click(function() { rep_remove($(this).parent().parent().attr('id').replace('file_', '')); });
-							}
-							else
-							{
-								edit = 0;
-								$('#repertoire_edit').html("Edit");
-								$('#repertoire_header').html("");
-								$('.rep_actions').html("");
-								$('.link_actions').html("");
-							}
-						});
-					}
-				});		
+				loadSong(songid, isOfficer);
 			}
 			$('.repertoire_row').click(repertoire_row_click);
+			if (typeof firstid != 'undefined') loadSong(firstid, isOfficer);
 		}});
-	});	
+	});
 }
 
 function pad(n, width, z)

@@ -638,7 +638,7 @@ function rosterProp($member, $prop)
 			$html .= $member["section"];
 			break;
 		case "Contact":
-			$html .= $member["phone"] . "<br>" . $member["email"];
+			$html .= "<a href='tel:" . $member["phone"] . "'>" . $member["phone"] . "</a><br><a href='mailto:" . $member['email'] . "'>" . $member["email"] . "</a>";
 			break;
 		case "Location":
 			$html .= $member["location"];

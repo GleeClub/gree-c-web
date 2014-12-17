@@ -94,7 +94,7 @@ function member_table($conditions, $type = 'normal')
 					$html .= ">$i";
 					break;
 				case "Name":
-					$html .= " data-tab=''>" . completeNameFromEmail($member["email"]);
+					$html .= " data-tab=''><a href='#profile:" . $member["email"] . "'>" . completeNameFromEmail($member["email"]) . "</a>";
 					if ($type == 'print' || ! $showDetails && ! $showMoney && ! $showAttendance) continue;
 					$html .= "<br>";
 					if ($showDetails) $html .= "<a href='#' class='roster_toggle' data-tab='details'>Details</a><span class=spacer></span>";
