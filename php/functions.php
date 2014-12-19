@@ -500,6 +500,7 @@ function attendance($memberID, $mode)
 	$score = 100;
 	$gigcount = 0;
 	$lastRehearsal = 0;
+	$lastAttendedRehearsal = 0;
 	//make sure the member has some attends relationships
 	if(mysql_num_rows($attendses) == 0)
 	{
@@ -519,27 +520,35 @@ function attendance($memberID, $mode)
 		$confirmed = $attends['confirmed'];
 		$time = $attends['time'];
 		$attendsID = "attends_".$memberID."_$eventNo";
+		$tip = "";
 
-		if ($type == "Rehearsal" && ($didAttend == 1 || $shouldAttend == 0)) $lastRehearsal = $time;
+		if ($type == "Rehearsal")
+		{
+			$lastRehearsal = $time;
+			if ($didAttend == 1 || $shouldAttend == 0) $lastAttendedRehearsal = $time;
+		}
 		$pointChange = 0;
 		if($didAttend == '1')
 		{
+			$tip = "No point change for attending required event";
 			// Get back points for volunteer gigs and missed sectionals and extra sectionals
-			if(($type == "Volunteer Gig" || ($type == "Sectional" && $shouldAttend == '0')) && $score < 100)
+			if(($type == "Volunteer Gig" || ($type == "Sectional" && $shouldAttend == '0')))
 			{
-				if ($score + $points > 100) $pointChange += 100 - $score;
-				else $pointChange += $points;
+				if ($score + $points > 100)
+				{
+					$pointChange += 100 - $score;
+					$tip = "Event grants $points-point bonus, but grade is capped at 100%";
+				}
+				else
+				{
+					$pointChange += $points;
+					$tip = "Full bonus awarded for attending event";
+				}
 			}
-			// If you haven't been to rehearsal in seven days, you can't get points for a volunteer gig
-			/*if (($type == "Volunteer Gig" || $type == "Tutti Gig") && $lastRehearsal != 0 && $lastRehearsal < $time - $WEEK) $pointChange = 0; // TODO Only prevent points if there has been a rehearsal in the last 7 days
-			if ($type == "Volunteer Gig")
-			{
-				// Check gig count
-				if ($lastRehearsal == 0 && $lastRehearsal < $time - $WEEK) $gigcount += 1;
-			}*/
+			// Get gig credit for volunteer gigs
 			if ($type == "Volunteer Gig") $gigcount += 1;
 			// Lose points equal to the percentage of the event missed, if they should attend
-			if ($minutesLate > 0 && $shouldAttend == '1')
+			if ($minutesLate > 0)
 			{
 				if ($type == "Rehearsal") $delta = floatval($minutesLate) / 11.0;
 				else if ($type == "Sectional") $delta = floatval($minutesLate) / 5.0;
@@ -548,19 +557,42 @@ function attendance($memberID, $mode)
 					$sql = "select `callTime`, `releaseTime` from `event` where `eventNo` = '$eventNo'";
 					$row = mysql_fetch_array(mysql_query($sql));
 					$duration = floatval(strtotime($row['releaseTime']) - strtotime($row['callTime'])) / 60.0;
-					$delta = floatval($minutesLate) / $duration;
-					if ($type == "Volunteer Gig") $delta *= 10.0;
-					else if ($type == "Tutti Gig") $delta *= 35.0;
+					$delta = floatval($minutesLate) / $duration * $points;
+					//if ($type == "Volunteer Gig") $delta *= 10.0;
+					//else if ($type == "Tutti Gig") $delta *= 35.0;
 				}
 				$delta = round($delta, 2);
 				$pointChange -= $delta;
+				if ($type == "Volunteer Gig") $tip = "Event would grant $points-point bonus, but $delta points deducted for lateness";
+				else $tip = "$delta points deducted for lateness to required event";
+			}
+			// If you haven't been to rehearsal in seven days, you can't get points or gig credit
+			if ($lastRehearsal > $time - $WEEK && $lastAttendedRehearsal < $time - $WEEK)
+			{
+				if ($type == "Volunteer Gig")
+				{
+					$pointChange = 0;
+					$gigcount -= 1;
+					$tip = "$points-point bonus denied because this week&apos;s rehearsal was missed";
+				}
+				else if ($type == "Tutti Gig")
+				{
+					$pointChange = -$points;
+					$tip = "Full deduction for unexcused absence from this week&apos;s rehearsal";
+				}
 			}
 		}
 		// Lose the full point value if did not attend
-		else if ($shouldAttend == '1') $pointChange -= $points;
+		else if ($shouldAttend == '1')
+		{
+			$pointChange = -$points;
+			$tip = "Full deduction for unexcused absence from event";
+		}
+		else $tip = "Did not attend and not expected to";
 		$score += $pointChange;
 		// Prevent the score from ever rising above 100
 		if ($score > 100) $score = 100;
+		if ($pointChange > 0) $pointChange = '+' . $pointChange;
 
 		if ($mode == 1)
 		{
@@ -581,12 +613,13 @@ function attendance($memberID, $mode)
 			$eventRows .= "<td align='left'><input name='attendance-late' type='text' style='width:40px' value='$minutesLate'><button type='button' class='btn attendbutton' style='margin-top: -8px' data-mode='late' data-event='$eventNo' data-member='$memberID'>Go</button></td>";
 
 			//make the point change red if it is negative
-			if ($pointChange > 0) $eventRows .= "<td align='left' class='data' style='color: green'>+$pointChange</td>";
-			else if ($pointChange < 0) $eventRows .= "<td align='left'  class='data' style='color: red'>$pointChange</td>";
-			else $eventRows .= "<td align='left' class='data'>$pointChange</td>";
+			if ($pointChange > 0) $eventRows .= "<td align='left' class='data' style='color: green'>";
+			else if ($pointChange < 0) $eventRows .= "<td align='left'  class='data' style='color: red'>";
+			else $eventRows .= "<td align='left' class='data'>";
+			$eventRows .= "<a href='#' class='gradetip' data-toggle='tooltip' data-placement='right' style='color: inherit; text-decoration: none' onclick='return false' title='$tip'>$pointChange</a></td>";
 
 			if ($pointChange != 0) $eventRows .= "<td align='left' class='data'>$score</td>";
-			else $eventRows .= "<td align='left' class='data'> </td>";
+			else $eventRows .= "<td align='left' class='data'></td>";
 
 			$eventRows .= "</tr>";
 		}
@@ -599,33 +632,19 @@ function attendance($memberID, $mode)
 			if ($didAttend == "1") $eventRows .= "<i class='icon-ok'></i>";
 			else $eventRows .= "<i class='icon-remove'></i>";
 			$shouldAttend = ($shouldAttend == "0" ? "<i class='icon-remove'></i>" : "<i class='icon-ok'></i>");
-			$eventRows .= "<td>$pointChange</td></tr>";
+			$eventRows .= "<td><a href='#' class='gradetip' data-toggle='tooltip' data-placement='right' style='color: inherit; text-decoration: none' onclick='return false' title='$tip'>$pointChange</a></td></tr>";
 		}
 	}
 	if ($mode == 3) return $gigcount;
 	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
-	if ($result['gigCheck'])
-	{
-		// Multiply the top half of the score by the fraction of volunteer gigs attended, if enabled
-		//$query = mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`");
-		//$gigcount = mysql_num_rows($query);
-		$score *= 0.5 + min(floatval($gigcount) * 0.5 / $GIG_REQ, 0.5);
-	}
+	// Multiply the top half of the score by the fraction of volunteer gigs attended, if enabled
+	if ($result['gigCheck']) $score *= 0.5 + min(floatval($gigcount) * 0.5 / $GIG_REQ, 0.5);
 	// Bound the final score between 0 and 100
 	if ($score > 100) $score = 100;
 	if ($score < 0) $score = 0;
 	$score = round($score, 2);
 	if ($mode == 0) return $score;
 	else return $tableOpen . $eventRows . $tableClose;
-}
-
-function gigreq($memberID)
-{
-	global $CUR_SEM;
-	return mysql_num_rows(mysql_query("select `event`.`eventNo` from `attends`, `event` where `attends`.`memberID` = '" . $memberID . "' and `event`.`type` = '3' and `event`.`semester` = '$CUR_SEM' and `attends`.`didAttend` = '1' and `attends`.`eventNo` = `event`.`eventNo`"));
-
-	$gigs = mysql_num_rows($query);
-	return $gigs;
 }
 
 function rosterProp($member, $prop)
@@ -659,7 +678,7 @@ function rosterProp($member, $prop)
 			else $html .= "<span class='duescell' style='color: red'>$balance</span>";
 			break;
 		case "Gigs":
-			$gigcount = gigreq($member["email"]);
+			$gigcount = attendance($member["email"], 3);
 			if ($gigcount >= $GIG_REQ) $html .= "<span class='gigscell' style='color: green'>";
 			else $html .= "<span class='gigscell' style='color: red'>";
 			$html .= "$gigcount</span>";

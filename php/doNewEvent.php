@@ -51,8 +51,8 @@ function eventEmail($eventNo,$type)
 		<p>$eventComments</p>";
 
 	$confirm = '';
-	if($typeName == "Volunteer Gig") $confirm = "I will attend";
-	else if($typeName == "Tutti Gig") $confirm = "Confirm I will attend";
+	if ($typeName == "Volunteer Gig") $confirm = "I will attend";
+	else if ($typeName == "Tutti Gig") $confirm = "Confirm I will attend";
 	$yesform = "<form name='willattend' action='$redirectURL' method='get'>
 		<input type='hidden' value='$eventNo' name='id' />
 		<button type='submit' value='true' name='attend'>$confirm</button>
@@ -61,9 +61,9 @@ function eventEmail($eventNo,$type)
 		<input type='hidden' value='$eventNo' name='id' />
 		<button type='submit' value='false' name='attend'>I will not attend</button>
 		</form>";
-	if($typeName == "Volunteer Gig") $message .= $yesform . $noform;
-	else if($typeName == "Tutti Gig") $message .= $yesform;
-	$message.='</body></html>';
+	if ($typeName == "Volunteer Gig") $message .= $yesform . $noform;
+	else if ($typeName == "Tutti Gig") $message .= $yesform;
+	$message .= '</body></html>';
 	mail($recipient, $subject, $message, $headers);
 }
 
@@ -73,7 +73,7 @@ function createEvent($name, $type, $call, $done, $location, $points, $sem, $comm
 	if (! mysql_query("insert into event (name, callTime, releaseTime, points, comments, type, location, semester, gigcount) values ('$name', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount')")) die("Failed to create event");
 	$eventNo = mysql_insert_id();
 
-	if ($allattend) if (! mysql_query("INSERT INTO `attends` (`memberID`, `eventNo`) select `email`, '$eventNo' from `member` where `member`.`confirmed` = '1'")) die("Failed to insert attends relations for event");
+	if ($allattend && strtotime($call) > strtotime('+48 hours')) if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `email`, '$eventNo' from `member` where `member`.`confirmed` = '1'")) die("Failed to insert attends relations for event");
 	return $eventNo;
 }
 
@@ -98,7 +98,7 @@ function createRehearsal($name, $call, $done, $location, $points, $sem, $comment
 	$sectname = $row['typeName'];
 	$sql = "select `email` from `member` where `section` = '$sectname'";
 	$result = mysql_query($sql);
-	while ($row = mysql_fetch_array($result)) if (! mysql_query("INSERT INTO `attends` (`memberID`, `eventNo`) values ('" . $row['email'] . "', $eventNo)")) die("Failed to create attends relations for rehearsal");
+	while ($row = mysql_fetch_array($result)) if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) values ('" . $row['email'] . "', $eventNo)")) die("Failed to create attends relations for rehearsal");
 	return $eventNo;
 }
 
@@ -108,9 +108,9 @@ $type = $_POST['type'];
 $repeat = $_POST['repeat'];
 
 if (! valid_date($_POST['calldate'])) die("Bad call date");
-if (! valid_date($_POST['donedate'])) die("Bad end date");
+if (! valid_date($_POST['donedate'])) die("Bad done date");
 if (! valid_time($_POST['calltime'])) die("Bad call time");
-if (! valid_time($_POST['donetime'])) die("Bad end time");
+if (! valid_time($_POST['donetime'])) die("Bad done time");
 
 $unixcall = strtotime($_POST['calltime'] . ' ' . $_POST['calldate']);
 $call = date('Y-m-d H:i:s', $unixcall);
@@ -147,8 +147,10 @@ if ($type == 0 || $type == 1 || $type == 2)
 }
 else if ($type == 3 || $type == 4)
 {
-	if (! valid_time($_POST['perftime'])) die("Bad performance time");
-	$unixperform = strtotime($_POST['perftime'] . ' ' . $_POST['calldate']);
+	$perftime = $_POST['perftime'];
+	if ($perftime == '') $perftime = $_POST['calltime'];
+	if (! valid_time($perftime)) die("Bad performance time");
+	$unixperform = strtotime($perftime . ' ' . $_POST['calldate']);
 	$perform = date('Y-m-d H:i:s', $unixperform);
 	if ($unixperform < $unixcall || $unixperform > $unixdone) die("Performance time not between start and end");
 	$eventNo = createGig($_POST['name'], ($type == 4 ? true : false), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']), isset($_POST['public']), $_POST['summary'], $_POST['description']);

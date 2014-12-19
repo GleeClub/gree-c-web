@@ -54,13 +54,13 @@ function user_money_table($memberID)
 
 function attendanceHistory($userEmail)
 {
-	return '<h2>Attendance History</h2><h3>Score: '. attendance($userEmail, 0) . '</h3>' . attendance($userEmail, 2);
+	return '<h2>Attendance History</h2><h3>Score: '. attendance($userEmail, 0) . '</h3><span style="color: gray; font-style: italic">Hover over a point change for explanation</span>' . attendance($userEmail, 2);
 }
 
 function gigBlock($userEmail)
 {
 	global $CUR_SEM, $GIG_REQ;
-	$count = gigreq($userEmail);
+	$count = attendance($userEmail, 3);
 	if ($count < $GIG_REQ) $precentProgress = floor(100 * $count / $GIG_REQ);
 	else $precentProgress = 100;
 

@@ -104,7 +104,7 @@ foreach ($fields as $category => $catfields)
 					$html .= "<input type='text' name='$field[0]' value='$value' style='width: 100px' data-date-format='yyyy-mm-dd' data-date='$value'>";
 					break;
 				case 'time':
-					$html .= "<input type='text' name='$field[0]' value='$value' style='width: 60px' placeholder='0:00 PM'>";
+					$html .= "<input type='text' name='$field[0]' value='$value' style='width: 80px' placeholder='0:00 PM'>";
 					break;
 				// The special cases
 				case '.type':

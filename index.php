@@ -129,11 +129,14 @@ function actionOptions($userEmail){
 		    <h3>Confirm your account for this semester!</h3>
 		</div>
 		<div class="modal-body">
-		    <p>If you plan on being in the Glee Club this semester, just click Confirm below!  If not, you can still hit Close and view the site, but we won't expect you at gigs/rehearsal or charge you dues.  If you drop the class and want to unconfirm your account, just let one of the officers know.</p>
-		</div>
+		    <p>Will you be in the Glee Club this semester?  If not, hit Close and you will still be able to view the site, but you won't be assessed dues or expected at events.  If you are returning, please check the information below for accuracy, then hit Confirm to confirm your account.</p>
+		    <style>td { padding-right: 10px; }</style>
+		    <table><tr><td><b>Registration</b>:</td><td><div class="btn-group" data-toggle="buttons-radio"><button type="button" class="btn" id="confirm_class">Class</button><button type="button" class="btn" id="confirm_club">Club</button></div></td></tr>
+		    <tr><td><b>Location</b>:</td><td><input type="text" id="confirm_location"></td></tr>
+		</table></div>
 		<div class="modal-footer">
 		    <a href="#" class="btn" data-dismiss="modal">Close</a>
-		    <a href="#" class="btn btn-primary" data-dismiss="modal" onClick="doConfirmAccount();">Confirm</a>
+		    <a href="#" class="btn btn-primary" data-dismiss="modal" onclick="confirm_account()">Confirm</a>
 		</div>
 	</div>
 
@@ -155,11 +158,17 @@ function actionOptions($userEmail){
 			}
 			else{
 				//if the user is not confirmed for the semester, prompt them to confirm
-				$sql = "SELECT confirmed FROM member WHERE email='$email'";
+				$sql = "SELECT confirmed, registration, location FROM member WHERE email='$email'";
 				$arr = mysql_fetch_array(mysql_query($sql));
-				if(!$arr['confirmed']) {
-					echo '
-					<script>$("#confirmModal").modal()</script>';
+				if(! $arr['confirmed'])
+				{
+					$reg = $arr['registration'] ? "confirm_class" : "confirm_club";
+					$loc = addslashes($arr['location']);
+					echo '<script>
+						$("#' . $reg . '").addClass("active");
+						$("#confirm_location").prop("value", "' . $loc . '");
+						$("#confirmModal").modal();
+					</script>';
 				}
 			}
 		}

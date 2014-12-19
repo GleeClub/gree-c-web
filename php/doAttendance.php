@@ -10,7 +10,7 @@ if (! isset($_POST['eventNo'])) die("Missing event number");
 function ensure_attends($memberID, $eventNo)
 {
 	$attendses = mysql_query("select * from attends where memberID='$memberID' and eventNo='$eventNo'");
-	if(mysql_num_rows($attendses)==0) mysql_query("INSERT INTO attends (memberID, shouldAttend, didAttend, eventNo, minutesLate, confirmed) VALUES ('$memberID', '0', '0', '$eventNo', '0', '1')");
+	if(mysql_num_rows($attendses) == 0) mysql_query("INSERT INTO attends (memberID, shouldAttend, didAttend, eventNo, minutesLate, confirmed) VALUES ('$memberID', '0', '0', '$eventNo', '0', '1')");
 }
 
 $eventNo = $_POST['eventNo'];
@@ -36,7 +36,7 @@ if ($action == "should" || $action == "did")
 	else if ($action == "did") $field = "didAttend";
 
 	ensure_attends($memberID, $eventNo);
-	mysql_query("update `attends` set `confirmed` = '1', `$field` = '$value' where `memberID` = '$memberID' and `eventNo` = '$eventNo'");
+	mysql_query("update `attends` set `$field` = '$value' where `memberID` = '$memberID' and `eventNo` = '$eventNo'");
 }
 else if ($action == "late")
 {

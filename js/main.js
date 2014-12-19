@@ -251,6 +251,7 @@ function loadStats(){
 			$(".archiveButton").tooltip({
 				title: "Archive this announcement",
 			});
+			$('.gradetip').tooltip();
 			listenOnTodos();
 		}
 	);
@@ -925,6 +926,7 @@ function roster()
 	{
 		$.post('php/rosterData.php', { tab : tab, email : member }, function(data) {
 			target.html(data); //.children('.roster_' + $(this).data('tab')).toggle();
+			$('.gradetip').tooltip();
 			target.css('border', '1px solid black');
 			var row = target.parent().parent().prev('tr').children();
 			//$('#semdues').tooltip();
@@ -1014,22 +1016,48 @@ function roster()
 	$.post('php/roster.php', function(data) {
 		$('#main').html(data);
 		ntrans = 0;
-		$('.roster_toggle').on('click', function()
+		function member_table(cur)
 		{
-			var target = $(this).parent().parent().next('tr').children('td').first().children('div.tabbox');
-			var tab = $(this).data('tab');
-			var member = $(this).parent().parent().data('member');
-			if ($(this).parent().data('tab') == tab)
-			{
-				target.html('');
-				$(this).parent().data('tab', '');
-				target.css('border', 'none');
-				return false;
-			}
-			getRosterData(tab, member, target);
-			$(this).parent().data('tab', tab);
-			return false;
-		});
+			if (typeof cur != 'undefined') cur.toggleClass('active'); // Ick
+			var cond = '';
+			$('#roster_filters').children('.btn-group').each(function() {
+				$(this).children('button.active').each(function() { cond += $(this).data('cond') + ','; });
+				cond = cond.replace(/,$/, ';');
+			});
+			if (typeof cur != 'undefined') cur.toggleClass('active');
+			$.post('php/memberTable.php', { cond : cond.replace(/;$/, ''), type : 'normal' }, function(data) {
+				$('#roster_table').html(data);
+				$('.roster_toggle').on('click', function() {
+					var target = $(this).parent().parent().next('tr').children('td').first().children('div.tabbox');
+					var tab = $(this).data('tab');
+					var member = $(this).parent().parent().data('member');
+					if ($(this).parent().data('tab') == tab)
+					{
+						target.html('');
+						$(this).parent().data('tab', '');
+						target.css('border', 'none');
+						return false;
+					}
+					getRosterData(tab, member, target);
+					$(this).parent().data('tab', tab);
+					return false;
+				});
+			});
+		}
+		function formatted_table(type)
+		{
+			var cond = '';
+			$('#roster_filters').children('.btn-group').each(function() {
+				$(this).children('button.active').each(function() { cond += $(this).data('cond') + ','; });
+				cond = cond.replace(/,$/, ';');
+			});
+			$.post('php/memberTable.php', { cond : cond.replace(/;$/, ''), type : type }, function(data) {
+				document.write(data);
+			});
+		}
+		$('.filter').on('click', function() { member_table($(this)); });
+		$('.fmt_tbl').on('click', function() { formatted_table($(this).data('format')); return false; });
+		member_table();
 	});
 }
 
@@ -1168,12 +1196,11 @@ function requestNotificationsPermission()
 	}
 }
 
-function doConfirmAccount() {
-	$.post(
-		'php/doConfirmAccount.php',
-		function() {
-		}
-		);
+function confirm_account()
+{
+	var reg = $('#confirm_class').hasClass('active') ? 1 : 0;
+	var loc = $('#confirm_location').prop('value');
+	$.post('php/doConfirmAccount.php', { registration : reg, location : loc }, function() { if (data != 'OK') alert(data); });
 }
 
 function feedbackForm()
@@ -1722,6 +1749,7 @@ function editEvent(id, element, mode)
 		content += '<button type="button" class="btn" id="event_submit">Submit</button></div>';
 		$(element).html(content);
 		$('#event_general').show();
+		if (mode == "Edit") $('select[name="type"]').attr('disabled', 'true');
 		$('select[name="type"]').on('change', function() {
 			$('#event_gig').hide();
 			$('#event_rehearsal').hide();
@@ -1736,6 +1764,7 @@ function editEvent(id, element, mode)
 				$('input[name="gigcount"]').prop('checked', type == 3);
 				var points = 10;
 				if (type == 0) points = 0;
+				if (type == 2) points = 5;
 				else if (type == 4) points = 35;
 				$('#event_row_points').find('input').prop('value', points);
 				if (type == 1 || type == 2) $('select[name="repeat"]').prop('value', 'weekly');
@@ -1777,7 +1806,14 @@ function editEvent(id, element, mode)
 				submit = 'php/doEditDetails.php';
 				details.push({ name : 'id', value : id });
 			}
-			$.post(submit, details, function(data) { if (data.match(/^\d+\n$/)) loadDetails(id); else alert("Event " + data + " created successfully."); });
+			$.post(submit, details, function(data) {
+				if (data.match(/^\d+$/))
+				{
+					if (mode == "Edit") loadDetails(id);
+					else alert("Event added successfully");
+				}
+				else alert(data);
+			});
 		});
 		$('#event_delete').on('click', function() {
 			if (confirm("Really delete this event?")) $.post('php/doRemoveEvent.php', { eventNo: id }, function(data) { $(element).html("Event deleted."); });
