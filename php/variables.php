@@ -2,7 +2,7 @@
 
 $SQLcurrentDatabase = 'mensgleeclub';
 $SQLusername = 'chris';
-$SQLpassword = 'testing';
+$SQLpassword = 'Krwl)skF_3';
 $SQLhost="mysql.localhost"; // Host name
 
 $docroot = "/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs";

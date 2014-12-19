@@ -161,6 +161,7 @@ switch ($_POST['tab'])
 			exit;
 		}
 		echo attendance($_POST['email'], 1);
+		echo "<div style='text-align: right'><a href='php/memberAttendance.php?id=" . $_POST['email'] . "'>Print view</a></div>";
 		break;
 	case 'tie':
 		if ($role != "President" && $role != "VP")
