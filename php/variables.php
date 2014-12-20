@@ -1,14 +1,12 @@
 <?php
 
-require_once('/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs/db_vars.php');
+require_once('/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs/db_connect.php');
 
 $docroot = "/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs";
 $musicdir = "/music";
 $BASEURL = "http://mensgleeclub.gatech.edu/buzz";
 
 // Connect to the database
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword") or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase") or die("cannot select DB");
 $sql = "select * from variables";
 $variables = mysql_fetch_array(mysql_query($sql));
 
