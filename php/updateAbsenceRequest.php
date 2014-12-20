@@ -2,8 +2,6 @@
 
 require_once('./functions.php');
 $userEmail = $_COOKIE['email'];
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect: ".mysql_error()); 
-mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 
 function absenceEmail($recipient, $state, $event){
 	$to = prefNameFromEmail($recipient)." ".lastNameFromEmail($recipient)." <".$recipient.">"; //make it format: Chris Ernst <cernst3@gatech.edu>

@@ -1,5 +1,5 @@
 <?php
-require_once('variables.php');
+require_once('variables.php'); // THIS IS IMPORTANT because every PHP script uses functions.php to indirectly include variables.php!
 
 /**** Utility functions ****/
 

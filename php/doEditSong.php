@@ -1,8 +1,5 @@
 <?php
-require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword") or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase") or die("cannot select DB");
 mysql_set_charset("utf8");
 $id = mysql_real_escape_string($_POST['id']);
 $action = mysql_real_escape_string($_POST['action']);

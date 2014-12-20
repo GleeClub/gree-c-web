@@ -1,8 +1,5 @@
 <?
-require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 $userEmail = $_COOKIE['email'];
 
 $member_fields = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'confirmed', 'email', 'phone', 'picture', 'registration', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'clubYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts', 'sectional');

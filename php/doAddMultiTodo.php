@@ -1,8 +1,5 @@
 <?php
-require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword") or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 $msg = mysql_real_escape_string($_POST['message']);
 if(isset($_POST['userList'])) {
 	echo $_POST['userList'];

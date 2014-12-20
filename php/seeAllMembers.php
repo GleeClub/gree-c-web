@@ -1,8 +1,6 @@
 <?php
 	require_once('./functions.php');
 	$userEmail = $_COOKIE['email'];
-	mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect: ".mysql_error()); 
-	mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 
 	$sql = "select count(email) as count from member where confirmed='1'";
 	$result = mysql_fetch_array(mysql_query($sql));

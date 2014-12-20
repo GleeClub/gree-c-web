@@ -1,8 +1,6 @@
 <?php
 require_once('./functions.php');
 $userEmail = $_COOKIE['email'];
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect: ".mysql_error()); 
-mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 
 if(! isset($_POST['eventNo'])) die("No event number provided");
 $eventNo = mysql_real_escape_string($_POST['eventNo']);

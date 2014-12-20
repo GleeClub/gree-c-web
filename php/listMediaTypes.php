@@ -1,8 +1,5 @@
 <?php
-require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword") or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase") or die("cannot select DB");
 $request = mysql_real_escape_string($_POST['request']);
 if ($request != "typeid" && $request != "name" && $request != "storage") exit(1);
 $query = "select `$request` from `mediaType` order by `order` asc";

@@ -1,9 +1,6 @@
 <?php
 //it would seem you cannot connect to the database from outside a function and inside a function
-require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 $userEmail = $_COOKIE['email'];
 $semester = getCurrentSemester();
 if(!isset($_COOKIE['email']))

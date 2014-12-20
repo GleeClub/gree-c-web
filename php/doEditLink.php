@@ -1,8 +1,5 @@
 <?php
-require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword") or die("cannot connect");
-mysql_select_db("$SQLcurrentDatabase") or die("cannot select DB");
 
 function checklink($url, $timeout = 20) // Shamelessly stolen from StackOverflow http://stackoverflow.com/questions/244506/how-do-i-check-for-valid-not-dead-links-programatically-using-php
 { // TODO I think make this less "invasive" and time-consuming

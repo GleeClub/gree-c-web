@@ -7,8 +7,6 @@
 		$nameType = $_POST['nameType'];
 	}
 	$order = 'lastName';
-	mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect: ".mysql_error()); 
-	mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 	$sql = "select firstName,lastName,prefName,email from member order by $order";
 	$result = mysql_query($sql);
 	$arr = array();

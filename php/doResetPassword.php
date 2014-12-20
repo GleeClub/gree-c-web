@@ -1,8 +1,5 @@
 <?php
-	require_once('variables.php');
 	require_once('functions.php');
-	mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect"); 
-	mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 	$p1 = $_POST['p1'];
 	$p2 = $_POST['p2'];
 	if($p1 == $p2) {

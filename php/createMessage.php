@@ -1,9 +1,6 @@
 <?php
 session_start();
-require_once('variables.php');
 require_once('functions.php');
-$connection = mysql_connect("mysql.localhost","chris","testing") or die("couldn't connect");
-mysql_select_db("mensgleeclub");
 $email = $_COOKIE['email'];
 $members = explode(",", $_POST['members']);
 $members[] = $_COOKIE['email'];

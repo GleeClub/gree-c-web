@@ -1,8 +1,5 @@
 <?php
-require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 $email = $_POST['email'];
 $hc = "1234321ffeeff";
 $safeEmail = mysql_real_escape_string($email);

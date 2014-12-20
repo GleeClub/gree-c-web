@@ -1,8 +1,5 @@
 <div class="span3 block" id=minutes_list><?php
-require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 $query = "select name from `minutes` order by date desc, name";
 $results = mysql_query($query);
 if (! $results)

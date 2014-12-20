@@ -1,8 +1,5 @@
 <div class="span3 block" id=repertoire_list><?php
-require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword") or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase") or die("cannot select DB");
 $results = mysql_query("select `id`, `title` from `song` where `current` = 1 order by `title` asc");
 if (! $results) die("Database query failed.");
 if (isset($_COOKIE['email']) && isOfficer($_COOKIE['email'])) echo "<div style=\"padding-top: 5px\"><button class=btn style=\"padding: 5px; width: 100%\" id=repertoire_add>Add Song...</button></div>";
