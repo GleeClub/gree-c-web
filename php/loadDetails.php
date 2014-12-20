@@ -1,9 +1,9 @@
 <?php
-session_start();
+//session_start();
 require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
+//mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect"); 
+//mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 $userEmail = $_COOKIE['email'];
 if($_POST['id'] == 'current') $eventNo = $_SESSION['eventNo'];
 else

@@ -1,7 +1,5 @@
 <?php
 require_once('variables.php');
-//it would seem you have to connect to the DB from where the function is called, because the variables in variables.php don't get read into the functions here 
-//maybe they should be global or something?
 
 /**** Utility functions ****/
 
