@@ -540,7 +540,7 @@ function attendance($memberID, $mode, $media = 'normal')
 				else
 				{
 					$pointChange += $points;
-					$tip = "Full bonus awarded for attending event";
+					$tip = "Full bonus awarded for attending volunteer event";
 				}
 			}
 			// Get gig credit for volunteer gigs
