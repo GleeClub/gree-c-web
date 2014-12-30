@@ -1,11 +1,9 @@
 <?php
 require_once('functions.php');
 
-$sql = "SELECT *, TIMESTAMPDIFF(HOUR, CURRENT_TIMESTAMP, callTime) AS hoursUntil 
-	FROM event,eventType 
-	WHERE type=typeNo 
-		AND (typeName='Volunteer Gig' OR typeName='Tutti Gig') 
-		AND TIMESTAMPDIFF(HOUR, CURRENT_TIMESTAMP, callTime)=48
+$sql = "SELECT * FROM `event`
+	WHERE (`type` = '3' OR `type` = '4')
+		AND TIMESTAMPDIFF(HOUR, CURRENT_TIMESTAMP, `callTime`) = 48
 	ORDER BY `callTime`  ASC";
 
 $result = mysql_query($sql);
@@ -32,7 +30,8 @@ while($event = mysql_fetch_array($result))
 		$eventReleaseTimeDisplay = date("D, M d g:i a", $eventReleaseTime);
 		$eventUrl = "$BASEURL/#event:$eventNo";
 
-		$recipient = "Glee Club <gleeclub@lists.gatech.edu>";
+		//$recipient = "Glee Club <gleeclub@lists.gatech.edu>";
+		$recipient = "Matthew Schauer <awesome@gatech.edu>";
 		$subject = "$eventName Is in 48 Hours";
 		$headers = 'Content-type:text/html;' . "\n" .
 			'Reply-To: Glee Club Officers <gleeclub_officers@lists.gatech.edu>' . "\n" .
