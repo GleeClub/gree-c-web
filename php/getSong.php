@@ -27,10 +27,11 @@ while ($result = mysql_fetch_array($sql))
 	$typenames[] = $result['name'];
 	$storage[] = $result['storage'];
 }
-$keyvals='?,A♭,A,A♯,B♭,B,C,C♯,D♭,D,D♯,E♭,E,F,F♯,G♭,G,G♯';
+$keys='?,A♭,a♭,A,a,a♯,B♭,b♭,B,b,C♭,C,c,C♯,c♯,D♭,D,d,d♯,E♭,e♭,E,e,F,f,F♯,f♯,G♭,G,g,g♯';
+$pitches='?,A♭,A,A♯,B♭,B,C,C♯,D♭,D,D♯,E♭,E,F,F♯,G♭,G,G♯';
 echo "<h2><span id=song_title>$title</span> <span id=repertoire_header style='font-size: 10pt;' data-current='$current'></span></h2><div id=song_desc><pre>$desc</pre></div><br>";
-echo "Key: <span id='song_key' data-vals='$keyvals'>$key</span><br>";
-echo "Starting pitch: <span id='song_pitch' data-vals='$keyvals'>$pitch</span><br><br>";
+echo "Key: <span id='song_key' data-vals='$keys'>$key</span><br>";
+echo "Starting pitch: <span id='song_pitch' data-vals='$pitches'>$pitch</span><br><br>";
 $k = 0;
 for ($j = 0; $j < count($typeids); $j++)
 {
