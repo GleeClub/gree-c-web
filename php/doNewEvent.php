@@ -46,20 +46,14 @@ function eventEmail($eventNo,$type)
 		<p>Uniform:  $eventUniform</p>
 		<p>$eventComments</p>";
 
-	$confirm = '';
+	$message .= "<form action='$redirectURL' method='get'><input type='hidden' value='$eventNo' name='id' />";
 	if ($typeName == "Volunteer Gig") $confirm = "I will attend";
 	else if ($typeName == "Tutti Gig") $confirm = "Confirm I will attend";
-	$yesform = "<form name='willattend' action='$redirectURL' method='get'>
-		<input type='hidden' value='$eventNo' name='id' />
-		<button type='submit' value='true' name='attend'>$confirm</button>
-		</form>";
-	$noform = "<form name='wontattend' action='$redirectURL' method='get'>
-		<input type='hidden' value='$eventNo' name='id' />
-		<button type='submit' value='false' name='attend'>I will not attend</button>
-		</form>";
+	$yesform = "<button type='submit' value='true' name='attend'>$confirm</button>";
+	$noform = "<button type='submit' value='false' name='attend'>I will not attend</button>";
 	if ($typeName == "Volunteer Gig") $message .= $yesform . $noform;
 	else if ($typeName == "Tutti Gig") $message .= $yesform;
-	$message .= '</body></html>';
+	$message .= '</form></body></html>';
 	mail($recipient, $subject, $message, $headers);
 }
 
