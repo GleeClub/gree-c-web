@@ -1,4 +1,3 @@
-var eventButton = "<div class='btn' onclick='loadDetails(\"current\");'><i class='icon-arrow-left'></i> Event</div>";
 var h;
 
 $(document).ready(function() {
@@ -571,8 +570,8 @@ function setlist(id)
 	}
 
 	$.post('php/setlist.php', { event : id }, function(data) {
-		$("#eventDetails").html(data);
-		$("#back").click(function() { loadDetails(id); });
+		var eventButton = "<div class='btn' onclick='loadDetails(" + id + ");'><i class='icon-arrow-left'></i> Event</div>";
+		$("#eventDetails").html(eventButton + data);
 		var editing = 0;
 		$("#set_edit").click(function() {
 			if (editing == 0)
@@ -590,7 +589,7 @@ function setlist(id)
 				$('#set_add_button').click(function() {
 					$('#set_empty').css('display', 'none');
 					$.post('php/doEditSetlist.php', { action : "add", event : id, song : $('#set_new').children(':selected').prop('value') }, function(data) {
-						$('#add_set_row').before(data);
+						$('#set_table tbody').append(data);
 						add_del_handler();
 					});
 				});
@@ -634,8 +633,9 @@ function sendPasswordResetEmail() {
 function seeWhosAttending(eventNo){
 	$.post(
 		'php/seeWhosAttending.php',
-		{ id : eventNo },
+		{ eventNo : eventNo },
 		function(data){
+			var eventButton = "<div class='btn' onclick='loadDetails(" + eventNo + ");'><i class='icon-arrow-left'></i> Event</div>";
 			$("#eventDetails").html(eventButton+data);
 			smoothScrollTo("eventDetails");
 		}
@@ -647,6 +647,7 @@ function seeCarpools(id){
 		'php/seeCarpools.php',
 		{ eventNo : id },
 		function(data){
+			var eventButton = "<div class='btn' onclick='loadDetails(" + id + ");'><i class='icon-arrow-left'></i> Event</div>";
 			$("#eventDetails").html(eventButton+data);
 			//$("#eventDetailsDetails").remove();
 			//$("eventDetails").removeClass("span3").addClass("span5");
@@ -1278,6 +1279,7 @@ function toggleRequestState(eventID,memberID){
 */
 function requestAbsence(eventID){
 	$.post('php/requestAbsencePage.php', { eventNo:  eventID}, function(data){
+		var eventButton = "<div class='btn' onclick='loadDetails(" + eventID + ");'><i class='icon-arrow-left'></i> Event</div>";
 		$('#eventDetails').html(eventButton+data);
 		$("#submitAbsenceRequest").click(function(){
 			submitAbsenceRequest(eventID);
@@ -1294,6 +1296,7 @@ function submitAbsenceRequest(eventID){
 		var replacementEmail = $("#replacement").attr("value");
 		var reasonText = $("#reason").attr("value");
 		$.post('php/requestAbsence.php', { eventNo:  eventID, replacement: replacementEmail, reason: reasonText }, function(data){
+			var eventButton = "<div class='btn' onclick='loadDetails(" + eventID + ");'><i class='icon-arrow-left'></i> Event</div>";
 			$('#eventDetails').html(eventButton+data);
 
 			//if they didn't specify a reason, give them a chance to try again
@@ -1316,7 +1319,8 @@ function submitAbsenceRequest(eventID){
 
 function updateEventAttendance(eventID)
 {
-	$.post('php/seeEventAttendance.php', { eventNo:  eventID}, function(data) {
+	$.post('php/seeEventAttendance.php', { eventNo : eventID }, function(data) {
+		var eventButton = "<div class='btn' onclick='loadDetails(" + eventID + ");'><i class='icon-arrow-left'></i> Event</div>";
 		$('#eventDetails').html(eventButton+data);
 		smoothScrollTo("eventDetails");
 	});

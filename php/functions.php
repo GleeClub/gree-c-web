@@ -138,11 +138,11 @@ function attendancePermission($email, $event)
 {
 	if (isOfficer($email)) return true;
 	if (positionFromEmail($email) != "Section Leader") return false;
-	$result = mysql_fetch_array(mysql_query("select `section` from `event` where `eventNo` = '$event'"));
+	$result = mysql_fetch_array(mysql_query("select `section`, `type` from `event` where `eventNo` = '$event'"));
+	if ($result['type'] != '2') return false;
 	$eventSection = $result['section'];
-	$userSection = sectionFromEmail($email);
-	if ($userSection == 0) return false;
-	if ($userSection == $eventSection) return true;
+	if ($eventSection == 0) return true;
+	if (sectionFromEmail($email) == $eventSection) return true;
 	return false;
 }
 

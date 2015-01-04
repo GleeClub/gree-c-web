@@ -42,9 +42,9 @@ function uniform($id)
 	return "<div class='infoblock' style='background: $background'><div>$html</div></div>";
 }
 
-$sql = "SELECT * FROM `event` WHERE eventNo=$eventNo;";
+$sql = "SELECT * FROM `event` WHERE eventNo = '$eventNo'";
 $result = mysql_query($sql);
-if (mysql_num_rows($result) != 1) die("The requested event could not be found.");
+if (mysql_num_rows($result) != 1) die("The requested event could not be found: $eventNo.");
 $event = mysql_fetch_array($result);
 $attends = mysql_query("select `shouldAttend`, `confirmed` from `attends` where `eventNo` = '$eventNo' and `memberID` = '$userEmail'");
 if (mysql_num_rows($attends) != 1)

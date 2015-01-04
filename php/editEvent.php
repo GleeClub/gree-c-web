@@ -142,7 +142,7 @@ foreach ($fields as $category => $catfields)
 					$html .= "<select name='section' style='width: 200px'";
 					if ($eventNo) $html .= ' disabled';
 					$html .= ">";
-					$sql = "select * from `sectionType`";
+					$sql = "select * from `sectionType` order by `typeNo` asc";
 					$result = mysql_query($sql);
 					while ($row = mysql_fetch_array($result)) $html .= "<option value='" . $row['typeNo'] . "'>" . $row['typeName'] . "</option>";
 					$html .= "</select>";
