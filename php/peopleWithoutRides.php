@@ -1,8 +1,7 @@
-	<?php
-session_start();
+<?php
 require_once('functions.php');
 $userEmail = $_COOKIE['email'];
-$eventNo = $_SESSION['eventNo'];
+$eventNo = $_POST['eventNo'];
 
 $needRides = array();
 $sql = "

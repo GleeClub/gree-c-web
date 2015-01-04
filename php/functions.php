@@ -290,26 +290,26 @@ function buttonArea($eventNo, $typeNumber)
 	return $html;
 }
 
-function requestAbsenceButton($eventNo){
-	$absenceRequest = getAbsenceRequest($eventNo, $_COOKIE['email']);
-	if($absenceRequest['state'] == 'pending'){
-		return '<td><span class="label label-warning">absence request '.$absenceRequest['state'].'</span></td><td><div class="btn">edit request</div></td>';
-	}
-	if($absenceRequest['state'] == 'confirmed'){
-		return '<td><span class="label label-success">absence request '.$absenceRequest['state'].'</span></td><td></td>';
-	}
-	if($absenceRequest['state'] == 'denied'){
-		return '<td><span class="label label-important">absence request '.$absenceRequest['state'].'</span></td><td><div class="btn">edit request</div></td>';
-	}
-	else{
-		$eventDetails = getEventDetails($_SESSION['eventNo']);
-		$callTime = strtotime($eventDetails['callTime']);
-		if($callTime > time()){
-			return '<div class="btn">request absence</div>';
-		}
-	}
-	//print_r($absenceRequest);
-}
+//function requestAbsenceButton($eventNo){
+	//$absenceRequest = getAbsenceRequest($eventNo, $_COOKIE['email']);
+	//if($absenceRequest['state'] == 'pending'){
+		//return '<td><span class="label label-warning">absence request '.$absenceRequest['state'].'</span></td><td><div class="btn">edit request</div></td>';
+	//}
+	//if($absenceRequest['state'] == 'confirmed'){
+		//return '<td><span class="label label-success">absence request '.$absenceRequest['state'].'</span></td><td></td>';
+	//}
+	//if($absenceRequest['state'] == 'denied'){
+		//return '<td><span class="label label-important">absence request '.$absenceRequest['state'].'</span></td><td><div class="btn">edit request</div></td>';
+	//}
+	//else{
+		//$eventDetails = getEventDetails($_SESSION['eventNo']);
+		//$callTime = strtotime($eventDetails['callTime']);
+		//if($callTime > time()){
+			//return '<div class="btn">request absence</div>';
+		//}
+	//}
+	////print_r($absenceRequest);
+//}
 
 function getAbsenceRequest($eventNo, $person){
 	$sql = "SELECT * FROM `absencerequest` WHERE eventNo=$eventNo AND memberID='$person';";

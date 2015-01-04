@@ -1,5 +1,4 @@
 <?php 
-session_start();
 require_once('functions.php');
 
 $email = mysql_real_escape_string($_COOKIE['email']);

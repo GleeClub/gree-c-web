@@ -428,7 +428,7 @@ function sendMessage(){
 		$("#sendMessageButton").html("<i class='icon-refresh'></i>");
 		$.post(
 				'php/sendMessage.php',
-				{message:message},
+				{ message : message, otherPerson : "awesome@gatech.edu" }, // FIXME
 				function(data){
 					//console.log(data);
 					loadMessageThread(data);
@@ -515,7 +515,7 @@ function loadAllEvents(h, id){
 function loadDetails(id){
 	$.post(
 		'php/loadDetails.php',
-		{id:id},
+		{ id : id },
 		function(data){
 			if (data == "NULL") return;
 			$("#eventDetails").html(data);
@@ -527,7 +527,7 @@ function loadDetails(id){
 				seeWhosAttending(id);
 			});
 			$("#carpoolsButton").click(function(){
-				seeCarpools();
+				seeCarpools(id);
 			});
 			$("#attendanceButton").click(function(){
 				//this one is defined in loadDetails.php, because it requires a parameter
@@ -642,15 +642,16 @@ function seeWhosAttending(eventNo){
 	);
 }
 
-function seeCarpools(){
+function seeCarpools(id){
 	$.post(
 		'php/seeCarpools.php',
+		{ eventNo : id },
 		function(data){
 			$("#eventDetails").html(eventButton+data);
 			//$("#eventDetailsDetails").remove();
 			//$("eventDetails").removeClass("span3").addClass("span5");
 			$("#editCarpoolsButton").click(function(){
-				editCarpools();
+				editCarpools(id);
 			});
 			$("#backToEvent").on('click', function(){
 				loadDetails('current');
@@ -660,9 +661,10 @@ function seeCarpools(){
 	);
 }
 
-function peopleWithoutRides(){
+function peopleWithoutRides(id){
 	$.post(
 	'php/peopleWithoutRides.php',
+	{ eventNo : id },
 	function(data){
 		$("#events").html(data);
 		$(".person").addClass("person-hover");
@@ -753,22 +755,22 @@ function personClicked(person){
 	}
 }
 
-function editCarpools(){
+function editCarpools(id){
 	//$(".span5").hide();
 	//$(".span3").removeClass("span3").addClass("span5");
-	peopleWithoutRides();
+	peopleWithoutRides(id);
 	$('#carpools').append("<div class='carpool block'><div class='driver block'>add new driver here first</div><div class='passengers block'></div></div>");
 	$("#editCarpoolsButton").html('save carpools').off().on('click', function(){
-		saveCarpools();
+		saveCarpools(id);
 		loadAllEvents(h);
 	});
 }
 
-function saveCarpools(){
+function saveCarpools(id){
 	var carpools = jQueryToJSON($('.carpool')); //make this php-friendly
 	$.post(
 	'php/saveCarpools.php',
-	{carpools:carpools},
+	{ carpools : carpools, eventNo : id },
 	function(data){
 		//console.log(data);
 		//$('.span5').show();
@@ -777,7 +779,7 @@ function saveCarpools(){
 		//console.log('h is ');
 		loadAllEvents(h);
 		loadDetails('current');
-		seeCarpools();
+		seeCarpools(id);
 	});
 }
 

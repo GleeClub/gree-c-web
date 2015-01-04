@@ -1,9 +1,7 @@
 <?php
-session_start();
 require_once('functions.php');
 $userEmail = $_COOKIE['email'];
-$_SESSION['otherPerson'] = $_POST['person'];
-$otherPerson = $_SESSION['otherPerson'];
+$otherPerson = $_POST['person'];
 
 $html = '
 	<table class="table" id="messageThreadTable">

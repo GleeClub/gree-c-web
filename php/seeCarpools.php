@@ -1,9 +1,8 @@
 <?php
 error_reporting(E_ALL);
-session_start();
 require_once('functions.php');
 $userEmail = $_COOKIE['email'];
-$eventNo = $_SESSION['eventNo'];
+$eventNo = $_POST['eventNo'];
 $isOfficer = isOfficer($userEmail);
 if(isOfficer($userEmail)){
 	$html .= '<div class="btn" id="editCarpoolsButton">edit carpools</div>';

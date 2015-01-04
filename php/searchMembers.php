@@ -1,6 +1,5 @@
 <?php
 //This returns the results for the To: field in creating a message.
-session_start();
 require_once('functions.php');
 $q = mysql_real_escape_string($_GET['q']);
 

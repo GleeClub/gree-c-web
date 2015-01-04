@@ -1,6 +1,5 @@
 <?php
 //Load a single message given a message id
-session_start();
 require_once('functions.php');
 $userEmail = $_COOKIE['email'];
 if(!isset($_COOKIE['email'])){

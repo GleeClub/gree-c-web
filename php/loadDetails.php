@@ -1,13 +1,7 @@
 <?php
-//session_start();
 require_once('functions.php');
 $userEmail = $_COOKIE['email'];
-if($_POST['id'] == 'current') $eventNo = $_SESSION['eventNo'];
-else
-{
-	$eventNo = $_POST['id'];
-	$_SESSION['eventNo'] = $eventNo;
-}
+$eventNo = $_POST['id'];
 
 function isgig($event)
 {

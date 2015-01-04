@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once('functions.php');
 $sql = "update member set ";
 $oldEmail = $_COOKIE['email'];

@@ -1,11 +1,9 @@
 <?php
-session_start();
 require_once('functions.php');
 $userEmail = $_COOKIE['email'];
 $messageText = $_POST['message'];
-
 $SQLmessage = mysql_real_escape_string($messageText);
-$to = $_SESSION["otherPerson"];
+$to = $_POST["otherPerson"];
 
 //for debug send all emails to me:
 //$to = "cernst3@gatech.edu";
@@ -78,6 +76,6 @@ if($to == "cernst3@gatech.edu" || $to == "ameloan3@gatech.edu"){
 }
 
 
-echo $_SESSION['otherPerson'];
+echo $to;
 
 ?>

@@ -1,8 +1,7 @@
 <?php
-session_start();
 require_once('functions.php');
 $userEmail = $_COOKIE['email'];
-$eventNo = $_SESSION['eventNo'];
+$eventNo = $_POST['eventNo'];
 $carpools = json_decode($_POST['carpools'], true);
 //$bigSQLstring='';
 foreach($carpools as $value){

@@ -24,7 +24,6 @@
 		{
 			case 4: 				//email
 				$email = mysql_real_escape_string($value);
-				$_SESSION['email'] = $email;
 				$validEmail = "/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._-]+)+$/";
 				if(!preg_match($validEmail, $email))
 				{
