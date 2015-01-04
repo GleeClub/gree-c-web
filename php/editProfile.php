@@ -14,10 +14,10 @@ $res = mysql_fetch_array(mysql_query($sql));
 <tr><td>First Name*:</td> <td><input type="text" name="firstName" value="<?php echo $res['firstName']; ?>" /></td></tr>
 <tr><td>Preferred Name:</td><td><input type="text" name="prefName" value="<?php echo $res['prefName']; ?>" /></td></tr>
 <tr><td>Last Name*:</td><td><input type="text" name="lastName" value="<?php echo $res['lastName']; ?>" /></td></tr>
-<tr><td>Section*:</td><td id="buttons"><input type="radio" name="section" value="Tenor 1" <?php if($res['section'] == "Tenor 1") echo "checked"; ?>/> Tenor 1<br />
-<input type="radio" name="section" value="Tenor 2" <?php if($res['section'] == "Tenor 2") echo "checked"; ?> /> Tenor 2<br />
-<input type="radio" name="section" value="Baritone" <?php if($res['section'] == "Baritone") echo "checked"; ?> /> Baritone<br />
-<input type="radio" name="section" value="Bass" <?php if($res['section'] == "Bass") echo "checked"; ?> /> Bass</td></tr>
+<tr><td>Section*:</td><td id="buttons"><input type="radio" name="section" value="4" <?php if($res['section'] == "4") echo "checked"; ?>/> Tenor 1<br />
+<input type="radio" name="section" value="3" <?php if($res['section'] == "3") echo "checked"; ?> /> Tenor 2<br />
+<input type="radio" name="section" value="2" <?php if($res['section'] == "2") echo "checked"; ?> /> Baritone<br />
+<input type="radio" name="section" value="1" <?php if($res['section'] == "1") echo "checked"; ?> /> Bass</td></tr>
 <tr><td>Email*:</td><td><input type="text" name="email" value="<?php echo $email ?>"/></td></tr>
 <tr><td>Password*:</td> <td><input type="password" name="password" /></td></tr>
 <tr><td>Confirm Password*:</td> <td><input type="password" name="passwordCheck" /></td></tr>

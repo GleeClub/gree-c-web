@@ -127,10 +127,10 @@ foreach ($conds as $cond)
 		else if ($subcond == 'club') $subcondarr[] = "`registration` = '0'";
 		else if ($subcond == 'dues') $subcondarr[] = "(select sum(`transaction`.`amount`) from `transaction` where `transaction`.`semester` = '$CUR_SEM' and `transaction`.`type` = 'dues' and `transaction`.`memberID` = `member`.`email`) < 0";
 		//else if ($subcond == 'fail') $subcondarr[] = "`` = ''";
-		else if ($subcond == 'b2') $subcondarr[] = "`section` = 'Bass'";
-		else if ($subcond == 'b1') $subcondarr[] = "`section` = 'Baritone'";
-		else if ($subcond == 't2') $subcondarr[] = "`section` = 'Tenor 2'";
-		else if ($subcond == 't1') $subcondarr[] = "`section` = 'Tenor 1'";
+		else if ($subcond == 'b2') $subcondarr[] = "`section` = '1'";
+		else if ($subcond == 'b1') $subcondarr[] = "`section` = '2'";
+		else if ($subcond == 't2') $subcondarr[] = "`section` = '3'";
+		else if ($subcond == 't1') $subcondarr[] = "`section` = '4'";
 		
 	}
 	$condarr[] = join(' or ', $subcondarr);

@@ -1,5 +1,3 @@
-<?php session_start();?>
-
 <head>
 	<style>
 		#title{
@@ -19,14 +17,14 @@
 		}
 		.headings{
 			font-weight: bold;
-			text-align: center;	
+			text-align: center;
 		}
 		tr.topborder td {
 			border-top: 1pt solid black;
 		}
 		.topRow {
 			font-weight: bold;
-			text-align: center;	
+			text-align: center;
 			border-top: 1pt solid black;
 			border-bottom: 1pt solid black;
 			border-left: 1pt solid black;
@@ -42,11 +40,12 @@
 <?php
 require_once('./functions.php');
 $userEmail = $_COOKIE['email'];
-$eventNo = $_POST['eventNo'];
-if (! isOfficer($userEmail) && positionFromEmail($userEmail) != "Section Leader") die("Access denied");
+$eventNo = mysql_real_escape_string($_POST['eventNo']);
+
+if (! attendancePermission($userEmail, $eventNo)) die("Access denied");
 if (! isset($eventNo)) die("Missing event number");
 
-$sql = "select `name` from `event` where `eventNo` = '$eventNo'";
+$sql = "select `name`, `section` from `event` where `eventNo` = '$eventNo'";
 $event = mysql_fetch_array(mysql_query($sql));
 $name = $event['name'];
 
@@ -56,4 +55,3 @@ $html ="<div class='pull-right'><button class='btn' onclick='excuseall($eventNo)
 
 echo $html;
 ?>
-

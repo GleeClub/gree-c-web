@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once('functions.php');
 $email = $_COOKIE['email'];
 $members = explode(",", $_POST['members']);
@@ -18,25 +17,25 @@ mysql_query($sql);
 //Deal with sending a message to an entire section
 foreach($members as $member) {
 	if($member == "tenor1s"){
-		$sql = "SELECT email FROM member WHERE section='Tenor 1' AND confirmed=1";
+		$sql = "SELECT email FROM member WHERE section='4' AND confirmed=1";
 		$res = mysql_query($sql);
 		while($array = mysql_fetch_array($res)) {
 			$members[] = $array['email'];
 		}
 	} else if($member == "tenor2s") {
-		$sql = "SELECT email FROM member WHERE section='Tenor 2' AND confirmed=1";
+		$sql = "SELECT email FROM member WHERE section='3' AND confirmed=1";
 		$res = mysql_query($sql);
 		while($array = mysql_fetch_array($res)) {
 			$members[] = $array['email'];
 		}
 	} else if($member == "baritones") {
-		$sql = "SELECT email FROM member WHERE section='Baritone' AND confirmed=1";
+		$sql = "SELECT email FROM member WHERE section='2' AND confirmed=1";
 		$res = mysql_query($sql);
 		while($array = mysql_fetch_array($res)) {
 			$members[] = $array['email'];
 		}
 	} else if($member == "basses") {
-		$sql = "SELECT email FROM member WHERE section='Bass' AND confirmed=1";
+		$sql = "SELECT email FROM member WHERE section='1' AND confirmed=1";
 		$res = mysql_query($sql);
 		while($array = mysql_fetch_array($res)) {
 			$members[] = $array['email'];

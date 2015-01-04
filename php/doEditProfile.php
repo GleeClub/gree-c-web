@@ -28,7 +28,7 @@ foreach ($required as $field)
 	}
 }
 
-$restricted = array('position', 'sectional', 'tieNum', 'confirmed');
+$restricted = array('position', 'tieNum', 'confirmed');
 
 if (! isOfficer($useremail))
 {
@@ -142,7 +142,7 @@ foreach($_POST as $key => $value){
 	$sql = $sql . "where email='$oldEmail'";
 	mysql_query("BEGIN");  //Start transaction
 	$result = mysql_query($sql);
-	//$sql = "insert ignore into attends (memberID, eventID) select '$email', name from event where not(type=2);"; // FIXME What the heck is this supposed to do?
+	//$sql = "insert ignore into attends (memberID, eventID) select '$email', name from event where not(type=2);"; // FIXME Do we need to refresh event attendance when profile is modified?
 	//$result1 = mysql_query($sql);
 	if($result)
 	{

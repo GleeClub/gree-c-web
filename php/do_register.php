@@ -39,7 +39,7 @@
 				}
 				break;
 			case 5: 				//password 1
-				$default=0;
+				$default = 0;
 				$pass = $value;
 				break;
 			case 6: 				//password 2

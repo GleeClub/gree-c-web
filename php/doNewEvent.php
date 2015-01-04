@@ -58,38 +58,44 @@ function eventEmail($eventNo,$type)
 }
 
 // Add to event, and everyone's attending
-function createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, $gigcount, $allattend)
+function createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, $gigcount, $section)
 {
 	if (! mysql_query("insert into event (name, callTime, releaseTime, points, comments, type, location, semester, gigcount) values ('$name', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount')")) die("Failed to create event");
 	$eventNo = mysql_insert_id();
 
-	if ($allattend && strtotime($call) > strtotime('+48 hours')) if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `email`, '$eventNo' from `member` where `member`.`confirmed` = '1'")) die("Failed to insert attends relations for event");
+	if ($section >= 0 && strtotime($call) > strtotime('+48 hours'))
+	{
+		if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `email`, '$eventNo' from `member` where `member`.`confirmed` = '1'")) die("Failed to insert attends relations for event"); }
+		else
+		{
+			if (! mysql_query("update `event` set `section` = '$section' where `eventNo` = '$eventNo'")) die("Failed to set section");
+			//$row = mysql_fetch_array(mysql_query("select `typeName` from `sectionType` where `typeNo` = '$section'"));
+			//$sectname = $row['typeName'];
+			$sql = "select `email` from `member` where `section` = '$section'";
+			$result = mysql_query($sql);
+			while ($row = mysql_fetch_array($result)) if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) values ('" . $row['email'] . "', $eventNo)")) die("Failed to create attends relations for rehearsal");
+		}
+	}
 	return $eventNo;
 }
 
 // Add to event and gig, and everyone's attending
 function createGig($name, $tutti, $call, $perform, $done, $location, $points, $sem, $comments, $uniform, $cname, $cemail, $cphone, $price, $gigcount, $public, $summary, $description)
 {
-	$eventNo = createEvent($name, ($tutti ? 4 : 3), $call, $done, $location, $points, $sem, $comments, $gigcount, 1);
-	$publicval = $public ? 1 : 0;
+	$eventNo = createEvent($name, ($tutti ? 4 : 3), $call, $done, $location, $points, $sem, $comments, $gigcount, 0);
 
+	$publicval = $public ? 1 : 0;
 	if (! mysql_query("insert into `gig` (eventNo, performanceTime, uniform, cname, cemail, cphone, price, public, summary, description) values ('$eventNo', '$perform', '$uniform', '$cname', '$cemail', '$cphone', '$price', '$publicval', '$summary', '$description')")) die("Failed to create gig");
 	return $eventNo;
 }
 
 // Add to event, and only one section is attending if defined by $section
-function createRehearsal($name, $call, $done, $location, $points, $sem, $comments, $section)
+function createRehearsal($name, $type, $call, $done, $location, $points, $sem, $comments, $section)
 {
-	if ($section == 0) return createEvent($name, 1, $call, $done, $location, $points, $sem, $comments, 0, 1);
+	if ($type != 1 && $type != 2) die("Internal error 1 in createRehearsal, type is $type");
+	if ($type == 1 && $section != 0) die("Internal error 2 in createRehearsal, type is $type");
 
-	$eventNo = createEvent($name, 2, $call, $done, $location, $points, $sem, $comments, 0, 0);
-
-	$row = mysql_fetch_array(mysql_query("select `typeName` from `sectionType` where `typeNo` = '$section'"));
-	$sectname = $row['typeName'];
-	$sql = "select `email` from `member` where `section` = '$sectname'";
-	$result = mysql_query($sql);
-	while ($row = mysql_fetch_array($result)) if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) values ('" . $row['email'] . "', $eventNo)")) die("Failed to create attends relations for rehearsal");
-	return $eventNo;
+	return createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, 0, ($section == 0 ? -1 : $section));
 }
 
 foreach ($_POST as &$value) $value = mysql_real_escape_string($value);
@@ -128,12 +134,12 @@ if ($type == 0 || $type == 1 || $type == 2)
 			$done = date('Y-m-d H:i:s', $cur + $dur);
 			$friendly = date('m-d', $cur);
 			if ($type == 0) $eventNo = createEvent($_POST['name'], 0, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 1);
-			else $eventNo = createRehearsal($_POST['name'] . ' ' . $friendly, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']));
+			else $eventNo = createRehearsal($_POST['name'] . ' ' . $friendly, $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']));
 			$cur = strtotime($interval, $cur);
 		}
 	}
-	else if ($type = 0) $eventNo = createEvent($_POST['name'], 0, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 1);
-	else $eventNo = createRehearsal($_POST['name'], $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']));
+	else if ($type == 0) $eventNo = createEvent($_POST['name'], 0, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 1);
+	else $eventNo = createRehearsal($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']));
 }
 else if ($type == 3 || $type == 4)
 {
@@ -148,6 +154,6 @@ else if ($type == 3 || $type == 4)
 else die("Bad event type");
 
 if ($eventNo < 0) die("Error $eventNo");
-if (($type == 3 || $type == 4) && $unixcall > strtotime('now')) eventEmail($eventNo, $type);
+//if (($type == 3 || $type == 4) && $unixcall > strtotime('now')) eventEmail($eventNo, $type);
 echo "$eventNo";
 ?>

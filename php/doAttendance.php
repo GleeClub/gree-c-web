@@ -11,12 +11,11 @@ function ensure_attends($memberID, $eventNo)
 	if(mysql_num_rows($attendses) == 0) mysql_query("INSERT INTO attends (memberID, shouldAttend, didAttend, eventNo, minutesLate, confirmed) VALUES ('$memberID', '0', '0', '$eventNo', '0', '1')");
 }
 
-$eventNo = $_POST['eventNo'];
-$memberID = $_POST['email'];
+$eventNo = mysql_real_escape_string($_POST['eventNo']);
+$memberID = mysql_real_escape_string($_POST['email']);
 $action = $_POST['action'];
 $value = mysql_real_escape_string($_POST['value']);
-$position = positionFromEmail($userEmail);
-if ($position != "Section Leader" && ! isOfficer($userEmail))
+if (! attendancePermission($userEmail, $eventNo))
 {
 	if ($userEmail != $memberID) die("Access denied");
 	$event = mysql_fetch_array(mysql_query("select * from `event` where `eventNo` = '$eventNo'"));

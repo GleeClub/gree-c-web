@@ -134,6 +134,18 @@ function isOfficer($email){
 	else return false;
 }
 
+function attendancePermission($email, $event)
+{
+	if (isOfficer($email)) return true;
+	if (positionFromEmail($email) != "Section Leader") return false;
+	$result = mysql_fetch_array(mysql_query("select `section` from `event` where `eventNo` = '$event'"));
+	$eventSection = $result['section'];
+	$userSection = sectionFromEmail($email);
+	if ($userSection == 0) return false;
+	if ($userSection == $eventSection) return true;
+	return false;
+}
+
 function getMemberAttribute($attribute, $email){
         $sql = "SELECT $attribute FROM member WHERE email='$email';";
         $result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
@@ -655,7 +667,8 @@ function rosterProp($member, $prop)
 	switch ($prop)
 	{
 		case "Section":
-			$html .= $member["section"];
+			$section = mysql_fetch_array(mysql_query("select `typeName` from `sectionType` where `typeNo` = '" . $member["section"] . "'"));
+			$html .= $section['typeName'];
 			break;
 		case "Contact":
 			$html .= "<a href='tel:" . $member["phone"] . "'>" . $member["phone"] . "</a><br><a href='mailto:" . $member['email'] . "'>" . $member["email"] . "</a>";
@@ -729,12 +742,13 @@ function getEventAttendanceRows($eventNo)
 		<td class='cellwrap'>Confirmed</td>
 	</tr>";
 
-	$sections = mysql_query("select `typeName` from `sectionType` order by `typeNo` asc");
+	$sections = mysql_query("select `typeNo`, `typeName` from `sectionType` where `typeNo` > '0' order by `typeNo` asc");
 	while ($sect = mysql_fetch_array($sections))
 	{
-		$section = $sect['typeName'];
-		$eventRows .= "<tr><td colspan=6><b>$section</b></td></tr>";
-		$members = mysql_query("select `email` from `member` where `confirmed` = '1' and `section` = '$section' order by `lastName` asc");
+		$num = $sect['typeNo'];
+		$name = $sect['typeName'];
+		$eventRows .= "<tr><td colspan=6><b>$name</b></td></tr>";
+		$members = mysql_query("select `email` from `member` where `confirmed` = '1' and `section` = '$num' order by `lastName` asc");
 		while ($member = mysql_fetch_array($members)) $eventRows .= '<tr id="attends_' . $member['email'] . '_' . $eventNo . '">' . getSingleEventAttendanceRow($eventNo, $member['email']) . '</tr>';
 	}
 

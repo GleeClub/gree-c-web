@@ -2,7 +2,7 @@
 require_once('functions.php');
 $userEmail = $_COOKIE['email'];
 
-$member_fields = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'confirmed', 'email', 'phone', 'picture', 'registration', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'clubYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts', 'sectional');
+$member_fields = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'confirmed', 'email', 'phone', 'picture', 'registration', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'clubYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
 
 function member_details($email)
 {

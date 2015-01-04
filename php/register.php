@@ -70,10 +70,10 @@
 <tr><td>First Name*:</td> <td><input type="text" name="firstname" /></td></tr>
 <tr><td>Preferred Name:</td><td><input type="text" name="prefname" /></td></tr>
 <tr><td>Last Name*:</td><td><input type="text" name="lastname" /></td></tr>
-<tr><td>Section*:</td><td id="buttons"><input type="radio" name="section" value="Tenor 1" /> Tenor 1<br />
-<input type="radio" name="section" value="Tenor 2" /> Tenor 2<br />
-<input type="radio" name="section" value="Baritone" /> Baritone<br />
-<input type="radio" name="section" value="Bass" /> Bass</td></tr>
+<tr><td>Section*:</td><td id="buttons"><input type="radio" name="section" value="4" /> Tenor 1<br />
+<input type="radio" name="section" value="3" /> Tenor 2<br />
+<input type="radio" name="section" value="2" /> Baritone<br />
+<input type="radio" name="section" value="1" /> Bass</td></tr>
 <tr><td>Email*:</td><td><input type="text" name="email" /></td></tr>
 <tr><td>Password*:</td> <td><input type="password" name="password" /></td></tr>
 <tr><td>Confirm Password*:</td> <td><input type="password" name="passwordCheck" /></td></tr>

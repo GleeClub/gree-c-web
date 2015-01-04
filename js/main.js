@@ -524,7 +524,7 @@ function loadDetails(id){
 				requestAbsence(id);
 			});
 			$("#attendingButton").click(function(){
-				seeWhosAttending();
+				seeWhosAttending(id);
 			});
 			$("#carpoolsButton").click(function(){
 				seeCarpools();
@@ -631,9 +631,10 @@ function sendPasswordResetEmail() {
 		});
 }
 
-function seeWhosAttending(){
+function seeWhosAttending(eventNo){
 	$.post(
 		'php/seeWhosAttending.php',
+		{ id : eventNo },
 		function(data){
 			$("#eventDetails").html(eventButton+data);
 			smoothScrollTo("eventDetails");
@@ -1823,24 +1824,6 @@ function editEvent(id, element, mode)
 		//$('select[name="repeat"]').trigger('change');
 		$('input[name="public"]').trigger('change');
 	});
-}
-
-function showLastDayField()
-{
-	if($("#repeatCheckbox").attr('checked')) $('#repeatEndDateField').show();
-	else $('#repeatEndDateField').hide();
-}
-
-function showSectionCheckboxes()
-{
-	var section = $("#sectionSelect option:selected").val();
-	$.post(
-		'php/sectionMemberCheckboxes.php',
-		{section:section},
-		function(data){
-			$('#memberCheckboxes').html(data);
-		}
-	);
 }
 
 function addOrRemoveEvent()

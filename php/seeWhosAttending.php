@@ -1,8 +1,7 @@
 <?php
-session_start();
 require_once('functions.php');
 $userEmail = $_COOKIE['email'];
-$eventNo = $_SESSION['eventNo'];
+$eventNo = $_POST['eventNo'];
 
 $shouldHtml='<table class="every-other" width="100%"><tr><td><h3>Should Attend</h3></td></tr>';
 $shouldntHtml='<table class="every-other" width="100%"><tr><td><h3>Shouldn\'t Attend</h3></td></tr>';
@@ -16,10 +15,10 @@ while($row = mysql_fetch_array($results, MYSQL_ASSOC)){
 	$confirmed = $row['confirmed'];
 	$email = $row['memberID'];
 
-	if($section=='Tenor 1') $section='T1';
-	else if($section=='Tenor 2') $section='T2';
-	else if($section=='Baritone') $section='B1';
-	else if($section=='Bass') $section='B2';
+	if($section=='4') $section='T1';
+	else if($section=='3') $section='T2';
+	else if($section=='2') $section='B1';
+	else if($section=='1') $section='B2';
 
 	$current = '<tr>
 		<td><a href="#profile:' . $email . '">' . ($prefName == '' ? $firstName : $prefName) . '  ' .$lastName . '</a></td>
