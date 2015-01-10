@@ -133,7 +133,7 @@ if($userEmail!=null){
 	$position = positionFromEmail($userEmail);
 
 	//if they aren't the President, lock 'em out
-	if($position=="President"){
+	if($position == "President" || $position == "VP"){
 		$html = semesterPage();
 	}
 	//if the person is not the president

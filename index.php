@@ -9,7 +9,8 @@ function actionOptions($userEmail){
 	{
 		$officerOptions .= '
 			<li><a href="#absenceRequest">Absence Requests</a></li>
-			<li><a href="#ties">Ties</a></li>';
+			<li><a href="#ties">Ties</a></li>
+			<li><a href="#semester">Edit Semester</a></li>';
 	}
 	if(isOfficer($userEmail))
 	{
@@ -17,11 +18,6 @@ function actionOptions($userEmail){
 			<li><a href="#event">Add/Remove Event</a></li>
 			<li><a href="#addAnnouncement">Make an Announcement</a></li>
 			<li><a href="../timeMachine">Look at Past Semesters</a></li>';
-	}
-	if($type == "President")
-	{
-		$officerOptions .= '
-			<li><a href="#semester">Add/Remove/Change Semester</a></li>';
 	}
 	echo $officerOptions;
 }

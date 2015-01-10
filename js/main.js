@@ -1529,7 +1529,7 @@ function loadHandbook() {
 }
 
 function loadSyllabus() {
-	$('#main').load('https://docs.google.com/document/d/1Ettw_ZBe2cQOL4U8RG7lQeljqbViTH0cIjNtKhdX2B8/pub', function() { targetStyleSheet(); });
+	$('#main').load('https://docs.google.com/document/d/11ebWTOjPJBXDCmXGQMyM97iUjlQ9XNQNqFwMAWDvUdU/pub', function() { targetStyleSheet(); });
 }
 
 /***************************************************************************
