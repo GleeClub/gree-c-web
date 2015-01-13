@@ -71,6 +71,7 @@ function actionOptions($userEmail){
 						<ul class="dropdown-menu">
 							<li><a href="#feedback">Feedback</a></li>
 							<li><a href="#suggestSong">Suggest a song</a></li>
+							<li><a href="#roster">Members</a></li>
 							<?php if(isset($_COOKIE['email'])) actionOptions($userEmail); ?>
 						</ul>
 					</li>
@@ -78,7 +79,6 @@ function actionOptions($userEmail){
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Documents <b class="caret"></b></a>
 						<ul class="dropdown-menu">
 							<li><a href="#repertoire">Repertoire</a></li>
-							<li><a href="#roster">Roster</a></li>
 							<li><a href="#syllabus">Syllabus</a></li>
 							<li><a href="#minutes">Meeting Minutes</a></li>
 							<li><a href="#handbook">GC Handbook</a></li>

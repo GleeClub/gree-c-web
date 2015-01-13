@@ -37,9 +37,7 @@ else if ($action == 'status_dropdown')
 }
 else if ($action == 'add')
 {
-	$new = 1;
-	while (mysql_num_rows(mysql_query("select * from `tie` where `id` = '$new'"))) $new++;
-	$sql = "insert into `tie` set `id` = '$new'";
+	$sql = "insert into `tie` set `id` = '$tie'";
 	if (mysql_query($sql)) echo 'OK';
 	else die('ERR');
 }

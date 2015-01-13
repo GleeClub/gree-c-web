@@ -914,7 +914,7 @@ function loadTies()
 			});
 		});
 		$('#tie_add').on('click', function() {
-			$.post('php/tie.php', { action : 'add' }, function(data) {
+			$.post('php/tie.php', { action : 'add', tie : $('#tie_newnum').prop('value') }, function(data) {
 				if (data != 'OK') alert(data);
 				loadTies();
 			});

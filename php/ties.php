@@ -28,6 +28,6 @@ while ($row = mysql_fetch_array($result))
 	}
 	echo "<tr><td class='tie_id'>" . $row['id'] . "</td><td class='tie_status' data-status='" . $row['status'] . "'>" . stat2name($row['status']) . "</td><td class='tie_owner' data-member='" . $row['owner'] . "'>$owner</td><td class='tie_comments'>" . $row['comments'] . "</td><td><button type='button' class='btn tie_edit'>Edit</button></td></tr>";
 }
-echo "</table><span class='pull-right'><button type='button' class='btn' id='tie_add'>Add tie</button></span>";
+echo "</table><span class='pull-right'><input type='text' id='tie_newnum' placeholder='#' style='width: 30px'><button type='button' class='btn' id='tie_add'>Add tie</button></span>";
 
 ?>

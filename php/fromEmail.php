@@ -2,7 +2,11 @@
 require_once('functions.php');
 
 $user = $_COOKIE['email'];
-if (! isset($user)) die("DENIED");
+if (! isset($user))
+{
+	header("Location: /buzz/index.php");
+	exit(1);
+}
 
 $event = mysql_real_escape_string($_GET['id']);
 if ($_GET['attend'] == 'true') $attend = true;
