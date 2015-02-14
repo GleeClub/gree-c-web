@@ -19,6 +19,10 @@ echo "<tr><td style='color: grey'>Position:</td><td>".getMemberAttribute('positi
 echo "<tr><td style='color: grey'>Major:</td><td>".getMemberAttribute('major', $person)."</td></tr>";
 echo "<tr><td style='color: grey'>Year (at Tech):</td><td>".getMemberAttribute('techYear', $person)."</td></tr>";
 echo "<tr><td style='color: grey'>Year (in Glee):</td><td>".getMemberAttribute('clubYear', $person)."</td></tr>";
+$sql = mysql_query("select `semester` from `activeSemester` where `member` = '$person'");
+$activeSemesters = '';
+while ($row = mysql_fetch_array($sql)) $activeSemesters .= $row['semester'] . '  ';
+echo "<tr><td style='color: grey'>Active semesters:</td><td>".$activeSemesters."</td></tr>";
 if (isOfficer($userEmail)) echo "<tr><td><button class='btn' onclick='chgusr(\"$person\")'>Switch User</button></td><td>&nbsp;</td></tr>";
 echo "</table>";
 /*

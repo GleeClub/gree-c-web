@@ -11,7 +11,7 @@ if (! isOfficer($userEmail))
 $type = $_POST['type'];
 if ($type == "dues")
 {
-	$query = mysql_query("select `email` from `member` where `confirmed` = '1'");
+	$query = mysql_query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM'");
 	$dues = -1 * $DUES;
 	while ($row = mysql_fetch_array($query))
 	{
@@ -24,7 +24,7 @@ if ($type == "dues")
 else if ($type == "late")
 {
 	$fee = -1 * $LATEFEE;
-	$query = mysql_query("select `email` from `member` where `confirmed` = '1'");
+	$query = mysql_query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM'");
 	while ($row = mysql_fetch_array($query))
 	{
 		$member = $row['email'];

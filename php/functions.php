@@ -732,6 +732,7 @@ function rosterProp($member, $prop)
 **/
 function getEventAttendanceRows($eventNo)
 {
+	global $CUR_SEM;
 	$eventRows = "
 	<tr class='topRow'>
 		<td class='cellwrap'>Name</td>
@@ -748,7 +749,7 @@ function getEventAttendanceRows($eventNo)
 		$num = $sect['typeNo'];
 		$name = $sect['typeName'];
 		$eventRows .= "<tr><td colspan=6><b>$name</b></td></tr>";
-		$members = mysql_query("select `email` from `member` where `confirmed` = '1' and `section` = '$num' order by `lastName` asc");
+		$members = mysql_query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM' and `member`.`section` = '$num' order by `member`.`lastName` asc");
 		while ($member = mysql_fetch_array($members)) $eventRows .= '<tr id="attends_' . $member['email'] . '_' . $eventNo . '">' . getSingleEventAttendanceRow($eventNo, $member['email']) . '</tr>';
 	}
 

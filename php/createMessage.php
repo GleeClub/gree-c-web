@@ -1,5 +1,6 @@
 <?php
 require_once('functions.php');
+global $CUR_SEM;
 $email = $_COOKIE['email'];
 $members = explode(",", $_POST['members']);
 $members[] = $_COOKIE['email'];
@@ -16,31 +17,13 @@ mysql_query($sql);
 
 //Deal with sending a message to an entire section
 foreach($members as $member) {
-	if($member == "tenor1s"){
-		$sql = "SELECT email FROM member WHERE section='4' AND confirmed=1";
-		$res = mysql_query($sql);
-		while($array = mysql_fetch_array($res)) {
-			$members[] = $array['email'];
-		}
-	} else if($member == "tenor2s") {
-		$sql = "SELECT email FROM member WHERE section='3' AND confirmed=1";
-		$res = mysql_query($sql);
-		while($array = mysql_fetch_array($res)) {
-			$members[] = $array['email'];
-		}
-	} else if($member == "baritones") {
-		$sql = "SELECT email FROM member WHERE section='2' AND confirmed=1";
-		$res = mysql_query($sql);
-		while($array = mysql_fetch_array($res)) {
-			$members[] = $array['email'];
-		}
-	} else if($member == "basses") {
-		$sql = "SELECT email FROM member WHERE section='1' AND confirmed=1";
-		$res = mysql_query($sql);
-		while($array = mysql_fetch_array($res)) {
-			$members[] = $array['email'];
-		}
-	}
+	if($member == "tenor1s") $section = 4;
+	else if($member == "tenor2s") $section = 3;
+	else if($member == "baritones") $section = 2;
+	else if($member == "basses") $section = 1;
+	$sql = "select `member`.`email` from `member`, `activeSemester` where `member`.`section` = '$section' and `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM'";
+	$res = mysql_query($sql);
+	while($array = mysql_fetch_array($res)) $members[] = $array['email'];
 }
 
 //Remove duplicates

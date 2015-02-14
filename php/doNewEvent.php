@@ -60,18 +60,19 @@ function eventEmail($eventNo,$type)
 // Add to event, and everyone's attending
 function createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, $gigcount, $section)
 {
+	global $CUR_SEM;
 	if (! mysql_query("insert into event (name, callTime, releaseTime, points, comments, type, location, semester, gigcount) values ('$name', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount')")) die("Failed to create event");
 	$eventNo = mysql_insert_id();
 
 	if ($section >= 0 && strtotime($call) > strtotime('+48 hours')) // -1 for nobody to attend, 0 for everyone to attend
 	{
-		if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `email`, '$eventNo' from `member` where `member`.`confirmed` = '1'")) die("Failed to insert attends relations for event"); }
+		if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `member`.`email`, '$eventNo' from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM'")) die("Failed to insert attends relations for event"); }
 		else
 		{
 			if (! mysql_query("update `event` set `section` = '$section' where `eventNo` = '$eventNo'")) die("Failed to set section");
 			//$row = mysql_fetch_array(mysql_query("select `typeName` from `sectionType` where `typeNo` = '$section'"));
 			//$sectname = $row['typeName'];
-			$sql = "select `email` from `member` where `section` = '$section'";
+			$sql = "select `member`.`email` from `member`, `activeSemester` where `member`.`section` = '$section' and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`";
 			$result = mysql_query($sql);
 			while ($row = mysql_fetch_array($result)) if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) values ('" . $row['email'] . "', $eventNo)")) die("Failed to create attends relations for rehearsal");
 		}

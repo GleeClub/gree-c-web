@@ -121,8 +121,8 @@ foreach ($conds as $cond)
 	foreach ($subconds as $subcond)
 	{
 		if ($subcond == '') continue;
-		else if ($subcond == 'active') $subcondarr[] = "`confirmed` = '1'";
-		else if ($subcond == 'inactive') $subcondarr[] = "`confirmed` = '0'";
+		else if ($subcond == 'active') $subcondarr[] = "exists(select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
+		else if ($subcond == 'inactive') $subcondarr[] = "not exists(select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
 		else if ($subcond == 'class') $subcondarr[] = "`registration` = '1'";
 		else if ($subcond == 'club') $subcondarr[] = "`registration` = '0'";
 		else if ($subcond == 'dues') $subcondarr[] = "(select sum(`transaction`.`amount`) from `transaction` where `transaction`.`semester` = '$CUR_SEM' and `transaction`.`type` = 'dues' and `transaction`.`memberID` = `member`.`email`) < 0";

@@ -24,8 +24,8 @@ if(mysql_query($sql))
 	$cur_sem = mysql_fetch_array(mysql_query($sql));
 	$cur_sem = $cur_sem['semester'];
 
-	$sql = "UPDATE `member` SET `confirmed`=0 WHERE 1";
-	mysql_query($sql);
+	//$sql = "UPDATE `member` SET `confirmed`=0 WHERE 1";
+	//mysql_query($sql);
 
 	echo "<legend>Results</legend>The current semester is now: $cur_sem";
 }
