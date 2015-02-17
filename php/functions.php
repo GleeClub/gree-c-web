@@ -560,21 +560,25 @@ function attendance($memberID, $mode, $media = 'normal')
 			// Lose points equal to the percentage of the event missed, if they should attend
 			if ($minutesLate > 0)
 			{
-				if ($type == "Rehearsal") $delta = floatval($minutesLate) / 11.0;
-				else if ($type == "Sectional") $delta = floatval($minutesLate) / 5.0;
-				else
+				if ($shouldAttend == '1')
 				{
-					$sql = "select `callTime`, `releaseTime` from `event` where `eventNo` = '$eventNo'";
-					$row = mysql_fetch_array(mysql_query($sql));
-					$duration = floatval(strtotime($row['releaseTime']) - strtotime($row['callTime'])) / 60.0;
-					$delta = floatval($minutesLate) / $duration * $points;
-					//if ($type == "Volunteer Gig") $delta *= 10.0;
-					//else if ($type == "Tutti Gig") $delta *= 35.0;
+					if ($type == "Rehearsal") $delta = floatval($minutesLate) / 11.0;
+					else if ($type == "Sectional") $delta = floatval($minutesLate) / 5.0;
+					else
+					{
+						$sql = "select `callTime`, `releaseTime` from `event` where `eventNo` = '$eventNo'";
+						$row = mysql_fetch_array(mysql_query($sql));
+						$duration = floatval(strtotime($row['releaseTime']) - strtotime($row['callTime'])) / 60.0;
+						$delta = floatval($minutesLate) / $duration * $points;
+						//if ($type == "Volunteer Gig") $delta *= 10.0;
+						//else if ($type == "Tutti Gig") $delta *= 35.0;
+					}
+					$delta = round($delta, 2);
+					$pointChange -= $delta;
+					if ($type == "Volunteer Gig") $tip = "Event would grant $points-point bonus, but $delta points deducted for lateness";
+					else $tip = "$delta points deducted for lateness to required event";
 				}
-				$delta = round($delta, 2);
-				$pointChange -= $delta;
-				if ($type == "Volunteer Gig") $tip = "Event would grant $points-point bonus, but $delta points deducted for lateness";
-				else $tip = "$delta points deducted for lateness to required event";
+				else $tip = "No points deducted for coming late to an event with excused absence";
 			}
 			// If you haven't been to rehearsal in seven days, you can't get points or gig credit
 			if ($lastRehearsal > $time - $WEEK && $lastAttendedRehearsal < $time - $WEEK)
