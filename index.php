@@ -2,7 +2,8 @@
 require_once('php/functions.php');
 if(isset($_COOKIE['email'])) $userEmail = $_COOKIE['email'];
 
-function actionOptions($userEmail){
+function actionOptions($userEmail)
+{
 	$type = positionFromEmail($userEmail);
 	$officerOptions = '';
 	if(($type == "VP") || ($type == "President"))
@@ -21,6 +22,8 @@ function actionOptions($userEmail){
 	}
 	echo $officerOptions;
 }
+
+if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 ?>
 <!DOCTYPE html>
 <html lang="en">

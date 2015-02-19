@@ -4,7 +4,8 @@ require_once('/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs/db_connect.php');
 
 $docroot = "/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs";
 $musicdir = "/music";
-$BASEURL = "http://gleeclub.gatech.edu/buzz";
+$domain = "gleeclub.gatech.edu";
+$BASEURL = "http://$domain/buzz";
 
 // Connect to the database
 $sql = "select * from variables";

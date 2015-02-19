@@ -27,7 +27,7 @@ function eventEmail($eventNo,$type)
 	$eventReleaseTime = strtotime($eventReleaseTime);
 	$eventReleaseTimeDisplay = date("D, M d g:i a", $eventReleaseTime);
 	
-	$typeResults = mysql_fetch_array(mysql_query("SELECT * from `eventTyped` where typeNo=$eventTypeNo"));
+	$typeResults = mysql_fetch_array(mysql_query("SELECT * from `eventType` where typeNo=$eventTypeNo"));
 	$eventType = $typeResults['typeName'];
 
 	$redirectURL = "$BASEURL/php/fromEmail.php";
