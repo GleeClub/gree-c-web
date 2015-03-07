@@ -22,7 +22,7 @@ if ($action == 'return')
 else if ($action == 'checkout')
 {
 	if (! isset($tie)) die('MISSING_ARG');
-	if (mysql_num_rows(mysql_query("select `*` from `tie` where `id` = '$tie'")) == 0) die('NO_TIE');
+	if (mysql_num_rows(mysql_query("select * from `tie` where `id` = '$tie'")) == 0) die('NO_TIE');
 	$sql = "update `tie` set `status` = 'borrowed', `owner` = '$member' where `id` = '$tie'";
 	if (mysql_query($sql)) echo 'OK';
 	else die('ERR');

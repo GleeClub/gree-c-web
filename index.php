@@ -153,9 +153,9 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 			}
 			else{
 				//if the user is not confirmed for the semester, prompt them to confirm
-				$sql = "SELECT confirmed, registration, location FROM member WHERE email='$email'";
-				$arr = mysql_fetch_array(mysql_query($sql));
-				if(! $arr['confirmed'])
+				$arr = mysql_fetch_array(mysql_query("SELECT registration, location FROM member WHERE email='$email'"));
+				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$email' and `semester` = '$CUR_SEM'"));
+				if(! $confirmed)
 				{
 					$reg = $arr['registration'] ? "confirm_class" : "confirm_club";
 					$loc = addslashes($arr['location']);

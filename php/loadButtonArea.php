@@ -13,6 +13,8 @@
 		//determine whether the user said they were attending or not attending
 		$attending = $_POST['attending'];
 
+		if ($typeNumber != 3 && $attending != 1) die("You can only confirm not attending for volunteer events.");
+
 		$sql = "SELECT `callTime` FROM `event` WHERE `eventNo` = $eventNo";
 		$results = mysql_fetch_array(mysql_query($sql));
 		if (strtotime($results['callTime']) < time() + 86400 && $attending != 1)

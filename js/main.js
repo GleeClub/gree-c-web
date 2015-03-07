@@ -463,7 +463,7 @@ function loadAllEvents(h, id){
 
 				var isAttending = 1;
 				var me = $(this);
-				$.post("php/loadButtonArea.php", {eventNo: eventID, attending: isAttending}, function(data){			
+				$.post("php/loadButtonArea.php", {eventNo: eventID, attending: isAttending}, function(data){
 					//load in the new buttons
 					me.parent().html(data);
 					//if there is a toggle button, make sure it works
@@ -952,6 +952,17 @@ function roster()
 					else alert(data);
 				});
 			});
+			$('.semesterbutton').on('click', function() {
+				var sem = $(this).data('semester');
+				var val = $(this).data('val');
+				$.post('php/updateConfirmed.php', { email : member, semester : sem, value : val }, function(data) {
+					if (data != 'OK') alert(data);
+					else
+					{
+						//...
+					}
+				});
+			});
 			$('.tie_checkout').on('click', function() {
 				var member = $(this).data('member');
 				var tienum = $(this).parent().children('.tienum').prop('value');
@@ -1383,14 +1394,16 @@ function toggleShouldAttend(eventID,me){
 
 function should_attend(eventID, memberID, newShouldAttend)
 {
-	$.post('php/doAttendance.php', { eventNo: eventID, email: memberID, action: 'should', value: newShouldAttend }, function(data) {
+	$.post('php/loadButtonArea.php', { eventNo: eventID, attending: newShouldAttend }, function(data) {
+		$('tr#' + eventID).children().last().html(data);
 		loadDetails(eventID);
 	});
 }
 
 function is_confirmed(eventID, memberID, confirmed)
 {
-	$.post('php/doAttendance.php', { eventNo: eventID, email: memberID, action: 'confirmed', value: confirmed }, function(data) {
+	$.post('php/loadButtonArea.php', { eventNo: eventID, attending: 1 }, function(data) {
+		$('tr#' + eventID).children().last().html(data);
 		loadDetails(eventID);
 	});
 }

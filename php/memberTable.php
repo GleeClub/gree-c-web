@@ -73,7 +73,7 @@ function member_table($conditions, $type = 'normal')
 					$html .= "<br>";
 					if ($showDetails) $html .= "<a href='#' class='roster_toggle' data-tab='details'>Details</a><span class=spacer></span>";
 					if ($showMoney) $html .= "<a href='#' class='roster_toggle' data-tab='money'>Money</a><span class=spacer></span>";
-					if ($showAttendance) $html .= "<a href='#' class='roster_toggle' data-tab='attendance'>Attendance</a><span class=spacer></span><a href='#' class='roster_toggle' data-tab='tie'>Tie</a><span class=spacer></span>";
+					if ($showAttendance) $html .= "<a href='#' class='roster_toggle' data-tab='attendance'>Attendance</a><span class=spacer></span><a href='#' class='roster_toggle' data-tab='tie'>Tie</a><span class=spacer></span><a href='#' class='roster_toggle' data-tab='semesters'>Semesters</a><span class='spacer'></span>";
 					break;
 				default:
 					$html .= ">" . rosterProp($member, $col);
@@ -94,18 +94,18 @@ function member_csv($conditions)
 	$userEmail = $_COOKIE['email'];
 	$role = positionFromEmail($userEmail);
 	if (! isOfficer($userEmail)) die("Access denied");
-	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "registration", "location", "major");
+	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major");
 
 	$sql = 'SELECT * FROM `member` ORDER BY confirmed desc, lastName asc, firstName asc';
 	if ($conditions != '') $sql = 'SELECT * FROM `member` where ' . $conditions . ' ORDER BY confirmed desc, lastName asc, firstName asc';
 	$members = mysql_query($sql);
 
-	$ret = '"' . join('","', $cols) . "\"\n";
+	$ret = '"' . join('","', $cols) . "\"<br>";
 	while ($row = mysql_fetch_array($members))
 	{
 		$vals = array();
 		foreach ($cols as $col) array_push($vals, addslashes($row[$col]));
-		$ret .= '"' . join('","', $vals) . "\"\n";
+		$ret .= '"' . join('","', $vals) . "\"<br>";
 	}
 	return $ret;
 }

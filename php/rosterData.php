@@ -123,50 +123,51 @@ function tie_form($memberID)
 	return "$head<br>Tie deposit:  $deposit<br><br>$form";
 }
 
+function active_semesters($memberID)
+{
+	$table = "<table style='width: auto'><tr><th>Semester</th><th>Active</th><th>Score</th></tr>";
+	$query = mysql_query("select `semester` from `validSemester` order by `beginning` asc");
+	while ($result = mysql_fetch_array($query))
+	{
+		$semester = $result['semester'];
+		$active = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$memberID' and `semester` = '$semester'"));
+		$newval = ($active + 1) % 2;
+		if ($active) $checked = 'checked';
+		else $checked = '';
+		$table .= "<tr><td>$semester</td><td style='text-align: center'><input type='checkbox' class='semesterbutton' style='' data-semester='$semester' data-val='$newval' $checked></td><td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, 0, $semester) . "</span></td></tr>";
+	}
+	$table .= "</table>";
+	return $table;
+}
+
 $role = positionFromEmail($userEmail);
 
 switch ($_POST['tab'])
 {
 	case 'details':
-		if ($role != "President" && $role != "VP")
-		{
-			echo "DENIED";
-			exit;
-		}
-		echo member_details($_POST['email']);
+		if ($role != "President" && $role != "VP") die("DENIED");
+		echo member_details(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'details_edit':
-		if ($role != "President" && $role != "VP")
-		{
-			echo "DENIED";
-			exit;
-		}
-		echo member_edit($_POST['email']);
+		if ($role != "President" && $role != "VP") die("DENIED");
+		echo member_edit(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'money':
-		if ($role != "President" && $role != "VP" && $role != "Treasurer")
-		{
-			echo "DENIED";
-			exit;
-		}
-		echo money_table($_POST['email']);
+		if ($role != "President" && $role != "VP") die("DENIED");
+		echo money_table(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'attendance':
-		if ($role != "President" && $role != "VP")
-		{
-			echo "DENIED";
-			exit;
-		}
-		echo attendance($_POST['email'], 1);
+		if ($role != "President" && $role != "VP") die("DENIED");
+		echo attendance(mysql_real_escape_string($_POST['email']), 1);
 		echo "<div style='text-align: right'><a href='php/memberAttendance.php?id=" . $_POST['email'] . "'>Print view</a></div>";
 		break;
 	case 'tie':
-		if ($role != "President" && $role != "VP")
-		{
-			echo "DENIED";
-			exit;
-		}
-		echo tie_form($_POST['email']);
+		if ($role != "President" && $role != "VP") die("DENIED");
+		echo tie_form(mysql_real_escape_string($_POST['email']));
+		break;
+	case 'semesters':
+		if ($role != "President" && $role != "VP") die("DENIED");
+		echo active_semesters(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'col':
 		if (! isset($_POST['email'])) die("BAD_ACTION");

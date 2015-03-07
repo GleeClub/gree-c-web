@@ -17,7 +17,7 @@ if(isset($_COOKIE['email']))
 		if ($mode == 'did') $sql = "update attends set confirmed='1', didAttend='$value' where memberID='$memberID' and eventNo='$eventNo'";
 		else if ($mode == 'should') $sql = "update attends set confirmed='1', shouldAttend='$value' where memberID='$memberID' and eventNo='$eventNo'";
 		else if ($mode == 'late') $sql = "update attends set minutesLate='$value' where memberID='$memberID' and eventNo='$eventNo'";
-		else die("MAD_MODE");
+		else die("BAD_MODE");
 		mysql_query($sql);
 
 		echo "OK"; // $memberID $eventNo $mode $value";

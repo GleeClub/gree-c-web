@@ -264,28 +264,22 @@ function buttonArea($eventNo, $typeNumber)
 	else
 	{
 		$results = mysql_fetch_array($sql);
-		if ($results['shouldAttend'] == '0')
+		if ($results['confirmed'] == '0')
 		{
-			$html = "<span class='label'>Not attending</span>";
-		}
-		else
-		{
-			if ($results['confirmed'] == '0')
+			if ($typeNumber == '3')
 			{
-				if ($typeNumber == '3')
-				{
-					//not confirmed volunteer gig
-					if ($soon) $html = "<span class='label'>Attending</span>"; //'<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
-					else $html = '<div class="btn btn-primary btn-confirm" style="width:90%;">I will attend</div> <div class="btn btn-warning btn-deny" style="width:90%;">I won\'t attend</div>';
-				}
-				else
-				{
-					//not confirmed, not volunteer gig
-					$html = '<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
-				}
+				//not confirmed volunteer gig
+				if ($soon) $html = "<span class='label'>Attending</span>"; //'<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
+				else $html = '<div class="btn btn-primary btn-confirm" style="width:90%;">I will attend</div> <div class="btn btn-warning btn-deny" style="width:90%;">I won\'t attend</div>';
 			}
-			else $html = '<span class="label">Attending</span>';
+			else
+			{
+				//not confirmed, not volunteer gig
+				$html = '<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
+			}
 		}
+		elseif ($results['shouldAttend'] == '0') $html = "<span class='label'>Not attending</span>";
+		else $html = '<span class="label">Attending</span>';
 	}
 	return $html;
 }
@@ -469,7 +463,7 @@ function balance($member)
 	return $balance;
 }
 
-function attendance($memberID, $mode, $media = 'normal')
+function attendance($memberID, $mode, $semester = '', $media = 'normal')
 {
 	// Type:
 	// 0 for grade
@@ -478,7 +472,8 @@ function attendance($memberID, $mode, $media = 'normal')
 	// 3 for gig count
 	global $CUR_SEM, $GIG_REQ;
 	$WEEK = 604800;
-	$sql = "select attends.eventNo,shouldAttend,didAttend,minutesLate,confirmed,UNIX_TIMESTAMP(callTime) as time,name,typeName,points from attends,event,eventType where attends.memberID='$memberID' and event.eventNo=attends.eventNo and callTime<=current_timestamp and event.type=eventType.typeNo and `event`.`semester`='".getCurrentSemester()."' order by callTime asc";
+	if ($semester == '') $semester = $CUR_SEM;
+	$sql = "select attends.eventNo,shouldAttend,didAttend,minutesLate,confirmed,UNIX_TIMESTAMP(callTime) as time,name,typeName,points from attends,event,eventType where attends.memberID='$memberID' and event.eventNo=attends.eventNo and callTime<=current_timestamp and event.type=eventType.typeNo and `event`.`semester`='$semester' order by callTime asc";
 	$attendses = mysql_query($sql);
 
 	$eventRows = '';
