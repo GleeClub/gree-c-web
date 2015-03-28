@@ -101,7 +101,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 						if(isset($_COOKIE['email']))
 						{ ?>
 							<li class="dropdown">
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown"> <?php echo $_COOKIE['email']; ?> <b class="caret"></b></a>
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown"> <?php echo getuser(); ?> <b class="caret"></b></a>
 								<ul class="dropdown-menu">
 									<li><a href="#editProfile">My Profile</a></li>
 									<li><a href="php/logOut.php">Log Out</a></li>

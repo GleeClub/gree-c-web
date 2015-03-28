@@ -3,8 +3,8 @@
 require_once('variables.php');
 
 // username and password sent from form 
-$myusername=$_POST['email']; 
-$mypassword=$_POST['password'];
+$myusername = mysql_real_escape_string($_POST['email']);
+$mypassword = mysql_real_escape_string($_POST['password']);
 
 
 //debug stuff
@@ -20,12 +20,6 @@ setcookie('email', $myusername, time()+60*60*24*120, '/', false, false);
 print_r($_COOKIE);
 echo $_COOKIE['email'];*/
 
-// To protect MySQL injection (more detail about MySQL injection)
-/*$myusername = stripslashes($myusername);
-$mypassword = stripslashes($mypassword);
-$myusername = mysql_real_escape_string($myusername);
-$mypassword = mysql_real_escape_string($mypassword);*/
-
 $sql="SELECT * FROM `member` WHERE email='$myusername' and password=md5('$mypassword')";
 $result=mysql_query($sql);
 
@@ -33,16 +27,12 @@ $result=mysql_query($sql);
 $count=mysql_num_rows($result);
 // If result matched $myusername and $mypassword, table row must be 1 row
 
-if($count==1){
+if ($count == 1)
+{
 	// Register $myusername, $mypassword and redirect to file "login_success.php"
 	//session_register("myusername");
-	//setcookie('email', $myusername, time()+60*60*24*120, '/'); //sets cookie to expire in 120 days
-	//echo "got this far<br>";
-	setcookie('email', $myusername, time()+60*60*24*120, '/', false, false);
-	//echo "didn't go this far<br>";
+	setcookie('email', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $myusername, MCRYPT_MODE_ECB)), time() + 60*60*24*120, '/', false, false);
 	header("Location: ../");
 }
-else {
-	echo "Wrong Username or Password";
-}
+else echo "Wrong Username or Password";
 ?>

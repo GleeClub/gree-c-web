@@ -2,7 +2,7 @@
 require_once('functions.php');
 
 if (! isOfficer($_COOKIE['email'])) die("Access denied");
-setcookie('email', $_POST['user'], time()+60*60*24*120, '/', false, false);
+setcookie('email', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $_POST['user'], MCRYPT_MODE_ECB)), time() + 60*60*24*120, '/', false, false);
 header("Location: /buzz");
 ?>
 

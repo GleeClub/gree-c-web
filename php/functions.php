@@ -3,6 +3,13 @@ require_once('variables.php'); // THIS IS IMPORTANT because every PHP script use
 
 /**** Utility functions ****/
 
+function getuser()
+{
+	global $sessionkey;
+	if (! isset($_COOKIE['email'])) return false;
+	return mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $sessionkey, base64_decode($_COOKIE['email']), MCRYPT_MODE_ECB);
+}
+
 function encrypt2($string)
 {
 	return base64_encode($string ^ "12345678900987654321qwertyuiopasdfghjklzxcvbnm,.");
