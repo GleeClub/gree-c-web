@@ -3,13 +3,6 @@ require_once('variables.php'); // THIS IS IMPORTANT because every PHP script use
 
 /**** Utility functions ****/
 
-function getuser()
-{
-	global $sessionkey;
-	if (! isset($_COOKIE['email'])) return false;
-	return mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $sessionkey, base64_decode($_COOKIE['email']), MCRYPT_MODE_ECB);
-}
-
 function encrypt2($string)
 {
 	return base64_encode($string ^ "12345678900987654321qwertyuiopasdfghjklzxcvbnm,.");
@@ -41,6 +34,13 @@ function getCurrentSemester() {
 	$sql = "SELECT semester FROM variables";
 	$arr = mysql_fetch_array(mysql_query($sql));
 	return $arr['semester'];
+}
+
+function getuser()
+{
+	global $sessionkey;
+	if (! isset($_COOKIE['email'])) return false;
+	return rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $sessionkey, base64_decode($_COOKIE['email']), MCRYPT_MODE_ECB), "\0");
 }
 
 // First "Pref" Last if pref exists && pref != first
@@ -118,16 +118,14 @@ function randomProfilePic(){
         return "http://placekitten.com/500/400";
 }
 
-function isInClass($email){
-	if ($email == '') return false;
-	$sql = "SELECT registration FROM member WHERE email='$email';";
-	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	if($result['registration'] == '1'){
-		return true;
-	}
-	else{
-		return false;
-	}
+function enrollment($email, $semester = '')
+{
+	global $CUR_SEM;
+	if ($semester == '') $semester = $CUR_SEM;
+	$query = mysql_query("select `enrollment` from `activeSemester` where `member` = '$email' and `semester` = '$semester'");
+	if (mysql_num_rows($query) != 1) return "inactive";
+	$result = mysql_fetch_array($query);
+	return $result['enrollment'];
 }
 
 function isOfficer($email){
@@ -135,8 +133,8 @@ function isOfficer($email){
 	if(positionFromEmail($email) == "Manager" ||
 	positionFromEmail($email) == "VP" ||
 	positionFromEmail($email) == "Treasurer" ||
-	positionFromEmail($email) == "President" || 
-	positionFromEmail($email) == "Liaison" || 
+	positionFromEmail($email) == "President" ||
+	positionFromEmail($email) == "Liaison" ||
 	positionFromEmail($email) == "Webmaster") return true; // Webmaster needs access for debugging
 	else return false;
 }
@@ -176,7 +174,7 @@ function semesterDropdown()
 {
 	GLOBAL $CUR_SEM;
 	$html = "<select class='semester' style='width: 140px'>";
-	$sql = "select `semester` from `validSemester` order by `beginning` desc";
+	$sql = "select `semester` from `semester` order by `beginning` desc";
 	$results = mysql_query($sql);
 	while ($row = mysql_fetch_array($results))
 	{
@@ -266,7 +264,7 @@ function buttonArea($eventNo, $typeNumber)
 	$soon = 0;
 	if (strtotime($results['callTime']) < time() + 86400) $soon = 1;
 	
-	$sql = mysql_query("SELECT * FROM `attends` WHERE eventNo=$eventNo AND memberID='".$_COOKIE['email']."';");
+	$sql = mysql_query("SELECT * FROM `attends` WHERE eventNo=$eventNo AND memberID='".getuser()."';");
 	if (mysql_num_rows($sql) == 0) $html = "<span class='label'>Not attending</span>";
 	else
 	{
@@ -292,7 +290,7 @@ function buttonArea($eventNo, $typeNumber)
 }
 
 //function requestAbsenceButton($eventNo){
-	//$absenceRequest = getAbsenceRequest($eventNo, $_COOKIE['email']);
+	//$absenceRequest = getAbsenceRequest($eventNo, getuser());
 	//if($absenceRequest['state'] == 'pending'){
 		//return '<td><span class="label label-warning">absence request '.$absenceRequest['state'].'</span></td><td><div class="btn">edit request</div></td>';
 	//}
@@ -412,7 +410,7 @@ function getConvoTitle($id) {
 }
 
 function getConvoMembers($id, $email) {
-	$sql = "select distinct member.prefName, member.lastName from convoMembers left join member on member.email=convoMembers.email where convoMembers.id='$id' and convoMembers.email<>'" . mysql_real_escape_string($_COOKIE['email']) ."'";
+	$sql = "select distinct member.prefName, member.lastName from convoMembers left join member on member.email=convoMembers.email where convoMembers.id='$id' and convoMembers.email<>'" . mysql_real_escape_string(getuser()) ."'";
 	return mysql_query($sql);
 }
 
@@ -477,7 +475,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	// 1 for officer table
 	// 2 for member table
 	// 3 for gig count
-	global $CUR_SEM, $GIG_REQ;
+	global $CUR_SEM;
 	$WEEK = 604800;
 	if ($semester == '') $semester = $CUR_SEM;
 	$sql = "select attends.eventNo,shouldAttend,didAttend,minutesLate,confirmed,UNIX_TIMESTAMP(callTime) as time,name,typeName,points from attends,event,eventType where attends.memberID='$memberID' and event.eventNo=attends.eventNo and callTime<=current_timestamp and event.type=eventType.typeNo and `event`.`semester`='$semester' order by callTime asc";
@@ -533,6 +531,10 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 		$time = $attends['time'];
 		$attendsID = "attends_".$memberID."_$eventNo";
 		$tip = "";
+		$curgig = 0;
+		$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$CUR_SEM'"));
+		$gigreq = $result['gigreq'];
+		$event = mysql_fetch_array(mysql_query("select * from `event` where `eventNo` = '$eventNo'"));
 
 		if ($type == "Rehearsal")
 		{
@@ -557,9 +559,13 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 					$tip = "Full bonus awarded for attending volunteer event";
 				}
 			}
-			// Get gig credit for volunteer gigs
-			if ($type == "Volunteer Gig") $gigcount += 1;
-			// Lose points equal to the percentage of the event missed, if they should attend
+			// Get gig credit for volunteer gigs if they are applicable
+			if ($type == "Volunteer Gig" && $event['gigcount'] == '1')
+			{
+				$gigcount += 1;
+				$curgig = 1;
+			}
+			// Lose points equal to the percentage of the event missed, if they should have attended
 			if ($minutesLate > 0)
 			{
 				if ($shouldAttend == '1')
@@ -572,8 +578,6 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 						$row = mysql_fetch_array(mysql_query($sql));
 						$duration = floatval(strtotime($row['releaseTime']) - strtotime($row['callTime'])) / 60.0;
 						$delta = floatval($minutesLate) / $duration * $points;
-						//if ($type == "Volunteer Gig") $delta *= 10.0;
-						//else if ($type == "Tutti Gig") $delta *= 35.0;
 					}
 					$delta = round($delta, 2);
 					$pointChange -= $delta;
@@ -588,7 +592,11 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 				if ($type == "Volunteer Gig")
 				{
 					$pointChange = 0;
-					$gigcount -= 1;
+					if ($curgig)
+					{
+						$gigcount -= 1;
+						$curgig = 0;
+					}
 					$tip = "$points-point bonus denied because this week&apos;s rehearsal was missed";
 				}
 				else if ($type == "Tutti Gig")
@@ -614,7 +622,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 		{
 			//name, date and type of the gig
 			$date = date("D, M j, Y",intval($time));
-			$eventRows .= "<tr id='$attendsID'><td class='data'>$eventName</td><td class='data'>$date</td><td align='left' class='data'>$type</td>";
+			$eventRows .= "<tr id='$attendsID'><td class='data'><a href='#event:$eventNo'>$eventName</a></td><td class='data'>$date</td><td align='left' class='data'><span " . ($curgig ? "style='color: green'" : "") . ">$type</span></td>";
 			
 			if ($shouldAttend) $checked = 'checked';
 			else $checked = '';
@@ -644,7 +652,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 		}
 		else if ($mode == 2)
 		{
-			$eventRows .= "<tr align='center'><td>$eventName</td><td>";
+			$eventRows .= "<tr align='center'><td><a href='#event:$eventNo'>$eventName</a></td><td>";
 			if ($shouldAttend == "1") $eventRows .= "<i class='icon-ok'></i>";
 			else $eventRows .= "<i class='icon-remove'></i>";
 			$eventRows .= "</td><td>";
@@ -657,7 +665,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	if ($mode == 3) return $gigcount;
 	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
 	// Multiply the top half of the score by the fraction of volunteer gigs attended, if enabled
-	if ($result['gigCheck']) $score *= 0.5 + min(floatval($gigcount) * 0.5 / $GIG_REQ, 0.5);
+	if ($result['gigCheck']) $score *= 0.5 + min(floatval($gigcount) * 0.5 / $gigreq, 0.5);
 	// Bound the final score between 0 and 100
 	if ($score > 100) $score = 100;
 	if ($score < 0) $score = 0;
@@ -668,7 +676,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 
 function rosterProp($member, $prop)
 {
-	global $CUR_SEM, $GIG_REQ, $DEPOSIT;
+	global $CUR_SEM, $DEPOSIT;
 	$html = '';
 	switch ($prop)
 	{
@@ -683,7 +691,10 @@ function rosterProp($member, $prop)
 			$html .= $member["location"];
 			break;
 		case "Enrollment":
-			$html .= ($member["registration"] == 1) ? "<span style=\"color: blue\">class</span>" : "club";
+			$enr = enrollment($member["email"]);
+			if ($enr == "class") $html .= "<span style=\"color: blue\">class</span>";
+			else if ($enr == "club") $html .= "club";
+			else $html .= "<span style=\"color: gray\">inactive</span>";
 			break;
 		case "Balance":
 			$balance = balance($member['email']);
@@ -699,14 +710,17 @@ function rosterProp($member, $prop)
 			break;
 		case "Gigs":
 			$gigcount = attendance($member["email"], 3);
-			if ($gigcount >= $GIG_REQ) $html .= "<span class='gigscell' style='color: green'>";
+			$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$CUR_SEM'"));
+			$gigreq = $result['gigreq'];
+			if ($gigcount >= $gigreq) $html .= "<span class='gigscell' style='color: green'>";
 			else $html .= "<span class='gigscell' style='color: red'>";
 			$html .= "$gigcount</span>";
 			break;
 		case "Score":
-			$grade = attendance($member["email"], 0);
+			if (enrollment($member["email"]) == 'inactive') $grade = '';
+			else $grade = attendance($member["email"], 0);
 			$html .= "<span class='gradecell'";
-			if ($member["registration"] == 1 && $grade < 80) $html .= " style=\"color: red\"";
+			if (enrollment($member["email"]) == "class" && $grade < 80) $html .= " style=\"color: red\"";
 			$html .= ">$grade</span>";
 			break;
 		case "Tie":

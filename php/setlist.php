@@ -3,7 +3,7 @@ require_once('functions.php');
 mysql_set_charset("utf8");
 $event = mysql_real_escape_string($_POST['event']);
 $query = mysql_query("select `song`.`id`, `song`.`title`, `song`.`key`, `song`.`pitch` from `song`, `gigSong` where `gigSong`.`event` = '$event' and `gigSong`.`song` = `song`.`id` order by `gigSong`.`order` asc");
-if (isOfficer($_COOKIE['email'])) echo "<button type='button' class='btn pull-right' id='set_edit'>Edit</button>";
+if (isOfficer(getuser())) echo "<button type='button' class='btn pull-right' id='set_edit'>Edit</button>";
 if (! mysql_num_rows($query)) echo "<div id='set_empty'>No repertoire set for this event</div>";
 echo "<style>td, th { padding: 5px 10px; text-align: left; } .delcol { display: none; }</style>";
 echo "<table class='tbl' id='set_table'><thead><tr><th class='delcol'> </th><th>#</th><th>Song</th><th>Key</th><th>Starting Pitch</th></tr></thead><tbody>";

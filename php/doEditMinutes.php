@@ -1,20 +1,18 @@
 <?php
 require_once('functions.php');
-$oldname = mysql_real_escape_string($_POST['oldname']);
+$id = mysql_real_escape_string($_POST['id']);
 $newname = mysql_real_escape_string($_POST['newname']);
 $private = mysql_real_escape_string($_POST['private']);
 $public = mysql_real_escape_string($_POST['public']);
-if (! isset($_COOKIE['email']) || ! isOfficer($_COOKIE['email']))
+if (! getuser() || ! isOfficer(getuser())) die("UNAUTHORIZED");
+
+if ($id == '') $query = "insert into `minutes` (`date`, `name`, `private`, `public`)  values (curdate(), '$newname', '$private', '$public')"; // New record
+else if ($newname == ".DELETE") $query = "delete from `minutes` where `id` = '$id'";
+else $query = "update `minutes` set `name` = '$newname', `private` = '$private', `public` = '$public' where `id` = '$id'"; // Edit existing record
+if (mysql_query($query))
 {
-	echo "UNAUTHORIZED";
-	exit(1);
+	if ($id == '') $id = mysql_insert_id();
+	echo "OK\n$id";
 }
-if ($oldname == "") $query = "insert into `minutes` values (curdate(), '$newname', '$private', '$public')"; // New record
-else if ($newname == ".DELETE") $query = "delete from `minutes` where name = '$oldname'";
-else
-{
-	$query = "update `minutes` set name = '$newname', private = '$private', public = '$public' where name = '$oldname'"; // Edit existing record
-}
-if (mysql_query($query)) echo "OK";
 else echo "FAIL";
 ?>

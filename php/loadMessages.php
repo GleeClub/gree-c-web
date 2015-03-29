@@ -1,8 +1,8 @@
 <?php
 //Load the inbox of the user
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
-if(!isset($_COOKIE['email'])){
+$userEmail = getuser();
+if(!getuser()){
 	loginBlock();
 	return;
 }
@@ -15,7 +15,7 @@ function mostRecentMessageTime($id){
 	//return "time";
 }
 
-$email = mysql_real_escape_string($_COOKIE['email']);
+$email = mysql_real_escape_string(getuser());
 //Get messages in 
 $res = getInbox($email);
 //echo "<h2>Inbox</h2><br />";

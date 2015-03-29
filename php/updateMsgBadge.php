@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
 
-$i = getNumUnreadMessages(mysql_real_escape_string($_COOKIE['email']));
+$i = getNumUnreadMessages(mysql_real_escape_string(getuser()));
 echo $i;
 ?>

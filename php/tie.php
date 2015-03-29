@@ -1,6 +1,6 @@
 <?
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 
 $member = mysql_real_escape_string($_POST['member']);
 $tie = mysql_real_escape_string($_POST['tie']);

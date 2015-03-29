@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 $messageText = $_POST['message'];
 $SQLmessage = mysql_real_escape_string($messageText);
 $to = $_POST["otherPerson"];

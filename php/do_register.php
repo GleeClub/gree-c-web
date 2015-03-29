@@ -3,15 +3,15 @@
 
 	echo "<html>";
 
-	$sql = "insert ignore into member (firstName, prefName, lastName, section, email, password, phone, picture, registration, passengers, onCampus, location, about, major, techYear, clubYear, gChat, twitter, gatewayDrug, conflicts) values(";
+	$sql = "insert ignore into member (firstName, prefName, lastName, section, email, password, phone, picture, passengers, onCampus, location, about, major, hometown, techYear, clubYear, gChat, twitter, gatewayDrug, conflicts) values(";
 
-	$default = 1;
 	$missingField = 0;
 	$error = 0;
 	$count = 0;
 	foreach($_GET as $value)
 	{
-		if ($count == 0 || $count == 2 || $count == 4 || $count == 5 || $count == 6 || $count == 7 || $count == 9 || $count == 10 || $count == 11)
+		$default = 1;
+		if ($count == 0 || $count == 2 || $count == 3 || $count == 4 || $count == 5 || $count == 6 || $count == 7 || $count == 9 || $count == 10 || $count == 11 || $count == 14 || $count == 15)
 		{
 			if($value=='')
 			{
@@ -20,7 +20,7 @@
 			}
 
 		}
-		switch($count)
+		switch ($count)
 		{
 			case 4: 				//email
 				$email = mysql_real_escape_string($value);
@@ -42,7 +42,7 @@
 				$pass = $value;
 				break;
 			case 6: 				//password 2
-				if(strcmp($pass, $value)!=0)
+				if(strcmp($pass, $value) != 0)
 				{
 					echo "<p id='title'>Password entries did not match.  Go back and try again.</p>";
 					$error = 1;
@@ -56,6 +56,10 @@
 					$error = 1;
 				}
 				break;
+			case 9: 				//registration
+				$default = 0;
+				$enrollment = $value;
+				break;
 			case 10:				//passengers
 				$validNumber = "/[0-9]{1}/";
 				if(!preg_match($validNumber, $value))
@@ -64,51 +68,51 @@
 					$error = 1;
 				}
 				break;
-			case 0: 				//firstName
-			case 1: 				//prefName
-			case 2: 				//lastName
-			case 3: 				//section
-			case 8: 				//picture
-			case 9: 				//registration
-			case 11:				//onCampus
-			case 12:				//location
-			case 13:				//about
-			case 14:				//major
-			case 15:				//techYear
-			case 16:				//clubYear
-			case 17:				//gChat
-			case 18:				//twitter
-			case 19:				//gatewayDrug
-			case 20:				//conflicts
+			case 0: 				// firstName
+			case 1: 				// prefName
+			case 2: 				// lastName
+			case 3: 				// section
+			case 8: 				// picture
+			case 11:				// onCampus
+			case 12:				// location
+			case 13:				// about
+			case 14:				// major
+			case 15:				// hometown
+			case 16:				// techYear
+			case 17:				// clubYear
+			case 18:				// gChat
+			case 19:				// twitter
+			case 20:				// gatewayDrug
+			case 21:				// conflicts
 			default:
 				break;
 		}
-		if($default)
+		if ($default)
 		{
-			if($count == 6) //Encrypt the password using md5
+			if ($count == 6) //Encrypt the password using md5
 				$sql = $sql."md5('".mysql_real_escape_string($value)."'), ";
 			else
 				$sql = $sql."'".mysql_real_escape_string($value)."', ";
 		}
 
-		$default = 1;
 		$count++;
 	}
 	$sql = substr_replace($sql, ");", strlen($sql)-2, 3);
 
-	if($count<20 || $missingField)
+	if ($count < 21 || $missingField)
 	{
 		echo "<p id='title'>You didn't fill out all of the required fields.  Go back and try again.</p>";
 		$error = 1;
 	}
-	if(! $error)
+	if (! $error)
 	{
 		$result0 = mysql_query($sql);
-		$sql = "insert ignore into `attends` (`memberID`, `eventNo`) select '$email', `eventNo` from `event` where `semester` = '$CUR_SEM' and not(`type` = 2)";
+		$sql = "insert into `activeSemester` (`member`, `semester`, `enrollment`) values ('$email', '$CUR_SEM', '$enrollment')";
 		$result1 = mysql_query($sql);
-		if($result0 && $result1) echo "<p>Success</p><META HTTP-EQUIV=\"refresh\" content=\"0;URL=http://mensgleeclub.gatech.edu/buzz/\">";
+		$sql = "insert ignore into `attends` (`memberID`, `eventNo`) select '$email', `eventNo` from `event` where `semester` = '$CUR_SEM' and not(`type` = 2)";
+		$result2 = mysql_query($sql);
+		if($result0 && $result1 && $result2) echo "<p>Success</p><META HTTP-EQUIV=\"refresh\" content=\"0;URL=http://mensgleeclub.gatech.edu/buzz/\">";
 	}
-
 	echo "</html>";
 
 ?>

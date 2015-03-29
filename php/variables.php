@@ -15,5 +15,4 @@ $CUR_SEM = $variables['semester'];
 $DUES = $variables['duesAmount'];
 $LATEFEE = $variables['lateFee'];
 $DEPOSIT = $variables['tieDeposit'];
-$GIG_REQ = $variables['gigRequirement'];
 ?>

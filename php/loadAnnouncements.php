@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 echo "<div class='span6 block'>";
 	//announcements
 	$sql = "SELECT * FROM `announcement` ORDER BY `timePosted` DESC";

@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! isset($_COOKIE['email']) || ! isOfficer($_COOKIE['email'])) die("DENIED");
+if (! getuser() || ! isOfficer(getuser())) die("DENIED");
 $name = mysql_real_escape_string($_POST['name']);
 
 $sql = "UPDATE `variables` SET `semester`='$name' WHERE 1";

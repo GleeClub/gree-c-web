@@ -2,9 +2,9 @@
 
 require_once('./functions.php');
 
-if(isset($_COOKIE['email']))
+if(getuser())
 {
-	$userEmail = $_COOKIE['email'];
+	$userEmail = getuser();
 	$position = positionFromEmail($userEmail);
 
 	if(isset($_POST['eventNo']) && $position == "President" || $position == "VP"){

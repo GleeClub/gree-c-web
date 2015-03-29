@@ -1,13 +1,13 @@
 <?php
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 
 $scroll = $_POST['scroll'];
 
 /**
 * $scroll tell whether you want scroll to the bottom after this call (only used on the initial call, when the page loads)
 */
-if(!isset($_COOKIE['email'])){
+if(!getuser()){
 	loginBlock();
 	return;
 }

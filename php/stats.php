@@ -1,9 +1,9 @@
 <?php
 //it would seem you cannot connect to the database from outside a function and inside a function
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 $semester = getCurrentSemester();
-if(!isset($_COOKIE['email']))
+if(!getuser())
 {
 	loginBlock();
 	exit(1);
@@ -56,13 +56,15 @@ function attendanceHistory($userEmail)
 
 function gigBlock($userEmail)
 {
-	global $CUR_SEM, $GIG_REQ;
+	global $CUR_SEM;
 	$count = attendance($userEmail, 3);
-	if ($count < $GIG_REQ) $precentProgress = floor(100 * $count / $GIG_REQ);
+	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$CUR_SEM'"));
+	$gigreq = $result['gigreq'];
+	if ($count < $gigreq) $precentProgress = floor(100 * $count / $gigreq);
 	else $precentProgress = 100;
 
 	return "<div class='btn btn-danger' id='notificationsButton'>Enable Notifications</div>
-		<p>You have attended $count of $GIG_REQ required volunteer gigs:</p>
+		<p>You have attended $count of $gigreq required volunteer gigs:</p>
 		<div class='progress progress-striped active'>
 		<div class='bar' style='width: ".$precentProgress."%;'></div>
 		</div>";

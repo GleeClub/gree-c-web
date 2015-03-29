@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 $eventNo = $_POST['eventNo'];
 $carpools = json_decode($_POST['carpools'], true);
 //$bigSQLstring='';

@@ -1,6 +1,6 @@
 <?php
 require_once('./functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 
 if(! isset($_POST['eventNo'])) die("No event number provided");
 $eventNo = mysql_real_escape_string($_POST['eventNo']);

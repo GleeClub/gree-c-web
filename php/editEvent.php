@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 
 if (! isOfficer($userEmail)) die("DENIED");
 
@@ -155,7 +155,7 @@ foreach ($fields as $category => $catfields)
 						$value = $row['semester'];
 					}
 					$html .= "<select name='semester' style='width: 200px'>";
-					$sql = "select `semester` from `validSemester` order by `beginning` desc";
+					$sql = "select `semester` from `semester` order by `beginning` desc";
 					$result = mysql_query($sql);
 					while ($row = mysql_fetch_array($result))
 					{

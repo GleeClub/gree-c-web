@@ -18,7 +18,7 @@ echo $myusername."<br />";
 echo $mypassword."<br />";
 setcookie('email', $myusername, time()+60*60*24*120, '/', false, false);
 print_r($_COOKIE);
-echo $_COOKIE['email'];*/
+echo getuser();*/
 
 $sql="SELECT * FROM `member` WHERE email='$myusername' and password=md5('$mypassword')";
 $result=mysql_query($sql);

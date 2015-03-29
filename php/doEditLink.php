@@ -17,7 +17,7 @@ $name = mysql_real_escape_string($_POST['name']);
 $type = mysql_real_escape_string($_POST['type']);
 $target = mysql_real_escape_string($_POST['target']);
 $song = mysql_real_escape_string($_POST['song']);
-if (! isset($_COOKIE['email']) || ! isOfficer($_COOKIE['email'])) die("UNAUTHORIZED");
+if (! getuser() || ! isOfficer(getuser())) die("UNAUTHORIZED");
 if ($action == "new")
 {
 	$query = "insert into `songLink` (`type`, `name`, `target`, `song`) values ('$type', '', '', '$song')";

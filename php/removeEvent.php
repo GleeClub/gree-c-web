@@ -4,9 +4,9 @@ require_once('functions.php');
 
 function eventFilters()
 {
-	$userEmail = $_COOKIE['email'];
+	$userEmail = getuser();
 
-	$sql = "select * from validSemester where 1 order by beginning desc";
+	$sql = "select * from semester where 1 order by beginning desc";
 	$semesters = mysql_query($sql);
 
 	$sql = "select * from eventType where 1 order by typeName asc";

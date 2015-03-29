@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 
 $person = $_GET['person'];
 $profilePic = profilePic($person);

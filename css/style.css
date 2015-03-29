@@ -190,3 +190,8 @@ td.eventDetialsKey{
 	width: 100%;
 /* end announcements */
 }
+
+a:visited
+{
+	color: #08C;
+}

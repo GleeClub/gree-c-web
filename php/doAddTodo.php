@@ -5,10 +5,10 @@ if(isset($_POST['userList'])) {
 	echo $_POST['userList'];
 	$userlist = $_POST['userList'];
 } else {
-	$userlist = mysql_real_escape_string($_COOKIE['email']);
+	$userlist = mysql_real_escape_string(getuser());
 }
 
-if (! isset($_COOKIE['email']))
+if (! getuser())
 {
 	echo "UNAUTHORIZED";
 	exit(1);
@@ -26,7 +26,7 @@ $res_arr = mysql_fetch_array($results);
 $id = $res_arr['id'];
 */
 $id = mysql_insert_id();
-if (! isOfficer($_COOKIE['email'])) // TODO handle duplicate users in the list
+if (! isOfficer(getuser())) // TODO handle duplicate users in the list
 {
 	foreach ($users as $user)
 	{

@@ -2,7 +2,7 @@
 require_once('functions.php');
 mysql_set_charset("utf8");
 $id = mysql_real_escape_string($_POST['id']);
-if (! isset($_COOKIE['email'])) die("You must be logged in to view repertoire.");
+if (! getuser()) die("You must be logged in to view repertoire.");
 $query = "select * from `song` where `id` = '$id'";
 $result = mysql_fetch_array(mysql_query($query));
 $title = $result['title'];

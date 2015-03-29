@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 
 $style = '<style>td { padding: 0px 10px; }</style>';
 if (! isOfficer($userEmail)) die("DENIED");

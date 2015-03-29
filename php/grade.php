@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-$type = positionFromEmail($_COOKIE['email']);
+$type = positionFromEmail(getuser());
 if ($type != "President" && $type != "Instructor" && $type != "VP")
 {
 	echo "DENIED";

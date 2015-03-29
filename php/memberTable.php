@@ -11,8 +11,8 @@ span.spacer { display: inline-block; width: 20px; }
 
 function member_table($conditions, $type = 'normal')
 {
-	global $CUR_SEM, $DEPOSIT, $GIG_REQ;
-	$userEmail = $_COOKIE['email'];
+	global $CUR_SEM, $DEPOSIT;
+	$userEmail = getuser();
 	$role = positionFromEmail($userEmail);
 	$officer = isOfficer($userEmail);
 	$showDetails = 0;
@@ -91,7 +91,7 @@ function member_table($conditions, $type = 'normal')
 
 function member_csv($conditions)
 {
-	$userEmail = $_COOKIE['email'];
+	$userEmail = getuser();
 	$role = positionFromEmail($userEmail);
 	if (! isOfficer($userEmail)) die("Access denied");
 	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major");
@@ -121,10 +121,10 @@ foreach ($conds as $cond)
 	foreach ($subconds as $subcond)
 	{
 		if ($subcond == '') continue;
-		else if ($subcond == 'active') $subcondarr[] = "exists(select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
-		else if ($subcond == 'inactive') $subcondarr[] = "not exists(select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
-		else if ($subcond == 'class') $subcondarr[] = "`registration` = '1'";
-		else if ($subcond == 'club') $subcondarr[] = "`registration` = '0'";
+		else if ($subcond == 'active') $subcondarr[] = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
+		else if ($subcond == 'inactive') $subcondarr[] = "not exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
+		else if ($subcond == 'class') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`) = 'class'";
+		else if ($subcond == 'club') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`) = 'club'";
 		else if ($subcond == 'dues') $subcondarr[] = "(select sum(`transaction`.`amount`) from `transaction` where `transaction`.`semester` = '$CUR_SEM' and `transaction`.`type` = 'dues' and `transaction`.`memberID` = `member`.`email`) < 0";
 		//else if ($subcond == 'fail') $subcondarr[] = "`` = ''";
 		else if ($subcond == 'b2') $subcondarr[] = "`section` = '1'";
@@ -137,7 +137,7 @@ foreach ($conds as $cond)
 }
 $condstr = '(' . join(") and (", $condarr) . ')';
 
-if (! isOfficer($_COOKIE['email'])) $condstr = "(`confirmed` = '1')";
+if (! isOfficer(getuser())) $condstr = "(`confirmed` = '1')";
 
 if ($_POST['type'] == "print")
 {

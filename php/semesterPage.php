@@ -45,7 +45,7 @@ function removeSemesterForm($btnClasses=''){
 			    <select class=\"semesterSelect\" id=\"rmSemesterName\">
 					<option value=''>Pick One</option>";
 
-	$sql = "select semester from validSemester where 1";
+	$sql = "select semester from semester where 1";
 	$result = mysql_query($sql);
 
 	while($semesterInfo = mysql_fetch_array($result)){
@@ -76,7 +76,7 @@ function changeSemesterForm(){
 			    <select class=\"changeSemesterName\" id=\"changeSemesterName\">
 					<option value=''>Pick One</option>";
 
-	$sql = "select semester from validSemester where 1";
+	$sql = "select semester from semester where 1";
 	$result = mysql_query($sql);
 
 	while($semesterInfo = mysql_fetch_array($result)){
@@ -125,8 +125,8 @@ function semesterPage(){
 	return $html;
 }
 
-if(isset($_COOKIE['email'])){
-	$userEmail = $_COOKIE['email'];
+if(getuser()){
+	$userEmail = getuser();
 }
 //if the person is logged in
 if($userEmail!=null){

@@ -1,8 +1,8 @@
 <?php
 require_once('functions.php');
 
-if(isset($_COOKIE['email'])){
-	$userEmail = mysql_real_escape_string($_COOKIE['email']);
+if(getuser()){
+	$userEmail = mysql_real_escape_string(getuser());
 }
 else{
 	echo '

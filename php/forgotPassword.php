@@ -2,7 +2,7 @@
 <body>
 <?php 
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 echo '<div class="block span3">';
 echo '
 	Enter your email below:<br />

@@ -1,9 +1,9 @@
 <?php
 //it would seem you cannot connect to the database from outside a function and inside a function
 require_once('functions.php');
-$userEmail = mysql_real_escape_string($_COOKIE['email']);
+$userEmail = mysql_real_escape_string(getuser());
 
-if(isset($_COOKIE['email'])) {
+if(getuser()) {
 	$text = $_POST['text'];
 	$sql = "INSERT INTO  `announcement` (`announcementNo`,`memberID`,`timePosted`,`announcement`) VALUES (NULL ,'$userEmail', NOW( ),'".mysql_real_escape_string($text)."');";
 	mysql_query($sql);

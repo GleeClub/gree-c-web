@@ -1,8 +1,8 @@
 <?php
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 
-if(!isset($_COOKIE['email']))
+if(!getuser())
 {
 	echo "<p>It would seem that you are logged out.</p>";
 	exit(1);

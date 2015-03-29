@@ -39,7 +39,7 @@
 
 <?php
 require_once('./functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 $eventNo = mysql_real_escape_string($_POST['eventNo']);
 
 if (! attendancePermission($userEmail, $eventNo)) die("Access denied");

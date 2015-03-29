@@ -1,7 +1,7 @@
 <?php 
 require_once('functions.php');
 
-$email = mysql_real_escape_string($_COOKIE['email']);
+$email = mysql_real_escape_string(getuser());
 $id = mysql_real_escape_string($_POST['msgID']);
 $msg = mysql_real_escape_string($_POST['message']);
 $sql = "insert into convoMessages (id, message, sender) values ('$id', '$msg', '$email');";

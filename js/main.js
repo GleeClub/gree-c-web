@@ -957,10 +957,6 @@ function roster()
 				var val = $(this).data('val');
 				$.post('php/updateConfirmed.php', { email : member, semester : sem, value : val }, function(data) {
 					if (data != 'OK') alert(data);
-					else
-					{
-						//...
-					}
 				});
 			});
 			$('.tie_checkout').on('click', function() {
@@ -1213,7 +1209,7 @@ function requestNotificationsPermission()
 
 function confirm_account()
 {
-	var reg = $('#confirm_class').hasClass('active') ? 1 : 0;
+	var reg = $('#confirm_class').hasClass('active') ? "class" : "club";
 	var loc = $('#confirm_location').prop('value');
 	$.post('php/doConfirmAccount.php', { registration : reg, location : loc }, function() { if (data != 'OK') alert(data); });
 }
@@ -2056,115 +2052,143 @@ function checkDateInput() {
 *********************** Matthew's functions ********************************
 ****************************************************************************/
 
-function showMinutes(id)
+function showMinutes(loadid)
 {
 	$.post('php/showMinutes.php', function(data) {
 		$('#main').html(data);
 		var name = "";
 		var view_mode = 1; // 0 = private, 1 = public
-		var load_minutes = function(name) {
-			$.post('php/getMinutes.php', { name : name }, function(data) {
+		var load_minutes = function(id) {
+			$.post('php/getMinutes.php', { id : id }, function(data) {
 				smoothScrollTo('minutes_main');
 				var textPrivate = data;
 				var textPublic = "";
-				$('#minutes_main').html("<div id=minutes_view></div>");
-				var edit_mode = 0; // 0 = view, 1 = edit
-				$.ajax({ url : 'php/isOfficer.php', async : false, success : function(data) { // Eww.
-					if (data == "1")
-					{
-						$('#minutes_main').prepend("<div class=clearfix style=\"padding-bottom: 20px\"><div class=pull-right style=\"padding-left: 10px; padding-right: 10px\"><button class=\"btn\" id=minutes_delete>Delete</button></div><div class=pull-right style=\"padding-left: 10px; padding-right: 10px\"><button class=\"btn\"id=minutes_edit>Edit</button></div><div class=\"btn-group pull-right\" style=\"padding-left: 40px; padding-right: 40px\" data-toggle=\"buttons-radio\"><button class=btn id=minutes_public>Redacted</button><button class=btn id=minutes_private>Complete</button></div></div>");
-						if (view_mode == 0) $('#minutes_private').button('toggle');
-						else $('#minutes_public').button('toggle');
-						$.ajax({ url : 'php/getMinutes.php', type : "POST", data : { name : name, public : 1 }, async : false, success : function(data) {
-							textPublic = data;
-						}});
-						$('#minutes_public').click(function() {
-							view_mode = 1;
-							$('#minutes_view').html(textPublic);
-						});
-						$('#minutes_private').click(function() {
-							view_mode = 0;
-							$('#minutes_view').html(textPrivate);
-							
-						});
-						if (view_mode == 0) $('#minutes_view').html(textPrivate);
-						else $('#minutes_view').html(textPublic);
-						$.post('php/todo.php', { form : 'true' }, function(data)
+				$.post('php/getMinutes.php', { id : id, type : 'name' }, function(name) {
+					$('#minutes_main').html("<div id=minutes_view></div>");
+					var edit_mode = 0; // 0 = view, 1 = edit
+					$.ajax({ url : 'php/isOfficer.php', async : false, success : function(data) { // Eww.
+						if (data == "1")
 						{
-							$('#minutes_main').append("<div class=\"block\">" + data + "</span>");
-							$('#newTodoButton').on('click', function() { submitNewTodo(); });
-							$('#multiTodo').tokenInput("php/searchMembers.php", { theme:"facebook", preventDuplicates:true });
-							$('#multiTodoButton').on('click', submitMultiTodo);
-						});
-					}
-					else $('#minutes_view').html(textPrivate);
-					$('#minutes_main').prepend("<div class='pull-left'><a href='#minutes:" + encodeURIComponent(name).replace(/'/g, "%27") + "'>Link to these minutes</a></div>");
-				}});
-				$('#minutes_edit').click(function()
-				{
-					if (edit_mode == 0)
+							$('#minutes_main').prepend("<div class=clearfix style=\"padding-bottom: 20px\">" +
+								"<div class=pull-right style=\"padding-left: 10px; padding-right: 10px\">" +
+									"<div class=\"btn-group\">" +
+										"<a class=\"btn dropdown-toggle\" data-toggle=\"dropdown\" href=\"#\"><i class=\"icon-cog\"></i> <span class=\"caret\"></span></a>" +
+										"<ul class=\"dropdown-menu\">" +
+											"<li><a href=\"#\" id=\"minutes_send\">Send Email</a></li>" +
+											"<li><a href=\"#\" id=\"minutes_delete\">Delete</a></li>" +
+										"</ul>" +
+									"</div>" +
+								"</div>" +
+								"<div class=pull-right style=\"padding-left: 10px; padding-right: 10px\">" +
+									"<button class=\"btn\"id=minutes_edit>Edit</button>" +
+								"</div>" +
+								"<div class=\"btn-group pull-right\" style=\"padding-left: 10px; padding-right: 10px\" data-toggle=\"buttons-radio\">" +
+									"<button class=btn id=minutes_public>Redacted</button>" +
+									"<button class=btn id=minutes_private>Complete</button>" +
+								"</div>" +
+							"</div>");
+							if (view_mode == 0) $('#minutes_private').button('toggle');
+							else $('#minutes_public').button('toggle');
+							$.ajax({ url : 'php/getMinutes.php', type : "POST", data : { id : id, public : 1 }, async : false, success : function(data) {
+								textPublic = data;
+							}});
+							$('#minutes_public').click(function() {
+								view_mode = 1;
+								$('#minutes_view').html(textPublic);
+							});
+							$('#minutes_private').click(function() {
+								view_mode = 0;
+								$('#minutes_view').html(textPrivate);
+								
+							});
+							if (view_mode == 0) $('#minutes_view').html(textPrivate);
+							else $('#minutes_view').html(textPublic);
+							$.post('php/todo.php', { form : 'true' }, function(data)
+							{
+								$('#minutes_main').append("<div class=\"block\">" + data + "</span>");
+								$('#newTodoButton').on('click', function() { submitNewTodo(); });
+								$('#multiTodo').tokenInput("php/searchMembers.php", { theme:"facebook", preventDuplicates:true });
+								$('#multiTodoButton').on('click', submitMultiTodo);
+							});
+						}
+						else $('#minutes_view').html(textPrivate);
+						$('#minutes_main').prepend("<div class='pull-left'><a href='#minutes:" + id + "'>Link to these minutes</a></div>");
+					}});
+					$('#minutes_edit').click(function()
 					{
-						$('#minutes_edit').html('Done');
-						$('#minutes_view').html("<input type=text id=minutes_title><br><textarea id=minutes_text_private rows=20 style=\"width: 99%\">" + textPrivate + "</textarea><textarea id=minutes_text_public rows=20 style=\"width: 99%\">" + textPublic + "</textarea>");
-						if (view_mode == 0)
+						if (edit_mode == 0)
 						{
-							$('#minutes_text_public').css('display', 'none');
-							$('#minutes_text_private').css('display', 'inline');
+							$('#minutes_edit').html('Done');
+							$('#minutes_view').html("<input type=text id=minutes_title><br><textarea id=minutes_text_private rows=20 style=\"width: 99%\">" + textPrivate + "</textarea><textarea id=minutes_text_public rows=20 style=\"width: 99%\">" + textPublic + "</textarea>");
+							if (view_mode == 0)
+							{
+								$('#minutes_text_public').css('display', 'none');
+								$('#minutes_text_private').css('display', 'inline');
+							}
+							else
+							{
+								$('#minutes_text_private').css('display', 'none');
+								$('#minutes_text_public').css('display', 'inline');
+							}
+							$('#minutes_public').off('click');
+							$('#minutes_private').off('click');
+							$('#minutes_public').click(function() {
+								view_mode = 1;
+								$('#minutes_text_private').css('display', 'none');
+								$('#minutes_text_public').css('display', 'inline');
+							});
+							$('#minutes_private').click(function() {
+								view_mode = 0;
+								$('#minutes_text_public').css('display', 'none');
+								$('#minutes_text_private').css('display', 'inline');
+							});
+							$('#minutes_title').attr('value', name);
+							edit_mode = 1;
 						}
 						else
 						{
-							$('#minutes_text_private').css('display', 'none');
-							$('#minutes_text_public').css('display', 'inline');
+							$('#minutes_edit').html('Edit');
+							textPrivate = $('#minutes_text_private').attr('value');
+							textPublic = $('#minutes_text_public').attr('value');
+							name = $('#minutes_title').attr('value');
+							if (view_mode == 0) $('#minutes_view').html(textPrivate);
+							else $('#minutes_view').html(textPublic);
+							$('#minutes_public').off('click');
+							$('#minutes_private').off('click');
+							$('#minutes_public').click(function() {
+								view_mode = 1;
+								$('#minutes_view').html(textPublic);
+							});
+							$('#minutes_private').click(function() {
+								view_mode = 0;
+								$('#minutes_view').html(textPrivate);
+							});
+							$('td#minutes' + id).html(name);
+							$.post('php/doEditMinutes.php', { id : id, newname : name, private : textPrivate, public : textPublic }, function(data) {
+								res = data.split('\n');
+								if (res[0] != "OK") alert("Error:  " + data);
+							});
+							edit_mode = 0;
 						}
-						$('#minutes_public').off('click');
-						$('#minutes_private').off('click');
-						$('#minutes_public').click(function() {
-							view_mode = 1;
-							$('#minutes_text_private').css('display', 'none');
-							$('#minutes_text_public').css('display', 'inline');
+						return false;
+					});
+					$('#minutes_delete').click(function() {
+						if (confirm("Delete \"" + name + "\"?")) $.post('php/doEditMinutes.php', { id : id, newname : ".DELETE", private : "", public : "" }, function(data) {
+							res = data.split('\n');
+							if (res[0] == 'OK')
+							{
+								$('td#minutes' + id).remove();
+								$('#minutes_main').html("Select a meeting to the left.");
+							}
+							else alert("Error:  " + res[0]);
 						});
-						$('#minutes_private').click(function() {
-							view_mode = 0;
-							$('#minutes_text_public').css('display', 'none');
-							$('#minutes_text_private').css('display', 'inline');
+						return false;
+					});
+					$('#minutes_send').click(function() {
+						$.post('php/doSendMinutes.php', { id : id }, function(data) {
+							if (data != "OK") alert(data);
 						});
-						$('#minutes_title').attr('value', name);
-						edit_mode = 1;
-					}
-					else
-					{
-						$('#minutes_edit').html('Edit');
-						textPrivate = $('#minutes_text_private').attr('value');
-						textPublic = $('#minutes_text_public').attr('value');
-						var oldname = name;
-						name = $('#minutes_title').attr('value');
-						if (view_mode == 0) $('#minutes_view').html(textPrivate);
-						else $('#minutes_view').html(textPublic);
-						$('#minutes_public').off('click');
-						$('#minutes_private').off('click');
-						$('#minutes_public').click(function() {
-							view_mode = 1;
-							$('#minutes_view').html(textPublic);
-						});
-						$('#minutes_private').click(function() {
-							view_mode = 0;
-							$('#minutes_view').html(textPrivate);
-						});
-						$('td:contains(' + oldname + ')').html(name); // FIXME:  What if one name is a substring of another?
-						$.post('php/doEditMinutes.php', { oldname : oldname, newname : name, private : textPrivate, public : textPublic }, function(data) {
-							if (data != "OK") alert("Error:  " + data);
-						});
-						edit_mode = 0;
-					}
-				});
-				$('#minutes_delete').click(function() {
-					if (confirm("Delete \"" + name + "\"?")) $.post('php/doEditMinutes.php', { oldname : name, newname : ".DELETE", private : "", public : "" }, function(data) {
-						if (data == 'OK')
-						{
-							$('td:contains(' + name + ')').remove(); // FIXME:  What if one name is a substring of another?
-							$('#minutes_main').html("Select a meeting to the left.");
-						}
-						else alert("Error:  " + data);
+						return false;
 					});
 				});
 			});
@@ -2173,24 +2197,22 @@ function showMinutes(id)
 			if (name == $(this).html()) return;
 			$('.minutes_row').parent().removeClass('lighter');
 			$(this).parent().addClass('lighter');
-			load_minutes($(this).html());
+			load_minutes($(this).data('id'));
 		};
 		$('.minutes_row').click(minutes_row_click);
 		$('#minutes_add').click(function() {
 			var curTime = now();
-			$.post('php/doEditMinutes.php', { oldname : "", newname : curTime, private : "<pre style=\"font:  10pt sans-serif\">\n\n</pre>\n", public : "<pre style=\"font:  10pt sans-serif\">\n\n</pre>\n" }, function(data) { // Create the new minutes in the database
-			if (data == 'OK')
-			{
-				$('#minutes_table').prepend("<tr><td class=minutes_row>" + curTime + "</td></tr>"); // Update page with new minutes
-				$('.minutes_row').click(minutes_row_click);
-			}
-			else alert("Error:  " + data);
+			$.post('php/doEditMinutes.php', { id : '', newname : "New Minutes", private : "<pre style=\"font:  10pt sans-serif\">\n\n</pre>\n", public : "<pre style=\"font:  10pt sans-serif\">\n\n</pre>\n" }, function(data) { // Create the new minutes in the database
+				res = data.split('\n');
+				if (res[0] == 'OK')
+				{
+					$('#minutes_table').prepend("<tr><td class=minutes_row id='minutes" + res[1] + "' data-id='" + res[1] + "'>New Minutes</td></tr>"); // Update page with new minutes
+					$('.minutes_row').click(minutes_row_click);
+				}
+				else alert("Error:  " + res[0]);
 			});
 		});
-		if (typeof id != 'undefined')
-		{
-			load_minutes(id);
-		}
+		if (typeof loadid != 'undefined') load_minutes(loadid);
 	});
 }
 

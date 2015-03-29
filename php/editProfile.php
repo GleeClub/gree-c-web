@@ -1,9 +1,11 @@
 <?php
 require_once('functions.php');
-$email = $_COOKIE['email'];
+$email = getuser();
 
-$sql = "select * from member where email='". mysql_real_escape_string($email) . "'";
-$res = mysql_fetch_array(mysql_query($sql));
+$res = mysql_fetch_array(mysql_query("select * from member where email='$email'"));
+$res2 = mysql_fetch_array(mysql_query("select `enrollment` from `activeSemester` where `member` = '$email' and `semester` = '$CUR_SEM'"));
+$enr = $res2['enrollment'];
+if ($enr != 'class' && $enr != 'club') die("Internal error: invalid enrollment");
 
 ?>
 <div class="span6 block">
@@ -22,8 +24,8 @@ $res = mysql_fetch_array(mysql_query($sql));
 <tr><td>Confirm Password*:</td> <td><input type="password" name="passwordCheck" /></td></tr>
 <tr><td>Phone Number (Only digits, e.g. 8007776666)*:</td><td><input type="text" name="phone" value="<?php echo $res['phone']; ?>"/></td></tr>
 <tr><td>Picture (a url to a picture of you):</td><td><input type="text" name="picture" value="<?php echo $res['picture']; ?>"/></td></tr>
-<tr><td>Are you regsitered for the class?*</td> <td id="buttons"><input type="radio" name="registration" value="1" <?php if($res['registration'] == 1) echo "checked"; ?>/> Yes<br />
-<input type="radio" name="registration" value="0" <?php if($res['registration'] == 0) echo "checked"; ?> /> No</td></tr>
+<tr><td>Are you in the class or club?*</td> <td id="buttons"><input type="radio" name="registration" value="class" <?php if($enr == 'class') echo "checked"; ?>/> Class<br />
+<input type="radio" name="registration" value="club" <?php if($enr == 'club') echo "checked"; ?> /> Club</td></tr>
 <tr><td>How many passengers (<i>aside from yourself</i>) can ride in your car? (0 if you don't have a car)*</td><td><input type="text" name="passengers" value="<?php echo $res['passengers']; ?>" /></td></tr>
 <tr><td>Do you live on campus?*</td><td id="buttons"><input type="radio" name="onCampus" value="1"  <?php if($res['onCampus'] == 1) echo "checked"; ?>/> Yes<br />
 <input type="radio" name="onCampus" value="0"  <?php if($res['onCampus'] == 0) echo "checked"; ?> /> No</td></tr>

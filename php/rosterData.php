@@ -1,8 +1,8 @@
 <?
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 
-$member_fields = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'email', 'phone', 'picture', 'registration', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'clubYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
+$member_fields = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'clubYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
 
 function member_details($email)
 {
@@ -10,10 +10,7 @@ function member_details($email)
 	$sql = "select * from member where email = '$email'";
 	$member = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 	$html = "<span class='pull-right'><button type='button' class='btn edit_member'>Edit</button></span><div class='detail_table'><table>";
-	foreach ($member_fields as $field)
-	{
-		$html .= "<tr><td><b>$field</b></td><td>" . $member[$field] . "</td></tr>";
-	}
+	foreach ($member_fields as $field) $html .= "<tr><td><b>$field</b></td><td>" . $member[$field] . "</td></tr>";
 	$html .= "</table></div>";
 	return $html;
 }
@@ -24,10 +21,7 @@ function member_edit($email)
 	$sql = "select * from member where email = '$email'";
 	$member = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 	$html = "<input type='hidden' name='user' value='$email'><table>";
-	foreach ($member_fields as $field)
-	{
-		$html .= "<tr><td><b>$field</b></td><td><input type='text' name='$field' value='" . $member[$field] . "'></td></tr>";
-	}
+	foreach ($member_fields as $field) $html .= "<tr><td><b>$field</b></td><td><input type='text' name='$field' value='" . $member[$field] . "'></td></tr>";
 	$html .= "</table>";
 	return $html;
 }
@@ -125,16 +119,27 @@ function tie_form($memberID)
 
 function active_semesters($memberID)
 {
-	$table = "<table style='width: auto'><tr><th>Semester</th><th>Active</th><th>Score</th></tr>";
-	$query = mysql_query("select `semester` from `validSemester` order by `beginning` asc");
+	$table = "<table style='width: auto'><tr><th>Semester</th><th>Status</th><th>Score</th></tr>";
+	$query = mysql_query("select `semester` from `semester` order by `beginning` asc");
 	while ($result = mysql_fetch_array($query))
 	{
+		$activebtn = 0;
 		$semester = $result['semester'];
-		$active = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$memberID' and `semester` = '$semester'"));
-		$newval = ($active + 1) % 2;
-		if ($active) $checked = 'checked';
-		else $checked = '';
-		$table .= "<tr><td>$semester</td><td style='text-align: center'><input type='checkbox' class='semesterbutton' style='' data-semester='$semester' data-val='$newval' $checked></td><td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, 0, $semester) . "</span></td></tr>";
+		$query1 = mysql_query("select `enrollment` from `activeSemester` where `member` = '$memberID' and `semester` = '$semester'");
+		$active = mysql_num_rows($query1);
+		if ($active)
+		{
+			$result1 = mysql_fetch_array($query1);
+			$enrollment = $result1['enrollment'];
+			if ($enrollment == "club") $activebtn = 1;
+			else if ($enrollment == "class") $activebtn = 2;
+			else die("Invalid enrollment state");
+		}
+		$table .= "<tr><td>$semester</td><td><div class='btn-group' data-toggle='buttons-radio'>" .
+			"<button class='btn btn-small semesterbutton" . ($activebtn == 0 ? ' active' : '') . "' data-semester='$semester' data-val='0'>Inactive</button>" .
+			"<button class='btn btn-small semesterbutton" . ($activebtn == 1 ? ' active' : '') . "' data-semester='$semester' data-val='1'>Club</button>" .
+			"<button class='btn btn-small semesterbutton" . ($activebtn == 2 ? ' active' : '') . "' data-semester='$semester' data-val='2'>Class</button>" .
+			"</div></td><td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, 0, $semester) . "</span></td></tr>";
 	}
 	$table .= "</table>";
 	return $table;

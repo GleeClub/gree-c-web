@@ -1,6 +1,6 @@
 <?php
 require_once('php/functions.php');
-if(isset($_COOKIE['email'])) $userEmail = $_COOKIE['email'];
+if(getuser()) $userEmail = getuser();
 
 function actionOptions($userEmail)
 {
@@ -57,7 +57,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 						<li><a class="brand" href="index.php">Greasy Web</a></li>
 						<li class="divider-vertical"></li>
 						<li><a href="#chatbox">Chatbox</a></li>
-					<li><a href="#messages" >Messages <?php if(isset($_COOKIE['email'])) echo '<span class="label" id="unreadMsgs">' . getNumUnreadMessages($_COOKIE['email']) . '</span>';?></span></a></li>
+					<li><a href="#messages" >Messages <?php if(getuser()) echo '<span class="label" id="unreadMsgs">' . getNumUnreadMessages(getuser()) . '</span>';?></span></a></li>
 					<li class="divider-vertical"></li>
 					<li class="dropdown">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Events <b class="caret"></b></a>
@@ -75,7 +75,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 							<li><a href="#feedback">Feedback</a></li>
 							<li><a href="#suggestSong">Suggest a song</a></li>
 							<li><a href="#roster">Members</a></li>
-							<?php if(isset($_COOKIE['email'])) actionOptions($userEmail); ?>
+							<?php if(getuser()) actionOptions($userEmail); ?>
 						</ul>
 					</li>
 					<li class="dropdown">
@@ -98,7 +98,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 
 					<ul class="nav pull-right">
 					<?php
-						if(isset($_COOKIE['email']))
+						if(getuser())
 						{ ?>
 							<li class="dropdown">
 								<a href="#" class="dropdown-toggle" data-toggle="dropdown"> <?php echo getuser(); ?> <b class="caret"></b></a>
@@ -136,31 +136,29 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 	</div>
 
 	<?php
-		if(isset($_COOKIE['email'])) {
-			$email = mysql_real_escape_string($_COOKIE['email']);
+		if(getuser())
+		{
+			$email = mysql_real_escape_string(getuser());
 			
 			//check if the user is the President and if the current semester in the database is accurate.  The President might need to be prompted to change the semester.
 			$sql = "select position from member where email='$email'";
 			$arr = mysql_fetch_array(mysql_query($sql));
 			$position = $arr['position'];
 
-			$sql = "select UNIX_TIMESTAMP(validSemester.end) as end from validSemester,variables where validSemester.semester=variables.semester";
+			$sql = "select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester";
 			$arr = mysql_fetch_array(mysql_query($sql));
 			$semesterEnd = $arr['end'];
 
-			if($position=='President' && time()>$semesterEnd){
-				echo newSemesterModal();
-			}
-			else{
+			if ($position=='President' && time()>$semesterEnd) echo newSemesterModal();
+			else
+			{
 				//if the user is not confirmed for the semester, prompt them to confirm
-				$arr = mysql_fetch_array(mysql_query("SELECT registration, location FROM member WHERE email='$email'"));
+				$arr = mysql_fetch_array(mysql_query("SELECT location FROM member WHERE email='$email'"));
 				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$email' and `semester` = '$CUR_SEM'"));
 				if(! $confirmed)
 				{
-					$reg = $arr['registration'] ? "confirm_class" : "confirm_club";
 					$loc = addslashes($arr['location']);
 					echo '<script>
-						$("#' . $reg . '").addClass("active");
 						$("#confirm_location").prop("value", "' . $loc . '");
 						$("#confirmModal").modal();
 					</script>';

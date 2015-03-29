@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ALL);
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 $eventNo = $_POST['eventNo'];
 $isOfficer = isOfficer($userEmail);
 if(isOfficer($userEmail)){

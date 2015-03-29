@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 mysql_set_charset("utf8");
-if (! isOfficer($_COOKIE['email'])) die("DENIED");
+if (! isOfficer(getuser())) die("DENIED");
 $action = $_POST['action'];
 $event = mysql_real_escape_string($_POST['event']);
 $song = mysql_real_escape_string($_POST['song']);

@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-$user = $_COOKIE['email'];
+$user = getuser();
 if (! isset($user))
 {
 	header("Location: /buzz/index.php");

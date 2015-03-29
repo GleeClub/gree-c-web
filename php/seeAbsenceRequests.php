@@ -1,7 +1,7 @@
 <?php
 
 require_once('./functions.php');
-$userEmail = $_COOKIE['email'];
+$userEmail = getuser();
 
 $style = "
 <style>

@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
-$userEmail = $_COOKIE['email'];
-if(!isset($_COOKIE['email'])){
+$userEmail = getuser();
+if(!getuser()){
 	loginBlock();
 	return;
 }

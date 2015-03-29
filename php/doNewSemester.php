@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! isset($_COOKIE['email']) || ! isOfficer($_COOKIE['email'])) die("DENIED");
+if (! getuser() || ! isOfficer(getuser())) die("DENIED");
 $name = mysql_real_escape_string($_POST['name']);
 $sDD = $_POST['sDD'];
 $sMM = $_POST['sMM'];
@@ -13,7 +13,7 @@ $eYYYY = $_POST['eYYYY'];
 $start = "$sYYYY-$sMM-$sDD 00:00:00";
 $end = "$eYYYY-$eMM-$eDD 00:00:00";
 
-$sql = "insert into validSemester (semester,beginning,end) values ('$name','$start','$end')";
+$sql = "insert into semester (semester,beginning,end) values ('$name','$start','$end')";
 mysql_query($sql);
 
 $sql = "UPDATE `variables` SET `semester`='$name' WHERE 1";

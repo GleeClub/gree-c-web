@@ -1,9 +1,9 @@
 <?php
 require_once('functions.php');
 global $CUR_SEM;
-$email = $_COOKIE['email'];
+$email = getuser();
 $members = explode(",", $_POST['members']);
-$members[] = $_COOKIE['email'];
+$members[] = getuser();
 $title = mysql_real_escape_string($_POST['title']);
 $msg = mysql_real_escape_string($_POST['message']);
 
@@ -11,7 +11,7 @@ $sql = "insert into convoMaster (title, modified) values ('$title', now())";
 mysql_query($sql);
 $id = mysql_insert_id(); //Get the id generated from the previous query.
 
-$email = mysql_real_escape_string($_COOKIE['email']);
+$email = mysql_real_escape_string(getuser());
 $sql = "insert into convoMessages (id, message, sender) values ('$id', '$msg', '$email')";
 mysql_query($sql);
 

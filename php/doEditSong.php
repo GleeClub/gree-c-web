@@ -7,7 +7,7 @@ $title = mysql_real_escape_string($_POST['name']);
 $info = mysql_real_escape_string($_POST['desc']);
 $note = mysql_real_escape_string($_POST['note']);
 $current = mysql_real_escape_string($_POST['current']);
-if (! isset($_COOKIE['email']) || ! isOfficer($_COOKIE['email']))
+if (! getuser() || ! isOfficer(getuser()))
 {
 	echo "UNAUTHORIZED";
 	exit(1);

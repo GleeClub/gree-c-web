@@ -1,8 +1,8 @@
 <?php
 require_once('functions.php');
 $sql = "update member set ";
-$oldEmail = $_COOKIE['email'];
-$useremail = $_COOKIE['email'];
+$oldEmail = getuser();
+$useremail = getuser();
 $default = 1;
 $count = 0;
 
@@ -93,10 +93,10 @@ foreach($_POST as $key => $value){
 				break;
 			}
 			$sql = $sql . "phone='$value', ";
-			break;				
+			break;
 		case 'passengers':
 			$validNumber = "/[0-9]{1}/";
-			if(!preg_match($validNumber, $value))
+			if(! preg_match($validNumber, $value))
 			{
 				echo "Invalid number of passengers (must be an integer, 0 if you don't have a car).  Go back and try again.";
 				exit(1);
@@ -104,12 +104,14 @@ foreach($_POST as $key => $value){
 			}
 			$sql = $sql . "passengers='$value', ";
 			break;
+		case 'registration':
+			if(! mysql_query("update `activeSemester` set `enrollment` = '$value' where `member` = '$oldEmail' and `semester` = '$CUR_SEM'")) die("Error: " . mysql_error());
+			break;
 		case 'firstName':
 		case 'prefName':
 		case 'lastName':
 		case 'section':
 		case 'picture':
-		case 'registration':
 		case 'onCampus':
 		case 'location':
 		case 'about':
@@ -145,7 +147,7 @@ foreach($_POST as $key => $value){
 	//$result1 = mysql_query($sql);
 	if($result)
 	{
-		if($useremail == $oldEmail) setcookie('email', $email ? $email : $oldEmail, time()+60*60*24*120, '/', false, false);
+		if($useremail == $oldEmail) setcookie('email', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $email ? $email : $oldEmail, MCRYPT_MODE_ECB)), time() + 60*60*24*120, '/', false, false);
 		mysql_query("COMMIT");  //Things went ok, commit transaction
 		echo "OK";
 	}
