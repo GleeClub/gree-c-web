@@ -7,9 +7,7 @@ if (! isset($userEmail) || ! isOfficer($userEmail)) die("ACCESS_DENIED");
 $action = $_POST['action'];
 if ($action == 'gigcheck')
 {
-	$sql = "update `variables` set `gigCheck` = ";
-	if ($_POST['value'] == '0') $sql .= '0';
-	else $sql .= '1';
+	$sql = "update `variables` set `gigCheck` = " . ($_POST['value'] == '0' ? '0' : '1');
 	if (! mysql_query($sql)) die(mysql_error());
 	echo "OK";
 }

@@ -19,6 +19,7 @@ if ($role == "Treasurer" || $role == "VP" || $role == "President" || $role == "L
 	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$CUR_SEM'"));
 	$gigreq = $result['gigreq'];
 	echo "<span class='pull-right' id='roster_ops'>Volunteer gig requirement:  <input type='text' id='gigreq' style='width: 20px; margin-bottom: 0px' value='$gigreq'><button class='btn' onclick='setGigReq($(\"#gigreq\").attr(\"value\"))'>Go</button><span class='spacer'></span><div style='display: inline-block'><input type='checkbox' style='margin-top: -16px' name='gigcheck' onclick='setGigCheck($(this).attr(\"checked\"))'";
+	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
 	if ($result['gigCheck']) echo " checked";
 	echo "> <div style='display: inline-block'>Include gig requirement<br>in grade calculation</div></div><span class='spacer'></span><div class='btn-group'><button class='btn dropdown-toggle' data-toggle='dropdown' href='#'>Dues <span class='caret'></span></button><ul class='dropdown-menu'>";
 	echo "<li><a href='#' id='semdues' onclick='addDues(); return false;' data-placement='right' data-toggle='tooltip' title='Adds a $20 fee to the account of every active member who does not yet have a dues charge for this semester'>Apply semester dues</a></li>";
