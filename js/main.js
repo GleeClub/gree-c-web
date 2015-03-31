@@ -6,7 +6,7 @@ $(document).ready(function() {
 	$('.dropdown-toggle').dropdown();
 	$('.nav-tabs').button()
 	//Update the unread messages badge
-	var msgsTimer = setInterval(checkMsgs, 10000);
+	var msgsTimer = setInterval(checkMsgs, 60000);
 
 	//Since we're moving around with js, to get back and forward to work we use the url hash.
 	//To move to a new page, update window.location.hash in the event that moves the user, then 
@@ -1828,7 +1828,7 @@ function editEvent(id, element, mode)
 					if (mode == "Edit") loadDetails(id);
 					else alert("Event added successfully");
 				}
-				else alert(data);
+				else alert("Error: " + data);
 			});
 		});
 		$('#event_delete').on('click', function() {
@@ -2186,7 +2186,8 @@ function showMinutes(loadid)
 					});
 					$('#minutes_send').click(function() {
 						$.post('php/doSendMinutes.php', { id : id }, function(data) {
-							if (data != "OK") alert(data);
+							if (data == "OK") alert("Email successfully sent");
+							else alert("Error: " + data);
 						});
 						return false;
 					});

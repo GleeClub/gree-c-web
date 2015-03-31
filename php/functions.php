@@ -269,7 +269,8 @@ function buttonArea($eventNo, $typeNumber)
 	else
 	{
 		$results = mysql_fetch_array($sql);
-		if ($results['confirmed'] == '0')
+		if ($results['shouldAttend'] == '0') $html = "<span class='label'>Not attending</span>";
+		else if ($results['confirmed'] == '0')
 		{
 			if ($typeNumber == '3')
 			{
@@ -283,7 +284,6 @@ function buttonArea($eventNo, $typeNumber)
 				$html = '<div class="btn btn-confirm">Confirm I\'ll Attend</div>';
 			}
 		}
-		elseif ($results['shouldAttend'] == '0') $html = "<span class='label'>Not attending</span>";
 		else $html = '<span class="label">Attending</span>';
 	}
 	return $html;

@@ -54,7 +54,7 @@ function eventEmail($eventNo,$type)
 	if ($typeName == "Volunteer Gig") $message .= $yesform . $noform;
 	else if ($typeName == "Tutti Gig") $message .= $yesform;
 	$message .= '</form></body></html>';
-	mail($recipient, $subject, $message, $headers);
+	if (! mail($recipient, $subject, $message, $headers)) die("Failed to send event email");
 }
 
 // Add to event, and everyone's attending
@@ -66,15 +66,11 @@ function createEvent($name, $type, $call, $done, $location, $points, $sem, $comm
 
 	if ($section >= 0 && strtotime($call) > strtotime('+48 hours')) // -1 for nobody to attend, 0 for everyone to attend
 	{
-		if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `member`.`email`, '$eventNo' from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM'")) die("Failed to insert attends relations for event"); }
+		if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `member`, '$eventNo' from `activeSemester` where `semester` = '$CUR_SEM'")) die("Failed to insert attends relations for event"); }
 		else
 		{
 			if (! mysql_query("update `event` set `section` = '$section' where `eventNo` = '$eventNo'")) die("Failed to set section");
-			//$row = mysql_fetch_array(mysql_query("select `typeName` from `sectionType` where `typeNo` = '$section'"));
-			//$sectname = $row['typeName'];
-			$sql = "select `member`.`email` from `member`, `activeSemester` where `member`.`section` = '$section' and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`";
-			$result = mysql_query($sql);
-			while ($row = mysql_fetch_array($result)) if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) values ('" . $row['email'] . "', $eventNo)")) die("Failed to create attends relations for rehearsal");
+			if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `email`, 'test' from `member` where `section` = '2' and `email` in (select `member` from `activeSemester` where `semester` = 'Spring 2015')")) die("Failed to create attends relation for sectional");
 		}
 	}
 	return $eventNo;
