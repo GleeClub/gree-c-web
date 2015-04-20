@@ -570,8 +570,8 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 			{
 				if ($shouldAttend == '1')
 				{
-					if ($type == "Rehearsal") $delta = floatval($minutesLate) / 11.0;
-					else if ($type == "Sectional") $delta = floatval($minutesLate) / 5.0;
+					if ($type == "Rehearsal") $delta = floatval($minutesLate) / 110 * 10;
+					else if ($type == "Sectional") $delta = floatval($minutesLate) / 50 * 5;
 					else
 					{
 						$sql = "select `callTime`, `releaseTime` from `event` where `eventNo` = '$eventNo'";
