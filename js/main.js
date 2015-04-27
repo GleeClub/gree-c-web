@@ -1530,7 +1530,7 @@ function targetStyleSheet() {
 	}
 }
 function loadConstitution() {
-	$('#main').load('https://docs.google.com/document/pub?id=1DFu4Z-rIbIYoyaMvmN5iW2IXv4yzJQAz7-j1YgEaMi0', function() { targetStyleSheet(); });
+	$('#main').load('https://docs.google.com/document/d/1FrjY4M-pHUuoWC-nBA-8ZwPAgA8LrYz1yevaRFb2TIA/pub', function() { targetStyleSheet(); });
 }
 
 function loadHandbook() {
