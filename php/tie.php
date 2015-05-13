@@ -10,7 +10,7 @@ $status = mysql_real_escape_string($_POST['status']);
 $comments = mysql_real_escape_string($_POST['comments']);
 
 $role = positionFromEmail($userEmail);
-if ($role != "VP" && $role != "President") die('DENIED');
+if ($role != "Vice President" && $role != "President") die('DENIED');
 if (! isset($member) || ! isset($action)) die('MISSING_ARG');
 if ($action == 'return')
 {
@@ -37,8 +37,9 @@ else if ($action == 'status_dropdown')
 }
 else if ($action == 'add')
 {
-	$sql = "insert into `tie` set `id` = '$tie'";
-	if (mysql_query($sql)) echo 'OK';
+	if (! preg_match('/^\d+$/', $tie)) die("Invalid tie number \"$tie\"");
+	if (mysql_num_rows(mysql_query("select * from `tie` where `id` = '$tie'")) > 0) die("That tie already exists");
+	if (mysql_query("insert into `tie` set `id` = '$tie'")) echo 'OK';
 	else die('ERR');
 }
 else if ($action == 'delete')

@@ -1,14 +1,14 @@
 <?php
 
-$SQLcurrentDatabase = 'test';
-$SQLusername = 'chris';
-$SQLpassword = 'testing';
-$SQLhost="mysql.localhost"; // Host name
+require_once('/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs/db_connect.php');
 
-//get variables stored in the database (stuff that changes, like the current semester)
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
-$sql = "select * from variables where 1";
+$docroot = "/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs";
+$musicdir = "/music";
+$domain = "gleeclub.gatech.edu";
+$BASEURL = "http://$domain/buzz";
+
+// Connect to the database
+$sql = "select * from variables";
 $variables = mysql_fetch_array(mysql_query($sql));
 
 //check the current semester

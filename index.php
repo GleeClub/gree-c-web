@@ -6,19 +6,21 @@ function actionOptions($userEmail)
 {
 	$type = positionFromEmail($userEmail);
 	$officerOptions = '';
-	if(($type == "VP") || ($type == "President"))
-	{
-		$officerOptions .= '
-			<li><a href="#absenceRequest">Absence Requests</a></li>
-			<li><a href="#ties">Ties</a></li>
-			<li><a href="#semester">Edit Semester</a></li>';
-	}
 	if(isOfficer($userEmail))
 	{
 		$officerOptions .= '
 			<li><a href="#event">Add/Remove Event</a></li>
 			<li><a href="#addAnnouncement">Make an Announcement</a></li>
-			<li><a href="../timeMachine">Look at Past Semesters</a></li>';
+			<li><a href="timeMachine">Look at Past Semesters</a></li>';
+	}
+	if(($type == "Vice President") || ($type == "President"))
+	{
+		$officerOptions .= '
+			<li><a href="#absenceRequest">Absence Requests</a></li>
+			<li><a href="#ties">Ties</a></li>
+			<li><a href="#semester">Edit Semester</a></li>
+			<li><a href="#officers">Edit Officers</a></li>
+			<li><a href="#doclinks">Edit Document Links</a></li>';
 	}
 	echo $officerOptions;
 }
@@ -67,6 +69,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 							<li><a href="#sectional">Sectional</a></li>
 							<li><a href="#tutti">Tutti</a></li>
 							<li><a href="#volunteer">Volunteer</a></li>
+							<?php if(isOfficer($userEmail)) { ?> <li><a href="#pastEvents">Everything Ever</a></li> <?php } ?>
 						</ul>
 					</li>
 					<li class="dropdown">
@@ -82,8 +85,8 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Documents <b class="caret"></b></a>
 						<ul class="dropdown-menu">
 							<li><a href="#repertoire">Repertoire</a></li>
-							<li><a href="#syllabus">Syllabus</a></li>
 							<li><a href="#minutes">Meeting Minutes</a></li>
+							<li><a href="#syllabus">Syllabus</a></li>
 							<li><a href="#handbook">GC Handbook</a></li>
 							<li><a href="#constitution">GC Constitution</a></li>
 						</ul>
@@ -124,7 +127,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 		    <h3>Confirm your account for this semester!</h3>
 		</div>
 		<div class="modal-body">
-		    <p>Will you be in the Glee Club this semester?  If not, hit Close and you will still be able to view the site, but you won't be assessed dues or expected at events.  If you are returning, please check the information below for accuracy, then hit Confirm to confirm your account.</p>
+		    <p>Will you be in the Glee Club this semester?  If not, hit Close and you will still be able to view the site, but you won't be assessed dues or expected at events.  If you are returning, please verify the information below, then hit Confirm to confirm your account.</p>
 		    <style>td { padding-right: 10px; }</style>
 		    <table><tr><td><b>Registration</b>:</td><td><div class="btn-group" data-toggle="buttons-radio"><button type="button" class="btn" id="confirm_class">Class</button><button type="button" class="btn" id="confirm_club">Club</button></div></td></tr>
 		    <tr><td><b>Location</b>:</td><td><input type="text" id="confirm_location"></td></tr>

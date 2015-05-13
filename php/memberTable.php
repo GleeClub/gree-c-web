@@ -15,24 +15,18 @@ function member_table($conditions, $type = 'normal')
 	$userEmail = getuser();
 	$role = positionFromEmail($userEmail);
 	$officer = isOfficer($userEmail);
-	$showDetails = 0;
-	$showMoney = 0;
-	$showAttendance = 0;
 	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
 	if ($officer)
 	{
 		$cols["Enrollment"] = 40;
 	}
-	if ($role == "Treasurer" || $role == "VP" || $role == "President")
+	if ($role == "Treasurer" || $role == "Vice President" || $role == "President")
 	{
-		$showMoney = true;
 		$cols["Balance"] = 60;
 		$cols["Dues"] = 60;
 	}
-	if ($role == "VP" || $role == "President")
+	if ($role == "Vice President" || $role == "President")
 	{
-		$showAttendance = true;
-		$showDetails = true;
 		$cols["Tie"] = 40;
 		$cols["Gigs"] = 40;
 		$cols["Score"] = 60;
@@ -69,11 +63,6 @@ function member_table($conditions, $type = 'normal')
 					break;
 				case "Name":
 					$html .= " data-tab=''><a href='#profile:" . $member["email"] . "'>" . completeNameFromEmail($member["email"]) . "</a>";
-					if ($type == 'print' || ! $showDetails && ! $showMoney && ! $showAttendance) continue;
-					$html .= "<br>";
-					if ($showDetails) $html .= "<a href='#' class='roster_toggle' data-tab='details'>Details</a><span class=spacer></span>";
-					if ($showMoney) $html .= "<a href='#' class='roster_toggle' data-tab='money'>Money</a><span class=spacer></span>";
-					if ($showAttendance) $html .= "<a href='#' class='roster_toggle' data-tab='attendance'>Attendance</a><span class=spacer></span><a href='#' class='roster_toggle' data-tab='tie'>Tie</a><span class=spacer></span><a href='#' class='roster_toggle' data-tab='semesters'>Semesters</a><span class='spacer'></span>";
 					break;
 				default:
 					$html .= ">" . rosterProp($member, $col);
@@ -96,8 +85,8 @@ function member_csv($conditions)
 	if (! isOfficer($userEmail)) die("Access denied");
 	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major");
 
-	$sql = 'SELECT * FROM `member` ORDER BY confirmed desc, lastName asc, firstName asc';
-	if ($conditions != '') $sql = 'SELECT * FROM `member` where ' . $conditions . ' ORDER BY confirmed desc, lastName asc, firstName asc';
+	$sql = 'SELECT * FROM `member` ORDER BY lastName asc, firstName asc';
+	if ($conditions != '') $sql = 'SELECT * FROM `member` where ' . $conditions . ' ORDER BY lastName asc, firstName asc';
 	$members = mysql_query($sql);
 
 	$ret = '"' . join('","', $cols) . "\"<br>";
@@ -137,7 +126,7 @@ foreach ($conds as $cond)
 }
 $condstr = '(' . join(") and (", $condarr) . ')';
 
-if (! isOfficer(getuser())) $condstr = "(`confirmed` = '1')";
+if (! isOfficer(getuser())) $condstr = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
 
 if ($_POST['type'] == "print")
 {

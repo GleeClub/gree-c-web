@@ -2,8 +2,6 @@
 	require_once('php/functions.php');
 	if(isset($_COOKIE['email'])){
 		$userEmail = $_COOKIE['email'];
-		mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect: ".mysql_error()); 
-		mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 	}
 	else{
 		header("Location: ../");

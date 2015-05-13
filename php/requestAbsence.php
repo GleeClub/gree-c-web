@@ -14,7 +14,7 @@ if($reason=="")
 }
 else
 {
-	$attendanceOfficers = emailFromPosition("VP").', '.emailFromPosition("President");
+	$attendanceOfficers = emailFromPosition("Vice President").', '.emailFromPosition("President");
 	$mail = sendMessageEmail($attendanceOfficers, $userEmail, 'Name:  ' . fullNameFromEmail($userEmail) . '<br>Event:  ' . getEventName($_POST['eventNo']) . '<br>Reason:  ' . $reason, 'Absence Request on Gree-C-Web');
 	if (! mysql_query("insert into `absencerequest` (reason,memberID,eventNo) values ('$reason','$userEmail','$eventNo')")) die("Query failed: " . mysql_error());
 	echo "<p>Your request has been submitted.  You lazy bum!</p>";

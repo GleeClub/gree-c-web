@@ -78,7 +78,7 @@
 <tr><td>Password*:</td> <td><input type="password" name="password" /></td></tr>
 <tr><td>Confirm Password*:</td> <td><input type="password" name="passwordCheck" /></td></tr>
 <tr><td>Phone Number (Only digits, eg 8007776666)*:</td><td><input type="text" name="phone" /></td></tr>
-<tr><td>Picture (a url to a picture of you):</td><td><input type="text" name="picture" /></td></tr>
+<tr><td>Picture (URL to a picture of you):</td><td><input type="text" name="picture" /></td></tr>
 <tr><td>Are you in the class or the club?*</td> <td id="buttons"><input type="radio" name="enrollment" value="class" /> Class<br />
 <input type="radio" name="enrollment" value="0" /> Club</td></tr>
 <tr><td>How many passengers can ride in your car? (0 if you don't have a car)*</td><td><input type="text" name="passengers" /></td></tr>
@@ -89,7 +89,6 @@
 <tr><td>What is your major?*</td><td><input type="text" name="major" /></td></tr>
 <tr><td>What is your hometown?*</td><td><input type="text" name="hometown" /></td></tr>
 <tr><td>How many years have you been at Tech?</td><td><input type="text" name="techYear" /></td></tr>
-<tr><td>How many years have you been in Glee Club?</td><td><input type="text" name="clubYear" /></td></tr>
 <tr><td>What is your GChat screenname?</td><td><input type="text" name="gChat" /></td></tr>
 <tr><td>What is your Twitter screenname?</td> <td><input type="text" name="twitter" /></td></tr>
 <tr><td>How did you hear about Glee Club?</td><td><input type="text" name="gatewayDrug" /></td></tr>

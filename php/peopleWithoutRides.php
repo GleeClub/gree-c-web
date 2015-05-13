@@ -6,16 +6,16 @@ $eventNo = $_POST['eventNo'];
 $needRides = array();
 $sql = "
 	SELECT email,shouldAttend,attends.confirmed 
-	FROM member,attends 
+	FROM member,attends
 	WHERE
 		email NOT IN (
 			SELECT email FROM carpool, ridesin LEFT JOIN member 
 				ON email=memberID 
 			WHERE carpool.carpoolID=ridesin.carpoolID AND carpool.eventNo=$eventNo)
-		AND member.confirmed=1
+		AND exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)
 		AND attends.eventNo=$eventNo
 		AND attends.memberID=email
-	ORDER BY shouldAttend DESC, attends.confirmed DESC,lastName ASC, firstName ASC";
+	ORDER BY shouldAttend DESC, lastName ASC, firstName ASC";
 
 $results = mysql_query($sql);
 while($personInNeedOfRide = mysql_fetch_array($results)){

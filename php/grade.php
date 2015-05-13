@@ -2,7 +2,7 @@
 require_once('functions.php');
 
 $type = positionFromEmail(getuser());
-if ($type != "President" && $type != "Instructor" && $type != "VP")
+if ($type != "President" && $type != "Instructor" && $type != "Vice President")
 {
 	echo "DENIED";
 	exit(1);

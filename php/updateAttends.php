@@ -7,7 +7,7 @@ if(getuser())
 	$userEmail = getuser();
 	$position = positionFromEmail($userEmail);
 
-	if(isset($_POST['eventNo']) && $position == "President" || $position == "VP"){
+	if(isset($_POST['eventNo']) && $position == "President" || $position == "Vice President"){
 		$eventNo = mysql_real_escape_string($_POST['eventNo']);
 		$memberID = mysql_real_escape_string($_POST['email']);
 		$mode = mysql_real_escape_string($_POST['mode']);

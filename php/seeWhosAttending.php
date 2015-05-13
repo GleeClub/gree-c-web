@@ -5,7 +5,7 @@ $eventNo = $_POST['eventNo'];
 
 $shouldHtml='<table class="every-other" width="100%"><tr><td><h3>Should Attend</h3></td></tr>';
 $shouldntHtml='<table class="every-other" width="100%"><tr><td><h3>Shouldn\'t Attend</h3></td></tr>';
-$sql = 'SELECT prefName,firstName,lastName,section,memberID,`attends`.`confirmed` as confirmed,section,shouldAttend FROM `attends`,`member` WHERE eventNo='.$eventNo.' AND memberID=email and member.confirmed=\'1\' order by confirmed DESC,section ASC,lastName ASC,firstName ASC';
+$sql = 'SELECT prefName,firstName,lastName,section,memberID,`attends`.`confirmed` as confirmed,section,shouldAttend FROM `attends`,`member` WHERE eventNo='.$eventNo.' AND memberID=email and exists (select * from `activeSemester` where `activeSemester`.`semester` = "'.$CUR_SEM.'" and `activeSemester`.`member` = `member`.`email`) order by confirmed DESC,section ASC,lastName ASC,firstName ASC';
 $results = mysql_query($sql);
 while($row = mysql_fetch_array($results, MYSQL_ASSOC)){
 	$section = $row['section'];

@@ -1,8 +1,6 @@
 <?php
 	require_once('./functions.php');
 	$userEmail = $_COOKIE['email'];
-	mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect: ".mysql_error()); 
-	mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 	$sql = "select firstName,lastName,email from member";
 	$result = mysql_query($sql);
 	$arr = array();

@@ -6,7 +6,7 @@ $userEmail = getuser();
 $role = positionFromEmail($userEmail);
 echo "<div id='roster_table'></div>";
 
-if ($role == "Treasurer" || $role == "VP" || $role == "President" || $role == "Liaison")
+if ($role == "Treasurer" || $role == "Vice President" || $role == "President" || $role == "Liaison")
 {
 	echo "<br><br><table id='transac'></table>";
 	echo "<span class='pull-left'><div class='btn-toolbar' style='display: inline-block' id='roster_filters'>

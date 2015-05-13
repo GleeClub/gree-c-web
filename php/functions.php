@@ -100,22 +100,34 @@ function emailFromPosition($position){
 	return $result['email'];
 }
 
-function profilePic($email){
-	if ($email == '') return '';
-        $sql = "SELECT picture FROM member WHERE email='$email';";
-        $result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-        return $result['picture'];
+function profilePic($email)
+{
+	if ($email == '') return "http://placekitten.com/g/256/256";
+	$sql = "SELECT picture FROM member WHERE email='$email';";
+	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
+	if ($result['picture'] == '') return "http://placekitten.com/g/256/256";
+	else return $result['picture'];
 }
 
-function sectionFromEmail($email){
-	if ($email == '') return 'None';
-        $sql = "SELECT section FROM member WHERE email='$email';";
-        $result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-        return $result['section'];
+function sectionFromEmail($email)
+{
+	if ($email == '') return 0;
+	$sql = "SELECT section FROM member WHERE email='$email';";
+	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
+	return $result['section'];
 }
 
-function randomProfilePic(){
-        return "http://placekitten.com/500/400";
+function sectionNameFromEmail($email)
+{
+	$section = sectionFromEmail($email);
+	switch ($section)
+	{
+		case 1: return "Bass";
+		case 2: return "Baritone";
+		case 3: return "Tenor 2";
+		case 4: return "Tenor 1";
+	}
+	return "None";
 }
 
 function enrollment($email, $semester = '')
@@ -131,7 +143,7 @@ function enrollment($email, $semester = '')
 function isOfficer($email){
 	//this should be done with numbers...
 	if(positionFromEmail($email) == "Manager" ||
-	positionFromEmail($email) == "VP" ||
+	positionFromEmail($email) == "Vice President" ||
 	positionFromEmail($email) == "Treasurer" ||
 	positionFromEmail($email) == "President" ||
 	positionFromEmail($email) == "Liaison" ||
@@ -157,15 +169,12 @@ function getMemberAttribute($attribute, $email){
         return $result[$attribute];
 }
 
-function memberDropdown()
+function memberDropdown($member = '')
 {
 	$html = "<select class='name'><option value=''>(nobody)</option>";
 	$sql = "select `firstName`, `lastName`, `email` from `member` order by `lastName` asc";
 	$results = mysql_query($sql);
-	while ($row = mysql_fetch_array($results))
-	{
-		$html .= "<option value='" . $row['email'] . "'>" . $row['lastName'] . ", " . $row['firstName'] . "</option>";
-	}
+	while ($row = mysql_fetch_array($results)) $html .= "<option value='" . $row['email'] . "'" . ($row['email'] == $member ? ' selected' : '') . ">" . $row['lastName'] . ", " . $row['firstName'] . "</option>";
 	$html .= "</select>";
 	return $html;
 }
@@ -494,7 +503,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 			<th>Did Attend</th>
 			<th>Minutes Late</th>
 			<th>Point Change</th>
-			<th>Partial Grade</th>
+			<th>Partial Score</th>
 		</thead>';
 	}
 	else if ($mode == 2)
@@ -717,7 +726,7 @@ function rosterProp($member, $prop)
 			$html .= "$gigcount</span>";
 			break;
 		case "Score":
-			if (enrollment($member["email"]) == 'inactive') $grade = '';
+			if (enrollment($member["email"]) == 'inactive') $grade = "--";
 			else $grade = attendance($member["email"], 0);
 			$html .= "<span class='gradecell'";
 			if (enrollment($member["email"]) == "class" && $grade < 80) $html .= " style=\"color: red\"";

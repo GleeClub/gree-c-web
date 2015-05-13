@@ -1,4 +1,3 @@
-<?php session_start();?>
 
 <head>
 	<style>
@@ -45,8 +44,6 @@
 	if(isset($_COOKIE['email'])){
 		require_once('./functions.php');
 		$userEmail = $_COOKIE['email'];
-		mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect: ".mysql_error()); 
-		mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 	}
 	
 	if(isset($_POST['eventNo'])){

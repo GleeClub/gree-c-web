@@ -2,7 +2,7 @@
 require_once('functions.php');
 $userEmail = getuser();
 
-$member_fields = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'clubYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
+$member_fields = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
 
 function member_details($email)
 {
@@ -150,28 +150,28 @@ $role = positionFromEmail($userEmail);
 switch ($_POST['tab'])
 {
 	case 'details':
-		if ($role != "President" && $role != "VP") die("DENIED");
+		if ($role != "President" && $role != "Vice President") die("DENIED");
 		echo member_details(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'details_edit':
-		if ($role != "President" && $role != "VP") die("DENIED");
+		if ($role != "President" && $role != "Vice President") die("DENIED");
 		echo member_edit(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'money':
-		if ($role != "President" && $role != "VP") die("DENIED");
+		if ($role != "President" && $role != "Vice President") die("DENIED");
 		echo money_table(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'attendance':
-		if ($role != "President" && $role != "VP") die("DENIED");
+		if ($role != "President" && $role != "Vice President") die("DENIED");
 		echo attendance(mysql_real_escape_string($_POST['email']), 1);
 		echo "<div style='text-align: right'><a href='php/memberAttendance.php?id=" . $_POST['email'] . "'>Print view</a></div>";
 		break;
 	case 'tie':
-		if ($role != "President" && $role != "VP") die("DENIED");
+		if ($role != "President" && $role != "Vice President") die("DENIED");
 		echo tie_form(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'semesters':
-		if ($role != "President" && $role != "VP") die("DENIED");
+		if ($role != "President" && $role != "Vice President") die("DENIED");
 		echo active_semesters(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'col':

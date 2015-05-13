@@ -1,10 +1,6 @@
 <?php
 //This returns the results for the To: field in creating a message.
-session_start();
-require_once('variables.php');
 require_once('functions.php');
-mysql_connect("$SQLhost", "$SQLusername", "$SQLpassword")or die("cannot connect"); 
-mysql_select_db("$SQLcurrentDatabase")or die("cannot select DB");
 $q = mysql_real_escape_string($_GET['q']);
 
 $sql = "select email, prefName, lastName from member where prefName like '$q%' or lastName like '$q%';";

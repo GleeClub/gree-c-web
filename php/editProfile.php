@@ -4,14 +4,13 @@ $email = getuser();
 
 $res = mysql_fetch_array(mysql_query("select * from member where email='$email'"));
 $res2 = mysql_fetch_array(mysql_query("select `enrollment` from `activeSemester` where `member` = '$email' and `semester` = '$CUR_SEM'"));
-$enr = $res2['enrollment'];
-if ($enr != 'class' && $enr != 'club') die("Internal error: invalid enrollment");
-
+if (mysql_num_rows($res2) == 0) $enr = "inactive";
+else $enr = $res2['enrollment'];
 ?>
 <div class="span6 block">
 <table id="right">
 <tr><td><h1 style="margin-bottom:20px">Edit Profile</h1></td><td>
-<?php if($res['confirmed']) echo "<div class='alert alert-success'>Account confirmed</div>"; else echo "<div class='alert alert-info'>Account unconfirmed</div>";?></td></tr>
+<?php if($enr != "inactive") echo "<div class='alert alert-success'>Account confirmed</div>"; else echo "<div class='alert alert-info'>Account unconfirmed</div>";?></td></tr>
 <tr><td>First Name*:</td> <td><input type="text" name="firstName" value="<?php echo $res['firstName']; ?>" /></td></tr>
 <tr><td>Preferred Name:</td><td><input type="text" name="prefName" value="<?php echo $res['prefName']; ?>" /></td></tr>
 <tr><td>Last Name*:</td><td><input type="text" name="lastName" value="<?php echo $res['lastName']; ?>" /></td></tr>
@@ -34,7 +33,6 @@ if ($enr != 'class' && $enr != 'club') die("Internal error: invalid enrollment")
 <tr><td>What is your major?*</td><td><input type="text" name="major" value="<?php echo $res['major']; ?>"/></td></tr>
 <tr><td>What is your minor?</td><td><input type="text" name="minor" value="<?php echo $res['minor']; ?>"/></td></tr>
 <tr><td>How many years have you been at Tech?</td><td><input type="text" name="techYear" value="<?php echo $res['techYear']; ?>"/></td></tr>
-<tr><td>How many years have you been in Glee Club?</td><td><input type="text" name="clubYear" value="<?php echo $res['clubYear']; ?>"/></td></tr>
 <tr><td>What is your hometown?*</td><td><input type="text" name="hometown" value="<?php echo $res['hometown']; ?>"/></td></tr>
 <tr><td>What is your GChat screenname?</td><td><input type="text" name="gChat" value="<?php echo $res['gChat']; ?>"/></td></tr>
 <tr><td>What is your Twitter screenname?</td> <td><input type="text" name="twitter" value="<?php echo $res['twitter']; ?>"/></td></tr>

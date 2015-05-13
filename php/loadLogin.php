@@ -1,9 +1,18 @@
-	<div class="span3 block">
-		<form class="form-inline" action="php/checkLogin.php" method="post">
-		  <input type="text" class="input-medium" id="signInEmail" placeholder="gburdell3@gatech.edu" name="email" />
-		  <input type="password" class="input-medium" id="signInPassword" placeholder="password" name="password" />
-		  <button type="submit" value="Sign In" class="btn">Sign in</button>
-		</form>
-		<a href="#forgotPassword">Forgot Password?</a><br>
-		<a href="#register">New To Glee Club?  Register here!</a>
+<style>
+.spacer { padding-right: 20px; content: '&nbsp;' }
+</style>
+<div class="span4 block">
+	<form class='form-horizontal' onsubmit="return signIn()">
+	<div class='control-group'>
+		<label class='control-label'>Email</label>
+		<div class='controls'><input type="text" class="input-large" id="email" placeholder="gburdell3@gatech.edu" name="email" /></div>
 	</div>
+	<div class='control-group'>
+		<label class='control-label'>Password</label>
+		<div class='controls'><input type="password" class="input-large" id="password" placeholder="password" name="password" /></div>
+	</div>
+	<div class='control-group'>
+		<div class='controls'><a href='#register'>Register</a><span class='spacer'></span><a href='#forgotPassword'>Forgot</a><span class='spacer'></span><button type="submit" value="Sign In" class="btn">Sign In</button></div>
+	</div>
+	</form>
+</div>

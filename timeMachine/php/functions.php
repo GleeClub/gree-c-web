@@ -1,8 +1,6 @@
 <?php
 require_once('variables.php');
 require_once('taylorFunctions.php');
-//it would seem you have to connect to the DB from where the function is called, because the variables in variables.php don't get read into the functions here 
-//maybe they should be global or something?
 
 function getCurrentSemester() {
 	$sql = "SELECT semester FROM variables";

@@ -107,7 +107,7 @@ function semesterPage(){
 		<div>
 			<p>This is a form that will allow you to add and remove semesters in the Glee Club database. It will also change the current semester.</p>
 		    <p><strong>WARNING:</strong> Removing a semester will remove all related events and attendance info <strong>permanently</strong> and <strong>completely</strong> . And changing the current semester will change the entire face of the website.  Only stuff from the current semester is shown on the main website.  Changing the semester also changes every member's status to 'inactive' until he logs in and confirms himself.</p>
-		    <p>To see old stuff, officers can click on the \"Actions>Look Into The Past\" option.</p>
+		    <p>To see old stuff, officers can click on the \"Actions &gt; Look Into The Past\" option.</p>
 		    <p>With great power comes great potential to screw everyone over.  Use this feature wisely.</p>
 			<p>Now, pick your poison:</p>
 			<div id='semesterOptions'>
@@ -133,7 +133,7 @@ if($userEmail!=null){
 	$position = positionFromEmail($userEmail);
 
 	//if they aren't the President, lock 'em out
-	if($position == "President" || $position == "VP"){
+	if($position == "President" || $position == "Vice President"){
 		$html = semesterPage();
 	}
 	//if the person is not the president

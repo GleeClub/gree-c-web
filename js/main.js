@@ -71,38 +71,41 @@ function readableFromJSON(json) {
 }
 
 var timer = null;
-function checkHash() {
+function checkHash()
+{
 		h = window.location.hash.substring(1);
 		clearInterval(timer);
-		if(h == 'forgotPassword') loadForgotPassword();
-		else if(h == 'register') register();
-		else if(document.cookie.indexOf("email") == -1) loadLogin();
-		else if(h == "messages") loadMessages();
-		else if(h.indexOf("message") == 0) loadMessage(parseInt(h.substring(h.indexOf("id=")+3), 10));
-		else if(h == "newMessage") newMessage();
-		else if(h == "stats" || h == '') loadStats();
-		else if(h == 'allEvents' || h == 'rehearsal' || h == 'sectional' || h == 'tutti' || h == 'volunteer') loadAllEvents(h);
-		else if(h == 'event') addOrRemoveEvent();
-		else if(h == 'editProfile') editProfile();
-		else if(h == 'feedback') feedbackForm();
-		else if(h == 'suggestSong') songForm();
-		else if(h == 'absenceRequest') seeAbsenceRequests();
-		else if(h == 'minutes') showMinutes();
-		else if(h == 'roster') roster();
-		else if(h == 'addAnnouncement') addAnnouncement();
-		else if(h == 'constitution') loadConstitution();
-		else if(h == 'handbook') loadHandbook();
-		else if(h == 'syllabus') loadSyllabus();
-		else if(h == 'semester') loadAddSemester();
-		else if(h == 'repertoire') showRepertoire();
-		else if(h == 'announcements') loadAnnouncements();
-		else if(h == 'ties') loadTies();
-		else if(h == 'chatbox')
+		if (h == 'forgotPassword') loadForgotPassword();
+		else if (h == 'register') register();
+		else if (document.cookie.indexOf("email") == -1) loadLogin();
+		else if (h == "messages") loadMessages();
+		else if (h.indexOf("message") == 0) loadMessage(parseInt(h.substring(h.indexOf("id=")+3), 10));
+		else if (h == "newMessage") newMessage();
+		else if (h == "stats" || h == '') loadStats();
+		else if (h == 'allEvents' || h == 'rehearsal' || h == 'sectional' || h == 'tutti' || h == 'volunteer' || h == 'pastEvents') loadAllEvents(h);
+		else if (h == 'event') addOrRemoveEvent();
+		else if (h == 'editProfile') editProfile();
+		else if (h == 'feedback') feedbackForm();
+		else if (h == 'suggestSong') songForm();
+		else if (h == 'absenceRequest') seeAbsenceRequests();
+		else if (h == 'minutes') showMinutes();
+		else if (h == 'roster') roster();
+		else if (h == 'addAnnouncement') addAnnouncement();
+		else if (h == 'constitution') loaddoc('Constitution');
+		else if (h == 'handbook') loaddoc('Handbook');
+		else if (h == 'syllabus') loaddoc('Syllabus');
+		else if (h == 'semester') loadAddSemester();
+		else if (h == 'repertoire') showRepertoire();
+		else if (h == 'announcements') loadAnnouncements();
+		else if (h == 'ties') loadTies();
+		else if (h == 'officers') loadOfficers();
+		else if (h == 'doclinks') loadLinks();
+		else if (h == 'chatbox')
 		{
 		      loadChatbox(1);
 		      timer = setInterval('updateChatbox();', 1000);
 		}
-		else if(h.indexOf(':') > 0)
+		else if (h.indexOf(':') > 0)
 		{
 			var query = h.substring(0, h.indexOf(':'));
 			var arg = h.substring(h.indexOf(':') + 1);
@@ -115,66 +118,42 @@ function checkHash() {
 		else $('#main').html("I don't exist.");
 }
 
-function loadProfile(email) {
-	$.get(
-		'php/profile.php', 
-		{person: email},
-		function(data) {
-			$("#main").html(data);
-		});
+function loadLogin()
+{
+	$.post('php/loadLogin.php', function(data) { $("#main").html(data); });
 }
 
-function loadLogin() {
-	$.post(
-		'php/loadLogin.php',
-		function(data) {
-			$("#main").html(data);
-		});
+function register()
+{
+	$.post('php/register.php', function(data) { $("#main").html(data); });
 }
 
-function register() {
-	$.post(
-		'php/register.php',
-		function(data) {
-			$("#main").html(data);
-		});
-}
-
-function do_register(){
+function do_register()
+{
 	var serialized = $('#registerForm').serialize();
-	$.get('php/do_register.php',serialized,function(data){
-		$("#main").html(data);
+	$.get('php/doRegister.php', serialized, function(data) {
+		if (data != "OK") alert(data);
+		else { $("#main").load('php/stats.php'); alert("Account created successfully!  Now log in."); }
 	});
 }
 
-function checkMsgs() {
-	$.post(
-		'php/updateMsgBadge.php',
-		function(data) {
-			$("#unreadMsgs").html(data);
-		});
+function checkMsgs()
+{
+	$.post('php/updateMsgBadge.php', function(data) { $("#unreadMsgs").html(data); });
 }
 
-/*function signIn(){
-	//this is unused... :(
-	var email = document.getElementById("signInEmail").value;
-	var password = document.getElementById("signInPassword").value;
-	alert("sign in "+email+" with "+password);
-	$.post(
-		"php/checkLogin.php",
-		{
-			email:email,
-			password:password
-		},
-		function(data){
-			alert(data);
-			$('#main').innerHTML = 'stats go here.';
-			//loadStats();
-		}
-	);
-}*/
+function signIn()
+{
+	var email = $('#email').prop('value');
+	var password = $('#password').prop('value');
+	$.post("php/checkLogin.php", { email : email, password : password }, function(data) {
+		if (data != 'OK') alert(data);
+		else location.href = '#';
+	});
+	return false;
+}
 
-function loadMessages(){
+function loadMessages() {
 	$.post(
 		'php/loadMessages.php',
 		function(data){
@@ -209,9 +188,9 @@ function newMessage() {
 				window.location.hash = 'messages';
 			});
 			$("#members").tokenInput("php/searchMembers.php", { 
-    			theme:"facebook",
-    			preventDuplicates:true,
-    		});
+			theme:"facebook",
+			preventDuplicates:true,
+		});
 		}
 	);
 }
@@ -443,7 +422,7 @@ function loadAllEvents(h, id){
 	//console.log('load all events!');
 	$.post(
 		'php/loadAllEvents.php',
-		{type:h},
+		{ type : h },
 		function(data){
 			//console.log('done');
 			$("#main").html(data);
@@ -452,7 +431,9 @@ function loadAllEvents(h, id){
 			$(".event").click(function(){
 				$(".event").removeClass("lighter");
 				$(this).addClass("lighter");
-				loadDetails($(this).attr("id"));
+				var id = $(this).attr("id");
+				history.replaceState({}, document.title, window.location.protocol + '//' + window.location.host + window.location.pathname + '#event:' + id); // Gross
+				loadDetails(id);
 			});
 			$(".btn-confirm").on('click', function(){
 				//stop the click from causing the event info to load
@@ -922,108 +903,163 @@ function loadTies()
 	});
 }
 
+function loadOfficers()
+{
+	$.post('php/officers.php', function(data) {
+		$('#main').html(data);
+		$('select.name').change(function() {
+			var tracker = $(this).parent();
+			var position = $(this).parent().prev('td').html();
+			var newm = $(this).attr('value');
+			var old = tracker.data('old');
+			$.post('php/updateOfficers.php', { position : position, old : old, new : newm }, function(data) {
+				if (data != 'OK') alert(data);
+				else tracker.data('old', newm);
+			});
+		});
+	});
+}
+
+function loadLinks()
+{
+	$.post('php/doclinks.php', function(data) {
+		$('#main').html(data);
+		$('.urlchange').on('click', function() {
+			var name = $(this).prev('.docurl').attr('name');
+			var url = $(this).prev('.docurl').attr('value');
+			$.post('php/doclinks.php', { name : name, url : url }, function(data) {
+				alert(data);
+			})
+		});
+	});
+}
+
+function loadProfile(email)
+{
+	$.get('php/profile.php', { person : email }, function(data) {
+		$("#main").html(data);
+		$('.info_toggle').on('click', function() {
+			var target = $('#tabbox');
+			var tab = $(this).data('tab');
+			var member = email;
+			if ($(this).parent().data('tab') == tab)
+			{
+				target.html('');
+				$(this).parent().data('tab', '');
+				target.css('border', 'none');
+				return false;
+			}
+			getRosterData(tab, member, target);
+			$(this).parent().data('tab', tab);
+			return false;
+		});
+		
+	});
+}
+
+function getRosterData(tab, member, target)
+{
+	$.post('php/rosterData.php', { tab : tab, email : member }, function(data) {
+		target.html(data); //.children('.roster_' + $(this).data('tab')).toggle();
+		$('.gradetip').tooltip();
+		target.css('border', '1px solid #888');
+		var row = target.parent().parent().prev('tr').children();
+		//$('#semdues').tooltip();
+		//$('#latefee').tooltip();
+		$('.attendbutton').on('click', function() {
+			var mode = $(this).data('mode');
+			var eventid = $(this).data('event');
+			var val = $(this).data('val');
+			if (mode == 'late') val = $(this).siblings('input[name="attendance-late"]').prop('value');
+			$.post('php/updateAttends.php', { mode : mode, email : member, eventNo : eventid, value : val }, function(data) {
+				if (data == "OK")
+				{
+					row.find('span.gradecell').html('...');
+					row.find('span.gigscell').html('...');
+					getRosterData(tab, member, target);
+					$.post('php/rosterData.php', { tab : 'col', col : 'Grade', email : member }, function(data) { row.find('span.gradecell').replaceWith(data); });
+					$.post('php/rosterData.php', { tab : 'col', col : 'Gigs', email : member }, function(data) { row.find('span.gigscell').replaceWith(data); });
+				}
+				else alert(data);
+			});
+		});
+		$('.semesterbutton').on('click', function() {
+			var sem = $(this).data('semester');
+			var val = $(this).data('val');
+			$.post('php/updateConfirmed.php', { email : member, semester : sem, value : val }, function(data) {
+				if (data != 'OK') alert(data);
+			});
+		});
+		$('.tie_checkout').on('click', function() {
+			var member = $(this).data('member');
+			var tienum = $(this).parent().children('.tienum').prop('value');
+			$.post('php/tie.php', { member : member, action : 'checkout', tie : tienum }, function(data) {
+				if (data == 'OK')
+				{
+					row.find('span.tiecell').html('...');
+					getRosterData(tab, member, target);
+					$.post('php/rosterData.php', { tab : 'col', col : 'Tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
+				}
+				else alert(data);
+			});
+		});
+		$('.tie_return').on('click', function() {
+			var member = $(this).data('member');
+			$.post('php/tie.php', { member : member, action : 'return' }, function(data) {
+				if (data == 'OK')
+				{
+					row.find('span.tiecell').html('...');
+					getRosterData(tab, member, target);
+					$.post('php/rosterData.php', { tab : 'col', col : 'Tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
+				}
+				else alert(data);
+			});
+		});
+		var editing = 0;
+		$('.edit_member').on('click', function() {
+			if (editing == 0)
+			{
+				$(this).html('Done');
+				editing = 1;
+				$.post('php/rosterData.php', { tab : 'details_edit', email : member }, function(data) {
+					target.children('.detail_table').html(data);
+				});
+			}
+			else
+			{
+				var array = target.children('.detail_table').find('input').serializeArray();
+				$.post('php/doEditProfile.php', array, function(data) {
+					if (data == 'OK')
+					{
+						getRosterData(tab, member, target);
+						$(this).html('Edit');
+						editing = 0;
+					}
+					else alert(data);
+				});
+			}
+		});
+		$('.transac_edit').on('click', function() {
+			var id = $(this).parent().parent().data('id');
+			$.post('php/doEditTransaction.php', { action : $(this).data('action'), id : id }, function(data) {
+				if (data != 'OK') alert(data);
+				row.find('span.moneycell').html('...');
+				row.find('span.duesell').html('...');
+				row.find('span.tiecell').html('...');
+				getRosterData(tab, member, target);
+				$.post('php/rosterData.php', { tab : 'col', col : 'Balance', email : member }, function(data) { row.find('span.moneycell').replaceWith(data); });
+				$.post('php/rosterData.php', { tab : 'col', col : 'Dues', email : member }, function(data) { row.find('span.duescell').replaceWith(data); });
+				$.post('php/rosterData.php', { tab : 'col', col : 'Tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
+			});
+			return false;
+		});
+	});
+}
+
 var ntrans = 0;
 
 function roster()
 {
-	function getRosterData(tab, member, target)
-	{
-		$.post('php/rosterData.php', { tab : tab, email : member }, function(data) {
-			target.html(data); //.children('.roster_' + $(this).data('tab')).toggle();
-			$('.gradetip').tooltip();
-			target.css('border', '1px solid black');
-			var row = target.parent().parent().prev('tr').children();
-			//$('#semdues').tooltip();
-			//$('#latefee').tooltip();
-			$('.attendbutton').on('click', function() {
-				var mode = $(this).data('mode');
-				var eventid = $(this).data('event');
-				var val = $(this).data('val');
-				if (mode == 'late') val = $(this).siblings('input[name="attendance-late"]').prop('value');
-				$.post('php/updateAttends.php', { mode : mode, email : member, eventNo : eventid, value : val }, function(data) {
-					if (data == "OK")
-					{
-						row.find('span.gradecell').html('...');
-						row.find('span.gigscell').html('...');
-						getRosterData(tab, member, target);
-						$.post('php/rosterData.php', { tab : 'col', col : 'Grade', email : member }, function(data) { row.find('span.gradecell').replaceWith(data); });
-						$.post('php/rosterData.php', { tab : 'col', col : 'Gigs', email : member }, function(data) { row.find('span.gigscell').replaceWith(data); });
-					}
-					else alert(data);
-				});
-			});
-			$('.semesterbutton').on('click', function() {
-				var sem = $(this).data('semester');
-				var val = $(this).data('val');
-				$.post('php/updateConfirmed.php', { email : member, semester : sem, value : val }, function(data) {
-					if (data != 'OK') alert(data);
-				});
-			});
-			$('.tie_checkout').on('click', function() {
-				var member = $(this).data('member');
-				var tienum = $(this).parent().children('.tienum').prop('value');
-				$.post('php/tie.php', { member : member, action : 'checkout', tie : tienum }, function(data) {
-					if (data == 'OK')
-					{
-						row.find('span.tiecell').html('...');
-						getRosterData(tab, member, target);
-						$.post('php/rosterData.php', { tab : 'col', col : 'Tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
-					}
-					else alert(data);
-				});
-			});
-			$('.tie_return').on('click', function() {
-				var member = $(this).data('member');
-				$.post('php/tie.php', { member : member, action : 'return' }, function(data) {
-					if (data == 'OK')
-					{
-						row.find('span.tiecell').html('...');
-						getRosterData(tab, member, target);
-						$.post('php/rosterData.php', { tab : 'col', col : 'Tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
-					}
-					else alert(data);
-				});
-			});
-			var editing = 0;
-			$('.edit_member').on('click', function() {
-				if (editing == 0)
-				{
-					$(this).html('Done');
-					editing = 1;
-					$.post('php/rosterData.php', { tab : 'details_edit', email : member }, function(data) {
-						target.children('.detail_table').html(data);
-					});
-				}
-				else
-				{
-					var array = target.children('.detail_table').find('input').serializeArray();
-					$.post('php/doEditProfile.php', array, function(data) {
-						if (data == 'OK')
-						{
-							getRosterData(tab, member, target);
-							$(this).html('Edit');
-							editing = 0;
-						}
-						else alert(data);
-					});
-				}
-			});
-			$('.transac_edit').on('click', function() {
-				var id = $(this).parent().parent().data('id');
-				$.post('php/doEditTransaction.php', { action : $(this).data('action'), id : id }, function(data) {
-					if (data != 'OK') alert(data);
-					row.find('span.moneycell').html('...');
-					row.find('span.duesell').html('...');
-					row.find('span.tiecell').html('...');
-					getRosterData(tab, member, target);
-					$.post('php/rosterData.php', { tab : 'col', col : 'Balance', email : member }, function(data) { row.find('span.moneycell').replaceWith(data); });
-					$.post('php/rosterData.php', { tab : 'col', col : 'Dues', email : member }, function(data) { row.find('span.duescell').replaceWith(data); });
-					$.post('php/rosterData.php', { tab : 'col', col : 'Tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
-				});
-				return false;
-			});
-		});
-	}
 	$.post('php/roster.php', function(data) {
 		$('#main').html(data);
 		ntrans = 0;
@@ -1038,21 +1074,6 @@ function roster()
 			if (typeof cur != 'undefined') cur.toggleClass('active');
 			$.post('php/memberTable.php', { cond : cond.replace(/;$/, ''), type : 'normal' }, function(data) {
 				$('#roster_table').html(data);
-				$('.roster_toggle').on('click', function() {
-					var target = $(this).parent().parent().next('tr').children('td').first().children('div.tabbox');
-					var tab = $(this).data('tab');
-					var member = $(this).parent().parent().data('member');
-					if ($(this).parent().data('tab') == tab)
-					{
-						target.html('');
-						$(this).parent().data('tab', '');
-						target.css('border', 'none');
-						return false;
-					}
-					getRosterData(tab, member, target);
-					$(this).parent().data('tab', tab);
-					return false;
-				});
 			});
 		}
 		function formatted_table(type)
@@ -1074,7 +1095,15 @@ function roster()
 
 function chgusr(user)
 {
-	$.post('php/chgusr.php', { user : user }, function(data) { $('body').html(data) });
+	$.post('php/chgusr.php', { user : user }, function(data) { location.href = '#' });
+}
+
+function delusr(user)
+{
+	if (confirm("This will irreversibly delete all of " + user + "'s data.  Proceed?")) $.post('php/doDeleteMember.php', { email : user }, function(data) {
+		if (data != 'OK') alert(data);
+		else { location.href= '#'; alert("User deleted successfully"); }
+	});
 }
 
 /**
@@ -1523,22 +1552,17 @@ function completeTodo(id){
 ****************************************************************************/
 
 //In all three of these, after loading we need to target the loaded style sheet to just #main so the nav bar doesn't go nuts
-function targetStyleSheet() {
-	var ss = document.styleSheets[document.styleSheets.length-1];
-	for(var j = 0; j < ss.rules.length; j++) {
-		ss.rules[j].selectorText = "#main " + ss.rules[j].selectorText;
-	}
-}
-function loadConstitution() {
-	$('#main').load('https://docs.google.com/document/d/1FrjY4M-pHUuoWC-nBA-8ZwPAgA8LrYz1yevaRFb2TIA/pub', function() { targetStyleSheet(); });
-}
-
-function loadHandbook() {
-	$('#main').load('https://docs.google.com/document/pub?id=1mqb6m9cuzTuiiVkNHGbP9kIoOPKiTs4xoMcSCEeoL4s', function() { targetStyleSheet(); });
-}
-
-function loadSyllabus() {
-	$('#main').load('https://docs.google.com/document/d/11ebWTOjPJBXDCmXGQMyM97iUjlQ9XNQNqFwMAWDvUdU/pub', function() { targetStyleSheet(); });
+function loaddoc(name)
+{
+	$.post('php/loaddoc.php', { name : name }, function(data)
+	{
+		var content = data.split('\n');
+		if (content[0] != 'OK') alert(data);
+		else $('#main').load(content[1], function() {
+			var ss = document.styleSheets[document.styleSheets.length-1];
+			for (var j = 0; j < ss.rules.length; j++) ss.rules[j].selectorText = "#main " + ss.rules[j].selectorText;
+		});
+	});
 }
 
 /***************************************************************************
@@ -2059,12 +2083,13 @@ function showMinutes(loadid)
 		var name = "";
 		var view_mode = 1; // 0 = private, 1 = public
 		var load_minutes = function(id) {
+			$('#minutes' + id).addClass('lighter');
 			$.post('php/getMinutes.php', { id : id }, function(data) {
 				smoothScrollTo('minutes_main');
 				var textPrivate = data;
 				var textPublic = "";
 				$.post('php/getMinutes.php', { id : id, type : 'name' }, function(name) {
-					$('#minutes_main').html("<div id=minutes_view></div>");
+					$('#minutes_main').html("<div id=minutes_view style='clear: both'></div>");
 					var edit_mode = 0; // 0 = view, 1 = edit
 					$.ajax({ url : 'php/isOfficer.php', async : false, success : function(data) { // Eww.
 						if (data == "1")
@@ -2112,7 +2137,6 @@ function showMinutes(loadid)
 							});
 						}
 						else $('#minutes_view').html(textPrivate);
-						$('#minutes_main').prepend("<div class='pull-left'><a href='#minutes:" + id + "'>Link to these minutes</a></div>");
 					}});
 					$('#minutes_edit').click(function()
 					{
@@ -2197,8 +2221,10 @@ function showMinutes(loadid)
 		var minutes_row_click = function() {
 			if (name == $(this).html()) return;
 			$('.minutes_row').parent().removeClass('lighter');
-			$(this).parent().addClass('lighter');
-			load_minutes($(this).data('id'));
+			var id = $(this).data('id');
+			window.location.hash = 'minutes:' + id;
+			//history.replaceState({}, document.title, window.location.protocol + '//' + window.location.host + window.location.pathname + '#minutes:' + id);
+			//load_minutes(id);
 		};
 		$('.minutes_row').click(minutes_row_click);
 		$('#minutes_add').click(function() {
