@@ -85,7 +85,7 @@ function prefFullNameFromEmail($email){
 }
 
 function positionFromEmail($userEmail){
-	if ($userEmail == '') return 'None';
+	if (! isset($userEmail) || $userEmail == '') return 'None';
 	$sql = "SELECT * FROM `member` WHERE email='$userEmail';";
 	$result= mysql_fetch_array(mysql_query($sql));
 	//print_r($result);
@@ -140,14 +140,23 @@ function enrollment($email, $semester = '')
 	return $result['enrollment'];
 }
 
-function isOfficer($email){
-	//this should be done with numbers...
-	if(positionFromEmail($email) == "Manager" ||
-	positionFromEmail($email) == "Vice President" ||
-	positionFromEmail($email) == "Treasurer" ||
-	positionFromEmail($email) == "President" ||
-	positionFromEmail($email) == "Liaison" ||
-	positionFromEmail($email) == "Webmaster") return true; // Webmaster needs access for debugging
+function isUber($email)
+{
+	// Webmaster needs full access for debugging
+	// And as long as I make 95% of the commits, I need access too.  -- Matthew Schauer
+	$pos = positionFromEmail($email);
+	if ($pos == "President" || $pos == "Vice President" || $pos == "Webmaster" || $email == 'awesome@gatech.edu') return true;
+	return false;
+}
+
+function isOfficer($email)
+{
+	if (isUber($email)) return true;
+	$pos = positionFromEmail($email);
+	if ($pos == "President" ||
+	$pos == "Vice President" ||
+	$pos == "Treasurer" ||
+	$pos == "Manager") return true;
 	else return false;
 }
 

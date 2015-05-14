@@ -1,9 +1,7 @@
 <?
 require_once('functions.php');
-$userEmail = getuser();
+if (! isUber(getuser())) die("DENIED");
 
-$role = positionFromEmail($userEmail);
-if ($role != 'President' && $role != 'Vice President') die("Denied");
 echo "<style>table { width: 100%; } th { text-align: left; }</style><table><tr><th>#</th><th>Status</th><th>Borrower</th><th>Comments</th><th></th></tr>";
 $sql = "select *, (select `name` from `tieStatus` where `id` = `tie`.`status`) as `statName` from `tie`";
 $result = mysql_query($sql);

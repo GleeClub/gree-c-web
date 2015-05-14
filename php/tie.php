@@ -1,6 +1,5 @@
 <?
 require_once('functions.php');
-$userEmail = getuser();
 
 $member = mysql_real_escape_string($_POST['member']);
 $tie = mysql_real_escape_string($_POST['tie']);
@@ -9,8 +8,7 @@ $newid = mysql_real_escape_string($_POST['newid']);
 $status = mysql_real_escape_string($_POST['status']);
 $comments = mysql_real_escape_string($_POST['comments']);
 
-$role = positionFromEmail($userEmail);
-if ($role != "Vice President" && $role != "President") die('DENIED');
+if (! isUber(getuser())) die('DENIED');
 if (! isset($member) || ! isset($action)) die('MISSING_ARG');
 if ($action == 'return')
 {

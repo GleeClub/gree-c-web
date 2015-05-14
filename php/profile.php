@@ -50,7 +50,7 @@ button
 require_once('functions.php');
 $userEmail = getuser();
 $officer = isOfficer($userEmail);
-$uber = (positionFromEmail($userEmail) == 'President' || positionFromEmail($userEmail) == 'Vice President');
+$uber = isUber($userEmail);
 $email = mysql_real_escape_string($_GET['person']);
 $query = mysql_query("select `email` from `member` where `email` = '$email'");
 if (mysql_num_rows($query) == 0) die("No such user");

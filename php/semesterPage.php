@@ -125,27 +125,9 @@ function semesterPage(){
 	return $html;
 }
 
-if(getuser()){
-	$userEmail = getuser();
-}
-//if the person is logged in
-if($userEmail!=null){
-	$position = positionFromEmail($userEmail);
+//if they aren't the President, lock 'em out
+if(isUber(getuser())) echo semesterPage();
+else echo "<p id='title'><°o°> You're not supposed to be here, mate. <°o°></p>";
 
-	//if they aren't the President, lock 'em out
-	if($position == "President" || $position == "Vice President"){
-		$html = semesterPage();
-	}
-	//if the person is not the president
-	else{
-		$html = "<p id='title'><°o°> You're not supposed to be here, mate. <°o°></p>";
-	}
-}
-//if the person isn't logged in
-else{
-	$html = "<html><p id='title'><°o°> You're not logged in <°o°></p></html>";
-}
-
-echo $html;
 ?>
 

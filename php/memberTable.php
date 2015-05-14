@@ -15,17 +15,18 @@ function member_table($conditions, $type = 'normal')
 	$userEmail = getuser();
 	$role = positionFromEmail($userEmail);
 	$officer = isOfficer($userEmail);
+	$uber = isUber($userEmail);
 	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
 	if ($officer)
 	{
 		$cols["Enrollment"] = 40;
 	}
-	if ($role == "Treasurer" || $role == "Vice President" || $role == "President")
+	if ($uber || $role == "Treasurer")
 	{
 		$cols["Balance"] = 60;
 		$cols["Dues"] = 60;
 	}
-	if ($role == "Vice President" || $role == "President")
+	if ($uber)
 	{
 		$cols["Tie"] = 40;
 		$cols["Gigs"] = 40;

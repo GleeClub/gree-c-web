@@ -2,11 +2,9 @@
 
 require_once('functions.php');
 $userEmail = getuser();
-
-$role = positionFromEmail($userEmail);
 echo "<div id='roster_table'></div>";
 
-if ($role == "Treasurer" || $role == "Vice President" || $role == "President" || $role == "Liaison")
+if (isUber($userEmail) || positionFromEmail($userEmail) == "Treasurer")
 {
 	echo "<br><br><table id='transac'></table>";
 	echo "<span class='pull-left'><div class='btn-toolbar' style='display: inline-block' id='roster_filters'>

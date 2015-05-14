@@ -1,9 +1,6 @@
 <?php
 require_once('functions.php');
-if (getuser()) $userEmail = getuser();
-else die("DENIED");
-$position = positionFromEmail($userEmail);
-if ($position != "President" && $position != "Vice President") die("DENIED");
+if (! isOfficer(getuser())) die("DENIED");
 
 $position = mysql_real_escape_string($_POST['position']);
 $old = mysql_real_escape_string($_POST['old']);

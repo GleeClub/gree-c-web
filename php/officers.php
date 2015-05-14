@@ -4,10 +4,8 @@ td { padding-right: 40px; }
 </style>
 <?php
 require_once('functions.php');
-if (getuser()) $userEmail = getuser();
 
-$position = positionFromEmail($userEmail);
-if ($position != "President" && $position != "Vice President") die("Go home, earthling.");
+if (! isUber(getuser())) die("Go home, earthling.");
 
 echo "<table><tr><th>Position</th><th>Member</th></tr>";
 $query = mysql_query("select * from `memberType` where `rank` > 0 order by `rank` asc");

@@ -13,7 +13,7 @@ function actionOptions($userEmail)
 			<li><a href="#addAnnouncement">Make an Announcement</a></li>
 			<li><a href="timeMachine">Look at Past Semesters</a></li>';
 	}
-	if(($type == "Vice President") || ($type == "President"))
+	if(isUber($userEmail))
 	{
 		$officerOptions .= '
 			<li><a href="#absenceRequest">Absence Requests</a></li>
@@ -133,26 +133,19 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 		    <tr><td><b>Location</b>:</td><td><input type="text" id="confirm_location"></td></tr>
 		</table></div>
 		<div class="modal-footer">
-		    <a href="#" class="btn" data-dismiss="modal">Close</a>
-		    <a href="#" class="btn btn-primary" data-dismiss="modal" onclick="confirm_account()">Confirm</a>
+		    <a href="#" class="btn" style="color: inherit" data-dismiss="modal">Close</a>
+		    <a href="#" class="btn btn-primary" style="color: inherit" data-dismiss="modal" onclick="confirm_account()">Confirm</a>
 		</div>
 	</div>
 
 	<?php
 		if(getuser())
 		{
-			$email = mysql_real_escape_string(getuser());
-			
-			//check if the user is the President and if the current semester in the database is accurate.  The President might need to be prompted to change the semester.
-			$sql = "select position from member where email='$email'";
-			$arr = mysql_fetch_array(mysql_query($sql));
-			$position = $arr['position'];
-
 			$sql = "select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester";
 			$arr = mysql_fetch_array(mysql_query($sql));
 			$semesterEnd = $arr['end'];
 
-			if ($position=='President' && time()>$semesterEnd) echo newSemesterModal();
+			if (positionFromEmail($userEmail) == "President" && time() > $semesterEnd) echo newSemesterModal();
 			else
 			{
 				//if the user is not confirmed for the semester, prompt them to confirm
