@@ -45,10 +45,7 @@ function member_table($conditions, $type = 'normal')
 	if (! $members) die(mysql_error());
 
 	$html = "<table class='no-highlight' id='roster_table'><thead><tr>";
-	foreach ($cols as $col => $width)
-	{
-		$html .= "<th style='width: $width'>$col</th>";
-	}
+	foreach ($cols as $col => $width) $html .= "<th style='width: $width'>$col</th>";
 	$html .= "</tr></thead><tbody>";
 	$i = 1;
 	while ($member = mysql_fetch_array($members, MYSQL_ASSOC))

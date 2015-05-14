@@ -1,6 +1,6 @@
 <?php
 require_once('php/functions.php');
-if(getuser()) $userEmail = getuser();
+$userEmail = getuser();
 
 function actionOptions($userEmail)
 {
@@ -139,7 +139,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 	</div>
 
 	<?php
-		if(getuser())
+		if($userEmail != '')
 		{
 			$sql = "select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester";
 			$arr = mysql_fetch_array(mysql_query($sql));
@@ -149,8 +149,8 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 			else
 			{
 				//if the user is not confirmed for the semester, prompt them to confirm
-				$arr = mysql_fetch_array(mysql_query("SELECT location FROM member WHERE email='$email'"));
-				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$email' and `semester` = '$CUR_SEM'"));
+				$arr = mysql_fetch_array(mysql_query("SELECT `location` FROM `member` WHERE `email` = '$userEmail'"));
+				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$userEmail' and `semester` = '$CUR_SEM'"));
 				if(! $confirmed)
 				{
 					$loc = addslashes($arr['location']);

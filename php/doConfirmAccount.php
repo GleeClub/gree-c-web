@@ -1,8 +1,9 @@
 <?php
 require_once('functions.php');
 $userEmail = mysql_real_escape_string(getuser());
-global $CUR_SEM;
 
+$res = mysql_query("select * from `activeSemester` where `member` = '$userEmail' and `semester` = '$CUR_SEM'");
+if (mysql_num_rows($res) != 0) die("Already confirmed");
 $loc = mysql_real_escape_string($_POST['location']);
 $reg = mysql_real_escape_string($_POST['registration']);
 if (! mysql_query("insert into `activeSemester` (`member`, `semester`, `enrollment`) values ('$userEmail', '$CUR_SEM', '$reg')")) die("Error confirming member");
