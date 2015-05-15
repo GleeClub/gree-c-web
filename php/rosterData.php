@@ -87,10 +87,9 @@ function tie_form($memberID)
 	GLOBAL $CUR_SEM;
 	GLOBAL $DEPOSIT;
 	$tie = 0;
-	$sql = "select `id` from `tie` where `owner` = '$memberID'";
-	$query = mysql_query($sql);
+	$query = mysql_query("select `tie` from `tieBorrow` where `member` = '$memberID' and `dateIn` is null");
 	$result = mysql_fetch_array($query);
-	if (mysql_num_rows($query) != 0) $tie = $result['id'];
+	if (mysql_num_rows($query) != 0) $tie = $result['tie'];
 	$head = fullNameFromEmail($memberID) . ' ';
 	$form = '';
 	if ($tie == 0)
@@ -100,7 +99,7 @@ function tie_form($memberID)
 	}
 	elseif ($tie > 0)
 	{
-		$head .= "has tie <span style='color: red'>$tie</span> checked out.";
+		$head .= "has tie <span style='font-weight: bold'>$tie</span> checked out.";
 		$form = "<button type='button' class='btn tie_return' data-member='$memberID'>Return</button>";
 	}
 	elseif ($tie < 0)

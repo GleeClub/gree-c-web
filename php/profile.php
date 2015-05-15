@@ -40,7 +40,7 @@ div#tabbox
 {
 	padding: 10px;
 }
-button
+button.action
 {
 	margin-right: 10px;
 }
@@ -84,7 +84,7 @@ function basic_info($person)
 		$html .= "<tr><td class='key'>Tie</td><td>" . rosterProp($member, "Tie") . "</td></tr>";
 		$html .= "<tr><td class='key'>Gigs</td><td>" . rosterProp($member, "Gigs") . "</td></tr>";
 		$html .= "<tr><td class='key'>Score</td><td>" . rosterProp($member, "Score") . "</td></tr>";
-		if ($uber) $html .= "<tr><td class='key'>Actions</td><td><button class='btn' onclick='chgusr(\"$person\")'>Log in as</button><button class='btn' style='color: red' onclick='delusr(\"$person\")'>Delete</button></td></tr>";
+		if ($uber) $html .= "<tr><td class='key'>Actions</td><td><button class='btn action' onclick='chgusr(\"$person\")'>Log in as</button><button class='btn action' style='color: red' onclick='delusr(\"$person\")'>Delete</button></td></tr>";
 	}
 	$html .= "</table></td></tr></table>";
 	return $html;

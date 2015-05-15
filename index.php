@@ -134,7 +134,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 		</table></div>
 		<div class="modal-footer">
 		    <a href="#" class="btn" style="color: inherit" data-dismiss="modal">Close</a>
-		    <a href="#" class="btn btn-primary" style="color: inherit" data-dismiss="modal" onclick="confirm_account()">Confirm</a>
+		    <a href="#" class="btn btn-primary" style="color: inherit" onclick="confirm_account()">Confirm</a>
 		</div>
 	</div>
 

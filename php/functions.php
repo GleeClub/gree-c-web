@@ -749,11 +749,11 @@ function rosterProp($member, $prop)
 			if ($tieamount >= $DEPOSIT) $html .= "style='color: green'";
 			else $html .= "style='color: red'";
 			$html .= ">";
-			$query = mysql_query("select `id` from `tie` where `owner` = '" . $member['email'] . "'");
+			$query = mysql_query("select `tie` from `tieBorrow` where `member` = '" . $member['email'] . "' and `dateIn` is null");
 			if (mysql_num_rows($query) != 0)
 			{
 				$result = mysql_fetch_array($query);
-				$html .= $result['id'];
+				$html .= $result['tie'];
 			}
 			else $html .= "•";
 			$html .= "</span>";

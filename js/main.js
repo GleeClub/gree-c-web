@@ -18,39 +18,40 @@ $(document).ready(function() {
 	});
 	$('.search-query').on('focus', function() { $('.search-query').attr('value', '') });
 
-  $('li').click(function(){
-  	//only 1 .active at a time!
-  	$(".nav li.active").removeClass("active");
-	$(this).addClass("active");
-  });
+	$('li').click(function() {
+		//only 1 .active at a time!
+		$(".nav li.active").removeClass("active");
+		$(this).addClass("active");
+	});
 
-  //This is code for the sidebar chat.  If we want to implement it, just add a chat div beside the main one, uncomment this code, and push the chatbox data there instead of main.
-  /*
-  $('#chat').height($(this).height() - $(".navbar").height());
-  $('#chat').css({
-  	'position':'fixed',
-  	'top':$(".navbar").height(),
-  	'right':20,
-  	'height':$(window).height()-$('.navbar').height()-20,
-  	'overflow':'scroll',
-  	//Force GPU accel
-  	'-webkit-transform':'translateZ(0)'
-  });
-  loadChatbox(1);*/
+	//This is code for the sidebar chat.  If we want to implement it, just add a chat div beside the main one, uncomment this code, and push the chatbox data there instead of main.
+	/*
+	$('#chat').height($(this).height() - $(".navbar").height());
+	$('#chat').css({
+		'position':'fixed',
+		'top':$(".navbar").height(),
+		'right':20,
+		'height':$(window).height()-$('.navbar').height()-20,
+		'overflow':'scroll',
+		//Force GPU accel
+		'-webkit-transform':'translateZ(0)'
+	});
+	loadChatbox(1);*/
 
-
-  checkHash();
+	checkHash();
 });
 
 var idArr;
-function typeaheadCallback(query, process) {
+function typeaheadCallback(query, process)
+{
 	$.post("php/getMembers.php", 
 		{nameType: "both"},
 		function(data) {
 			process(readableFromJSON(data));
 		});
 }
-function typeaheadUpdater(item){
+function typeaheadUpdater(item)
+{
 	window.location.hash = "profile:"+idArr[item];
 	return item;
 }
@@ -65,7 +66,6 @@ function readableFromJSON(json) {
 		tmp = JSON.parse(fb);
 		arr.push(tmp[0] + ' ' + tmp[1]);
 		idArr[tmp[0] + ' ' + tmp[1]] = tmp[2];
-
 	});
 	return arr;
 }
@@ -102,8 +102,8 @@ function checkHash()
 		else if (h == 'doclinks') loadLinks();
 		else if (h == 'chatbox')
 		{
-		      loadChatbox(1);
-		      timer = setInterval('updateChatbox();', 1000);
+			loadChatbox(1);
+			timer = setInterval('updateChatbox();', 1000);
 		}
 		else if (h.indexOf(':') > 0)
 		{
@@ -203,7 +203,7 @@ function checkForm() {
 	return false;
 }
 
-function loadStats(){
+function loadStats() {
 	//$("#main").html("stats go here!");
 	$.post(
 		'php/stats.php',
@@ -855,42 +855,68 @@ function loadTies()
 {
 	$.post('php/ties.php', function(data) {
 		$('#main').html(data);
-		$('.tie_edit').on('click', function() {
-			row = $(this).parent().parent();
-			$('.tie_edit').hide();
-			$('#tie_add').hide();
-			$(this).parent().append("<span id='edit_cmds'><button type='button' class='btn' id='tie_delete'><i class='icon-remove'></i></button><span style='display: inline-block; width: 10px'></span><button type='button' class='btn' id='tie_done'>Done</btton></span>");
-			tie_id = row.find('.tie_id');
-			oldid = tie_id.html();
-			tie_status = row.find('.tie_status');
-			tie_owner = row.find('.tie_owner');
-			tie_comments = row.find('.tie_comments');
-			tie_id.html("<input type='text' style='width: 40px' value='" + tie_id.html() + "'>");
-			$.post('php/tie.php', { action : 'status_dropdown' }, function(data) {
-				var val = tie_status.data('status');
-				tie_status.html(data);
-				tie_status.children('select').prop('value', val);
-			});
-			$.post('php/memberDropdown.php', function(data) {
-				var val = tie_owner.data('member');
-				tie_owner.html(data);
-				tie_owner.children('select').prop('value', val);
-			});
-			tie_comments.html("<textarea style='width: 200px; height:40px'>" + tie_comments.html() + "</textarea>");
-			$('#tie_delete').on('click', function() {
-				$.post('php/tie.php', { action : 'delete', tie : oldid }, function(data) {
-					if (data != 'OK') alert(data);
-					loadTies();
+		$('.tie_hist').on('click', function() {
+			var row = $(this).parent().parent();
+			if (row.data('tab') == 'hist')
+			{
+				row.data('tab', '');
+				$('#tie_detail').remove();
+				return;
+			}
+			$('#tie_detail').prev('tr').data('tab', '');
+			$('#tie_detail').remove();
+			row.data('tab', 'hist');
+			var id = row.children('td').first().html();
+			$.post('php/tie.php', { action : 'history', tie : id }, function(data) {
+				row.after("<tr id='tie_detail'><td colspan='4'><div style='margin: 10px; padding: 10px; border: 1px solid black'>" + data + "</div></td></tr>");
+				$('.hist_del').on('click', function() {
+					var btn = $(this);
+					var histid = btn.data('id');
+					$.post('php/tie.php', { action : 'histdel', id : histid }, function(data) {
+						if (data != 'OK') alert(data);
+						else btn.parent().parent().remove();
+					});
 				});
 			});
-			$('#tie_done').on('click', function() {
-				tid = tie_id.children('input').prop('value');
-				tstat = tie_status.children('select').prop('value');
-				towner = tie_owner.children('select').prop('value');
-				tcomm = tie_comments.children('textarea').prop('value');
-				$.post('php/tie.php', { action : 'update', tie : oldid, newid : tid, member : towner, status : tstat, comments : tcomm }, function(data) {
-					if (data != 'OK') alert(data);
-					loadTies();
+		});
+		$('.tie_edit').on('click', function() {
+			var row = $(this).parent().parent();
+			if (row.data('tab') == 'edit')
+			{
+				row.data('tab', '');
+				$('#tie_detail').remove();
+				return;
+			}
+			$('#tie_detail').prev('tr').data('tab', '');
+			$('#tie_detail').remove();
+			row.data('tab', 'edit');
+			var id = row.children('td').first().html();
+			$.post('php/tie.php', { action : 'editform', tie : id }, function(data) {
+				row.after("<tr id='tie_detail'><td colspan='4'><div style='margin: 10px; padding: 10px; border: 1px solid black'>" + data + "</div></td></tr>");
+				$('#tie_form').on('submit', function() {
+					var newid = $('#tie_num').attr('value');
+					var stat = $('#tie_status').attr('value');
+					var comments = $('#tie_comments').attr('value');
+					$.post('php/tie.php', { action : 'update', tie : id, newid : newid, status : stat, comments : comments }, function(data) {
+						if (data != 'OK') alert(data);
+						loadTies();
+					});
+					return false;
+				});
+				$('.tie_delete').on('click', function() {
+					var tie = $(this).data('tie');
+					var row = $(this).parent().parent().parent().parent().parent().parent();
+					if (confirm("Delete tie " + tie + " and its history?"))
+					{
+						$.post('php/tie.php', { action : 'delete', tie : tie }, function(data) {
+							if (data != 'OK') alert(data);
+							else
+							{
+								row.prev('tr').remove();
+								row.remove();
+							}
+						});
+					}
 				});
 			});
 		});
@@ -1238,9 +1264,12 @@ function requestNotificationsPermission()
 
 function confirm_account()
 {
-	var reg = $('#confirm_class').hasClass('active') ? "class" : "club";
+	var reg = '';
+	if ($('#confirm_class').hasClass('active')) reg = 'class';
+	else if ($('#confirm_club').hasClass('active')) reg = 'club';
+	else { alert("You must select \"class\" or \"club\" to confirm your account."); return; }
 	var loc = $('#confirm_location').prop('value');
-	$.post('php/doConfirmAccount.php', { registration : reg, location : loc }, function() { if (data != 'OK') alert(data); });
+	$.post('php/doConfirmAccount.php', { registration : reg, location : loc }, function(data) { if (data != 'OK') alert(data); $('#confirmModal').modal('hide'); });
 }
 
 function feedbackForm()

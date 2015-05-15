@@ -89,8 +89,8 @@ function createGig($name, $tutti, $call, $perform, $done, $location, $points, $s
 // Add to event, and only one section is attending if defined by $section
 function createRehearsal($name, $type, $call, $done, $location, $points, $sem, $comments, $section)
 {
-	if ($type != 1 && $type != 2) die("Internal error 1 in createRehearsal, type is $type");
-	if ($type == 1 && $section != 0) die("Internal error 2 in createRehearsal, type is $type");
+	if ($type != 1 && $type != 2) die("Internal error 1 in createRehearsal; type is $type");
+	if ($type == 1 && $section != 0) die("Internal error 2 in createRehearsal; type is $type");
 
 	$attend = 0;
 	if ($type == 2) $attend = -1;
