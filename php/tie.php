@@ -76,7 +76,7 @@ else if ($action == 'editform')
 	echo "<div class='control-group'><label class='control-label'>Status</label><div class='controls'>";
 	echo "<select id='tie_status'>";
 	$result = mysql_query("select `name` from `tieStatus`");
-	while ($row = mysql_fetch_array($result)) echo "<option value='$row[name]'" . ($tie['status'] == $row['name'] ? " selected" : "") . ">$row[name]</option>";
+	while ($row = mysql_fetch_array($result)) echo "<option value='$row[name]'" . ($tiearr['status'] == $row['name'] ? " selected" : "") . ">$row[name]</option>";
 	echo "</select></div></div>";
 	echo "<div class='control-group'><label class='control-label'>Comments</label><div class='controls'><textarea id='tie_comments'>" . htmlspecialchars($tiearr['comments']) . "</textarea></div></div>";
 	echo "<div class='control-group'><div class='controls'><button type='submit' class='btn'>Submit</button><span style='margin-right: 10px'></span><button type='button' class='btn tie_delete' data-tie='$tie'>Delete</button></div></div></form>";
