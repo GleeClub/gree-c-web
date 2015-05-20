@@ -968,15 +968,15 @@ function loadProfile(email)
 			var target = $('#tabbox');
 			var tab = $(this).data('tab');
 			var member = email;
-			if ($(this).parent().data('tab') == tab)
+			if (target.data('tab') == tab)
 			{
 				target.html('');
-				$(this).parent().data('tab', '');
+				target.data('tab', '');
 				target.css('border', 'none');
 				return false;
 			}
 			getRosterData(tab, member, target);
-			$(this).parent().data('tab', tab);
+			target.data('tab', tab);
 			return false;
 		});
 		

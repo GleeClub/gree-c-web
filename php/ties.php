@@ -4,6 +4,7 @@ if (! isUber(getuser())) die("DENIED");
 
 function tietable($result)
 {
+	global $CUR_SEM, $DEPOSIT;
 	echo "<table class='table'><tr><th>#</th><th>Status</th><th>Comments</th><th>Actions</th></tr>";
 	while ($row = mysql_fetch_array($result))
 	{

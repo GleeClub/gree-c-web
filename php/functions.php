@@ -645,26 +645,26 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 			if ($shouldAttend) $checked = 'checked';
 			else $checked = '';
 			$newval = ($shouldAttend + 1) % 2;
-			if ($media == 'print') $eventRows .= "<td align='left' class='data'>" . ($shouldAttend ? "Y" : "N") . "</td>";
-			else $eventRows .= "<td align='left' class='data'><input type='checkbox' class='attendbutton' data-mode='should' data-event='$eventNo' data-member='$memberID' data-val='$newval' $checked></td>";
+			if ($media == 'print') $eventRows .= "<td style='text-align: center' class='data'>" . ($shouldAttend ? "Y" : "N") . "</td>";
+			else $eventRows .= "<td style='text-align: center' class='data'><input type='checkbox' class='attendbutton' data-mode='should' data-event='$eventNo' data-member='$memberID' data-val='$newval' $checked></td>";
 			
 			if ($didAttend) $checked = 'checked';
 			else $checked = '';
 			$newval = ($didAttend + 1) % 2;
-			if ($media == 'print') $eventRows .= "<td align='left' class='data'>" . ($didAttend ? "Y" : "N") . "</td>";
-			else $eventRows .= "<td align='left' class='data'><input type='checkbox' class='attendbutton' data-mode='did' data-event='$eventNo' data-member='$memberID' data-val='$newval' $checked></td>";
+			if ($media == 'print') $eventRows .= "<td style='text-align: center' class='data'>" . ($didAttend ? "Y" : "N") . "</td>";
+			else $eventRows .= "<td style='text-align: center' class='data'><input type='checkbox' class='attendbutton' data-mode='did' data-event='$eventNo' data-member='$memberID' data-val='$newval' $checked></td>";
 
-			if ($media == 'print') $eventRows .= "<td align='left'>$minutesLate</td>";
-			else $eventRows .= "<td align='left'><input name='attendance-late' type='text' style='width:40px' value='$minutesLate'><button type='button' class='btn attendbutton' style='margin-top: -8px' data-mode='late' data-event='$eventNo' data-member='$memberID'>Go</button></td>";
+			if ($media == 'print') $eventRows .= "<td style='text-align: center'>$minutesLate</td>";
+			else $eventRows .= "<td style='text-align: center'><input name='attendance-late' type='text' style='width:40px' value='$minutesLate'><button type='button' class='btn attendbutton' style='margin-top: -8px' data-mode='late' data-event='$eventNo' data-member='$memberID'>Go</button></td>";
 
 			//make the point change red if it is negative
-			if ($pointChange > 0) $eventRows .= "<td align='left' class='data' style='color: green'>";
-			else if ($pointChange < 0) $eventRows .= "<td align='left'  class='data' style='color: red'>";
-			else $eventRows .= "<td align='left' class='data'>";
+			if ($pointChange > 0) $eventRows .= "<td style='text-align: center' class='data' style='color: green'>";
+			else if ($pointChange < 0) $eventRows .= "<td style='text-align: center'  class='data' style='color: red'>";
+			else $eventRows .= "<td style='text-align: center' class='data'>";
 			$eventRows .= "<a href='#' class='gradetip' data-toggle='tooltip' data-placement='right' style='color: inherit; text-decoration: none' onclick='return false' title='$tip'>$pointChange</a></td>";
 
-			if ($pointChange != 0) $eventRows .= "<td align='left' class='data'>$score</td>";
-			else $eventRows .= "<td align='left' class='data'></td>";
+			if ($pointChange != 0) $eventRows .= "<td style='text-align: center' class='data'>$score</td>";
+			else $eventRows .= "<td style='text-align: center' class='data'></td>";
 
 			$eventRows .= "</tr>";
 		}
