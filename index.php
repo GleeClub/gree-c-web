@@ -133,10 +133,16 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 		</div>
 		<div class="modal-body">
 		    <p>Will you be in the Glee Club this semester?  If not, hit Close and you will still be able to view the site, but you won't be assessed dues or expected at events.  If you are returning, please verify the information below, then hit Confirm to confirm your account.</p>
-		    <style>td { padding-right: 10px; }</style>
-		    <table><tr><td><b>Registration</b>:</td><td><div class="btn-group" data-toggle="buttons-radio"><button type="button" class="btn" id="confirm_class">Class</button><button type="button" class="btn" id="confirm_club">Club</button></div></td></tr>
-		    <tr><td><b>Location</b>:</td><td><input type="text" id="confirm_location"></td></tr>
-		</table></div>
+		<form class="form-horizontal">
+		    <div class="control-group">
+			<label class="control-label" style='font-weight: bold'>Registration:</label>
+			<div class="controls"><div class="btn-group" data-toggle="buttons-radio"><button type="button" class="btn" id="confirm_class">Class</button><button type="button" class="btn" id="confirm_club">Club</button></div></div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" style='font-weight: bold'>Location:</label>
+			<div class="controls"><input type="text" id="confirm_location"></div>
+		    </div>
+		</form></div>
 		<div class="modal-footer">
 		    <a href="#" class="btn" style="color: inherit" data-dismiss="modal">Close</a>
 		    <a href="#" class="btn btn-primary" style="color: inherit" onclick="confirm_account()">Confirm</a>
