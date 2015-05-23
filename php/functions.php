@@ -102,10 +102,11 @@ function emailFromPosition($position){
 
 function profilePic($email)
 {
-	if ($email == '') return "http://placekitten.com/g/256/256";
+	$default = "http://placekitten.com/g/256/256";
+	if ($email == '') return $default;
 	$sql = "SELECT picture FROM member WHERE email='$email';";
 	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	if ($result['picture'] == '') return "http://placekitten.com/g/256/256";
+	if ($result['picture'] == '') return $default;
 	else return $result['picture'];
 }
 

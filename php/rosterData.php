@@ -144,33 +144,36 @@ function active_semesters($memberID)
 	return $table;
 }
 
+$officer = isOfficer($userEmail);
 $uber = isUber($userEmail);
+$pos = positionFromEmail($userEmail);
+$denied = "You do not have access to this functionality.";
 
 switch ($_POST['tab'])
 {
 	case 'details':
-		if (! $uber) die("DENIED");
+		if (! $officer) die($denied);
 		echo member_details(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'details_edit':
-		if (! $uber) die("DENIED");
+		if (! $uber) die($denied);
 		echo member_edit(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'money':
-		if (! $uber) die("DENIED");
+		if (! $uber && $pos != "Treasurer") die($denied);
 		echo money_table(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'attendance':
-		if (! $uber) die("DENIED");
+		if (! $uber) die($denied);
 		echo attendance(mysql_real_escape_string($_POST['email']), 1);
 		echo "<div style='text-align: right'><a href='php/memberAttendance.php?id=" . $_POST['email'] . "'>Print view</a></div>";
 		break;
 	case 'tie':
-		if (! $uber) die("DENIED");
+		if (! $uber) die($denied);
 		echo tie_form(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'semesters':
-		if (! $uber) die("DENIED");
+		if (! $uber) die($denied);
 		echo active_semesters(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'col':

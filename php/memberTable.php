@@ -25,10 +25,10 @@ function member_table($conditions, $type = 'normal')
 	{
 		$cols["Balance"] = 60;
 		$cols["Dues"] = 60;
+		$cols["Tie"] = 40;
 	}
 	if ($uber)
 	{
-		$cols["Tie"] = 40;
 		$cols["Gigs"] = 40;
 		$cols["Score"] = 60;
 	}

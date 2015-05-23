@@ -2,7 +2,7 @@
 require_once('./functions.php');
 $userEmail = getuser();
 
-function encrypt($string, $key = '')
+/*function encrypt($string, $key = '')
 {
 	if ($key == '') return base64_encode($string);
 	$result = '';
@@ -14,7 +14,7 @@ function encrypt($string, $key = '')
 		$result .= $char;
 	}
 	return base64_encode($result);
-}
+}*/
 
 $treasurerEmail = emailFromPosition("Treasurer");
 if(isset($_POST['emails']))
@@ -30,18 +30,19 @@ if(isset($_POST['emails']))
 	foreach($emailArr as $email)
 	{
 		if ($email == '') continue; // Ignore transactions with nobody
-		$sql = "insert into transaction (memberID, amount, description, semester, type) values ('".mysql_escape_string($email)."','".mysql_escape_string($amountArr[$count])."','".mysql_escape_string($descriptionArr[$count])."', '".mysql_escape_string($semArr[$count])."', '".mysql_escape_string($typeArr[$count])."')";
-		mysql_query($sql);
-		if($sendArr[$count]) {
+		mysql_query("insert into transaction (memberID, amount, description, semester, type) values ('".mysql_escape_string($email)."','".mysql_escape_string($amountArr[$count])."','".mysql_escape_string($descriptionArr[$count])."', '".mysql_escape_string($semArr[$count])."', '".mysql_escape_string($typeArr[$count])."')");
+		if($sendArr[$count])
+		{
 			$name = fullNameFromEmail(mysql_real_escape_string($email));
 			$msg = "Keep this receipt for your records.";
 			$msg .= "<br />Name: " . $name;
 			$msg .= "<br />Semester:  " . $semArr[$count];
-			$msg .= "<br />Category:  " . $typeArt[$count];
+			$result = mysql_fetch_array(mysql_query("select `name` from `transacType` where `id` = '" . $typeArr[$count] . "'"));
+			$msg .= "<br />Category:  " . $result['name'];
 			$msg .= "<br />Amount: " . $amountArr[$count];
 			$msg .= "<br />Description: " . $descriptionArr[$count];
-			$msg .= "<br />Time: " . date('l jS \of F Y');
-			$msg .= "<br />Hash (for Treasurer's use): " . encrypt($d);
+			$msg .= "<br />Date: " . date('l jS \of F Y');
+			//$msg .= "<br />Hash (for Treasurer's use): " . encrypt($d);
 			$title = "Glee Club Receipt";
 
 			$headers  = 'MIME-Version: 1.0' . "\n";

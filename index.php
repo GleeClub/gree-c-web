@@ -10,12 +10,17 @@ function actionOptions($userEmail)
 	{
 		$officerOptions .= '
 			<li><a href="#event">Add/Remove Event</a></li>
-			<li><a href="#addAnnouncement">Make an Announcement</a></li>
-			<li><a href="timeMachine">Look at Past Semesters</a></li>';
+			<li><a href="#addAnnouncement">Make an Announcement</a></li>';
+	}
+	if ($type == "Treasurer" || isUber($userEmail))
+	{
+		$officerOptions .= '
+			<li><a href="#money">Add Transactions</a></li>';
 	}
 	if(isUber($userEmail))
 	{
 		$officerOptions .= '
+			<li><a href="timeMachine">Look at Past Semesters</a></li>
 			<li><a href="#absenceRequest">Absence Requests</a></li>
 			<li><a href="#ties">Ties</a></li>
 			<li><a href="#semester">Edit Semester</a></li>

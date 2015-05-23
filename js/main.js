@@ -100,6 +100,7 @@ function checkHash()
 		else if (h == 'ties') loadTies();
 		else if (h == 'officers') loadOfficers();
 		else if (h == 'doclinks') loadLinks();
+		else if (h == 'money') loadMoney();
 		else if (h == 'chatbox')
 		{
 			loadChatbox(1);
@@ -148,7 +149,7 @@ function signIn()
 	var password = $('#password').prop('value');
 	$.post("php/checkLogin.php", { email : email, password : password }, function(data) {
 		if (data != 'OK') alert(data);
-		else location.href = '#';
+		else location.reload();
 	});
 	return false;
 }
@@ -1082,13 +1083,10 @@ function getRosterData(tab, member, target)
 	});
 }
 
-var ntrans = 0;
-
 function roster()
 {
 	$.post('php/roster.php', function(data) {
 		$('#main').html(data);
-		ntrans = 0;
 		function member_table(cur)
 		{
 			if (typeof cur != 'undefined') cur.toggleClass('active'); // Ick
@@ -1121,7 +1119,7 @@ function roster()
 
 function chgusr(user)
 {
-	$.post('php/chgusr.php', { user : user }, function(data) { location.href = '#' });
+	$.post('php/chgusr.php', { user : user }, function(data) { location.href = '#'; location.reload();});
 }
 
 function delusr(user)
@@ -1132,15 +1130,41 @@ function delusr(user)
 	});
 }
 
+var ntrans = 0;
+
+function loadMoney()
+{
+	$.post('php/money.php', {}, function(data) {
+		$('#main').html(data);
+		ntrans = 0;
+	});
+}
+
 /**
 * Makes the money page into a form for with which to add transactions and increments the new transaction count
 */
 function addMoneyForm()
 {
 	ntrans++;
-	$.post('php/transacRow.php', {}, function(html) {
+	$.post('php/money.php', { action : 'row' }, function(html) {
 		$('#transac').append(html);
-		if(ntrans == 1)
+		function setamt(row)
+		{
+			var type = row.find('.ttype').attr('value');
+			var field = row.find('.amount');
+			var amt = field.data('amount-' + type);
+			if (typeof amt == 'undefined') field.attr('value', "");
+			else field.attr('value', amt);
+		}
+		$('.name').on('change', function() {
+			var row = $(this).parent().parent();
+			$.post('php/money.php', { action : 'values', member : $(this).attr('value') }, function(data) {
+				row.find('.amount').data('amount-deposit', data);
+				setamt(row);
+			});
+		});
+		$('.ttype').on('change', function() { setamt($(this).parent().parent()); });
+		if (ntrans == 1)
 		{
 			$('#roster_ops').append("<span id='trans_ops'><span class='spacer'></span><button type='button' class='btn' id='cancel_all_trans'>Cancel All Transactions</button><span class='spacer'></span><button type='button' class='btn' id='trans_submit'>Submit These Transactions</button></span>");
 			$('#cancel_all_trans').on('click', function() {
@@ -1190,7 +1214,7 @@ function addMoneyForm()
 					var semList = JSON.stringify(semArr);
 					$.post('php/addTransactions.php', { emails: emailList, amounts: amountList, descriptions: descList, types: typeList, semesters: semList, sendEmails: sendEmailList }, function(data) {
 						if (data != 'OK') alert(data);
-						roster();
+						loadMoney();
 					});
 				}
 			});
