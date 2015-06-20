@@ -18,8 +18,8 @@ if(getuser()) {
 	$recipient = "gleeclub@lists.gatech.edu";
 	$subject = "Important message from your $position!";
 
-	$headers = 'Reply-To: Glee Club Officers <gleeclub_officers@lists.gatech.edu>' . "\r\n" .
-				'From: Glee Club Officers <gleeclub_officers@lists.gatech.edu>' . "\r\n" .
+	$headers = 'Reply-To: Glee Club Officers <gleeclub_officers@lists.gatech.edu>' . "\n" .
+				'From: Glee Club Officers <gleeclub_officers@lists.gatech.edu>' . "\n" .
 				'X-Mailer: PHP/' . phpversion();
 	mail($recipient, $subject, $text, $headers);
 	//sendMessageEmail($recipient, $from, $text, $subject);

@@ -89,13 +89,13 @@ function info($userEmail)
 	if ($tie >= $DEPOSIT) $html .= "<span class='color: green'><i class='icon-ok'></i></span>";
 	else $html .= "<span class='color: red'><i class='icon-remove'></i></span>";
 	$html .= "</td><td>Tie Deposit</td></tr></table><br>";
-	$sql = "select `id` from `tie` where `owner` = '$userEmail'";
+	$sql = "select `tie` from `tieBorrow` where `member` = '$userEmail' and `dateIn` is null";
 	$query = mysql_query($sql);
 	if (mysql_num_rows($query) == 0) $html .= "You do <b>not</b> have a tie checked out.";
 	else
 	{
 		$result = mysql_fetch_array($query);
-		$html .= "You have tie <b>" . $result['id'] . "</b> checked out.";
+		$html .= "You have tie <b>" . $result['tie'] . "</b> checked out.";
 	}
 	$html .= "<br>";
 	$balance = balance($userEmail);
