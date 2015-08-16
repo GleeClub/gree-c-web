@@ -77,7 +77,11 @@ function checkHash()
 		clearInterval(timer);
 		if (h == 'forgotPassword') loadForgotPassword();
 		else if (h == 'register') register();
-		else if (document.cookie.indexOf("email") == -1) loadLogin();
+		else if (h == 'minutes') showMinutes();
+		else if (h == 'constitution') loaddoc('Constitution');
+		else if (h == 'handbook') loaddoc('Handbook');
+		else if (h == 'syllabus') loaddoc('Syllabus');
+		else if (document.cookie.indexOf("email") == -1 && h.indexOf(':') <= 0) loadLogin();
 		else if (h == "messages") loadMessages();
 		else if (h.indexOf("message") == 0) loadMessage(parseInt(h.substring(h.indexOf("id=")+3), 10));
 		else if (h == "newMessage") newMessage();
@@ -88,12 +92,8 @@ function checkHash()
 		else if (h == 'feedback') feedbackForm();
 		else if (h == 'suggestSong') songForm();
 		else if (h == 'absenceRequest') seeAbsenceRequests();
-		else if (h == 'minutes') showMinutes();
 		else if (h == 'roster') roster();
 		else if (h == 'addAnnouncement') addAnnouncement();
-		else if (h == 'constitution') loaddoc('Constitution');
-		else if (h == 'handbook') loaddoc('Handbook');
-		else if (h == 'syllabus') loaddoc('Syllabus');
 		else if (h == 'semester') loadAddSemester();
 		else if (h == 'repertoire') showRepertoire();
 		else if (h == 'announcements') loadAnnouncements();
@@ -110,8 +110,9 @@ function checkHash()
 		{
 			var query = h.substring(0, h.indexOf(':'));
 			var arg = h.substring(h.indexOf(':') + 1);
-			if (query == 'event') loadAllEvents('allEvents', arg);
-			else if (query == 'minutes') showMinutes(arg);
+			if (query == 'minutes') showMinutes(arg);
+			else if (document.cookie.indexOf("email") == -1) loadLogin();
+			else if (query == 'event') loadAllEvents('allEvents', arg);
 			else if (query == 'profile') loadProfile(arg);
 			else if (query == 'song') showRepertoire(arg);
 			else $('#main').html("What's a " + query + "?");
@@ -1604,17 +1605,18 @@ function completeTodo(id){
 ****** Constitution and Handbook Related Functions *************************
 ****************************************************************************/
 
-//In all three of these, after loading we need to target the loaded style sheet to just #main so the nav bar doesn't go nuts
 function loaddoc(name)
 {
 	$.post('php/loaddoc.php', { name : name }, function(data)
 	{
 		var content = data.split('\n');
 		if (content[0] != 'OK') alert(data);
-		else $('#main').load(content[1], function() {
-			var ss = document.styleSheets[document.styleSheets.length-1];
-			for (var j = 0; j < ss.rules.length; j++) ss.rules[j].selectorText = "#main " + ss.rules[j].selectorText;
-		});
+		else $('#main').html("<iframe id=\"docwin\" src=\"" + content[1] + "\" style=\"border: none; width: 100%; height: 600em\"></iframe>");
+		// FIXME Find a way to resize the iframe to its content, or load the HTML directly (as below) and find a way to corral the CSS
+		//else $('#main').load(content[1], function() {
+			//var ss = document.styleSheets[document.styleSheets.length-2];
+			//for (var j = 0; j < ss.rules.length; j++) ss.rules[j].selectorText = "#main " + ss.rules[j].selectorText;
+		//});
 	});
 }
 
@@ -2293,6 +2295,7 @@ function showMinutes(loadid)
 			});
 		});
 		if (typeof loadid != 'undefined') load_minutes(loadid);
+		else $("#minutes_main").html("Select a meeting to the left.");
 	});
 }
 

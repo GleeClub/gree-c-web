@@ -56,6 +56,7 @@ button.action
 <?php
 require_once('functions.php');
 $userEmail = getuser();
+if (! $userEmail) die("You must be logged in to view member profiles.");
 $officer = isOfficer($userEmail);
 $uber = isUber($userEmail);
 $pos = positionFromEmail($userEmail);

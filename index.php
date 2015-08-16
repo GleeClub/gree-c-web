@@ -6,7 +6,7 @@ function actionOptions($userEmail)
 {
 	$type = positionFromEmail($userEmail);
 	$officerOptions = '';
-	if(isOfficer($userEmail))
+	if (isOfficer($userEmail))
 	{
 		$officerOptions .= '
 			<li><a href="#event">Add/Remove Event</a></li>
@@ -17,7 +17,7 @@ function actionOptions($userEmail)
 		$officerOptions .= '
 			<li><a href="#money">Add Transactions</a></li>';
 	}
-	if(isUber($userEmail))
+	if (isUber($userEmail))
 	{
 		$officerOptions .= '
 			<li><a href="timeMachine">Look at Past Semesters</a></li>
@@ -56,73 +56,73 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 </head>
 <body>
 	<div class="container-fluid">
-		<div class="row-fluid">
-			<div class="navbar navbar-fixed-top navbar-inverse" style="font-size: 13px">
-			  <div class="navbar-inner">
-				<div class="container">
-					<ul class="nav">
-						<li><a class="brand" href="index.php">Greasy Web</a></li>
-						<li class="divider-vertical"></li>
-						<li><a href="#chatbox">Chatbox</a></li>
-					<li><a href="#messages" >Messages <?php if(getuser()) echo '<span class="label" id="unreadMsgs">' . getNumUnreadMessages(getuser()) . '</span>';?></span></a></li>
-					<li class="divider-vertical"></li>
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Events <b class="caret"></b></a>
-						<ul class="dropdown-menu">
-							<li><a href="#allEvents">All</a></li>
-							<li><a href="#rehearsal">Rehearsal</a></li>
-							<li><a href="#sectional">Sectional</a></li>
-							<li><a href="#tutti">Tutti</a></li>
-							<li><a href="#volunteer">Volunteer</a></li>
-							<?php if(isOfficer($userEmail)) { ?> <li><a href="#pastEvents">Everything Ever</a></li> <?php } ?>
-						</ul>
-					</li>
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Actions <b class="caret"></b></a>
-						<ul class="dropdown-menu">
-							<li><a href="#feedback">Feedback</a></li>
-							<li><a href="#suggestSong">Suggest a song</a></li>
-							<li><a href="#roster">Members</a></li>
-							<?php if(getuser()) actionOptions($userEmail); ?>
-						</ul>
-					</li>
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Documents <b class="caret"></b></a>
-						<ul class="dropdown-menu">
-							<li><a href="#repertoire">Repertoire</a></li>
-							<li><a href="#minutes">Meeting Minutes</a></li>
-							<li><a href="#syllabus">Syllabus</a></li>
-							<li><a href="#handbook">GC Handbook</a></li>
-							<li><a href="#constitution">GC Constitution</a></li>
-						</ul>
-					</li>
-					<li class="divider-vertical"></li>
-					<li>
-						<form class="navbar-search pull-left">
-						<input type="text" class="search-query" data-provide="typeahead"  data-items="4" data-source='["Taylor","Drew","Tot"]'>
-						</form>
-					</li>
-					</ul>
-
-					<ul class="nav pull-right">
-					<?php
-						if(getuser())
-						{ ?>
-							<li class="dropdown">
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown"> <?php echo getuser(); ?> <b class="caret"></b></a>
-								<ul class="dropdown-menu">
-									<li><a href="#editProfile">My Profile</a></li>
-									<li><a href="php/logOut.php">Log Out</a></li>
-								</ul>
-							</li>
-						<?php } //Endif
-					?>
-					</ul>
-				</div>
-			  </div>
-			</div>
-			<div class="span11 block" id="main" style='margin-bottom: 100px'></div>
-		</div>
+	<div class="row-fluid">
+	<div class="navbar navbar-fixed-top navbar-inverse" style="font-size: 13px">
+	<div class="navbar-inner">
+	<div class="container">
+		<ul class="nav">
+			<li><a class="brand" href="index.php">Greasy Web</a></li>
+			<li class="divider-vertical"></li>
+			<?php if ($userEmail) { ?>
+			<li><a href="#chatbox">Chatbox</a></li>
+			<li><a href="#messages" >Messages <?php if ($userEmail) echo '<span class="label" id="unreadMsgs">' . getNumUnreadMessages(getuser()) . '</span>';?></span></a></li>
+			<li class="divider-vertical"></li>
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">Events <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li><a href="#allEvents">All</a></li>
+					<li><a href="#rehearsal">Rehearsal</a></li>
+					<li><a href="#sectional">Sectional</a></li>
+					<li><a href="#tutti">Tutti</a></li>
+					<li><a href="#volunteer">Volunteer</a></li>
+					<?php if (isOfficer($userEmail)) { ?> <li><a href="#pastEvents">Everything Ever</a></li> <?php } ?>
+				</ul>
+			</li>
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">Actions <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li><a href="#feedback">Feedback</a></li>
+					<li><a href="#suggestSong">Suggest a song</a></li>
+					<li><a href="#roster">Members</a></li>
+					<?php if ($userEmail) actionOptions($userEmail); ?>
+				</ul>
+			</li>
+			<?php } ?>
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">Documents <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<?php if ($userEmail) { ?><li><a href="#repertoire">Repertoire</a></li><?php } ?>
+					<li><a href="#minutes">Meeting Minutes</a></li>
+					<li><a href="#syllabus">Syllabus</a></li>
+					<li><a href="#handbook">GC Handbook</a></li>
+					<li><a href="#constitution">GC Constitution</a></li>
+				</ul>
+			</li>
+			<li class="divider-vertical"></li>
+			<?php if ($userEmail) { ?>
+			<li>
+				<form class="navbar-search pull-left">
+					<input type="text" class="search-query" data-provide="typeahead"  data-items="4" data-source='["Taylor","Drew","Tot"]'>
+				</form>
+			</li>
+			<?php } ?>
+		</ul>
+		<ul class="nav pull-right">
+		<?php if ($userEmail) { ?>
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown"> <?php echo getuser(); ?> <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li><a href="#editProfile">My Profile</a></li>
+					<li><a href="php/logOut.php">Log Out</a></li>
+				</ul>
+			</li>
+		<?php } ?>
+		</ul>
+	</div>
+	</div>
+	</div>
+	<div class="span11 block" id="main" style='margin-bottom: 100px'></div>
+	</div>
 	</div>
 	
 	<?php /* This is the prompt shown if the user's account is not confirmed */ ?>
@@ -150,7 +150,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 	</div>
 
 	<?php
-		if($userEmail != '')
+		if ($userEmail != '')
 		{
 			$sql = "select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester";
 			$arr = mysql_fetch_array(mysql_query($sql));
@@ -162,7 +162,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 				//if the user is not confirmed for the semester, prompt them to confirm
 				$arr = mysql_fetch_array(mysql_query("SELECT `location` FROM `member` WHERE `email` = '$userEmail'"));
 				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$userEmail' and `semester` = '$CUR_SEM'"));
-				if(! $confirmed)
+				if (! $confirmed)
 				{
 					$loc = addslashes($arr['location']);
 					echo '<script>

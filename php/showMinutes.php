@@ -8,4 +8,4 @@ echo "<table class=\"table\" id=minutes_table>";
 while ($result = mysql_fetch_array($results)) echo "<tr><td class=minutes_row id='minutes" . $result['id'] . "' data-id=" . $result['id'] . ">" . $result['name'] . "</td></tr>";
 echo "</table>";
 ?></div>
-<div class="span8 block" id=minutes_main>Select a meeting to the left.</div>
+<div class="span8 block" id=minutes_main>Loading...</div>

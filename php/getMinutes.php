@@ -2,7 +2,7 @@
 require_once('functions.php');
 $id = mysql_real_escape_string($_POST['id']);
 $type = $_POST['type'];
-if (! getuser()) die("You must be logged in to view minutes.");
+//if (! getuser()) die("You must be logged in to view minutes.");
 
 if (isset($type))
 {

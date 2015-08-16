@@ -1,11 +1,9 @@
 <?php
 	require_once('./functions.php');
 	$userEmail = getuser();
+	if (! $userEmail) die();
 	$nameType = 'prefName';
-	if(isset($_POST['nameType']))
-	{
-		$nameType = $_POST['nameType'];
-	}
+	if(isset($_POST['nameType'])) $nameType = $_POST['nameType'];
 	$order = 'lastName';
 	$sql = "select firstName,lastName,prefName,email from member order by $order";
 	$result = mysql_query($sql);
