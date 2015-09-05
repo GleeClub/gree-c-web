@@ -9,8 +9,12 @@ function actionOptions($userEmail)
 	if (isOfficer($userEmail))
 	{
 		$officerOptions .= '
-			<li><a href="#event">Add/Remove Event</a></li>
 			<li><a href="#addAnnouncement">Make an Announcement</a></li>';
+	}
+	if (canEditEvents($userEmail))
+	{
+		$officerOptions .= '
+			<li><a href="#event">Add/Remove Event</a></li> ';
 	}
 	if ($type == "Treasurer" || isUber($userEmail))
 	{

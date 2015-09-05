@@ -1,8 +1,7 @@
 <?php
 require_once('functions.php');
 $userEmail = getuser();
-
-if (! isOfficer($userEmail)) die("DENIED");
+if (! canEditEvents($userEmail)) die("DENIED");
 
 $eventNo = mysql_real_escape_string($_POST['id']);
 $event = array();

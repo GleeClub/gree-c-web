@@ -1,8 +1,7 @@
 <?php
 require_once('functions.php');
 $userEmail = getuser();
-
-if (! isOfficer($userEmail)) die("Access denied");
+if (! canEditEvents($userEmail)) die("Access denied");
 
 foreach ($_POST as $k => $v) $_POST[$k] = mysql_real_escape_string($v);
 $id = $_POST['id'];

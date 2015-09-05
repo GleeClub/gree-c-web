@@ -158,7 +158,17 @@ function isOfficer($email)
 	$pos == "Vice President" ||
 	$pos == "Treasurer" ||
 	$pos == "Manager") return true;
-	else return false;
+	return false;
+}
+
+function canEditEvents($email)
+{
+	if (isUber($email)) return true;
+	$pos = positionFromEmail($email);
+	if ($pos == "President" ||
+	$pos == "Vice President" ||
+	$pos == "Liaison") return true;
+	return false;
 }
 
 function attendancePermission($email, $event)

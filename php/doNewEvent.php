@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
+if (! canEditEvents(getuser())) die("Access denied");
 
 function eventEmail($eventNo,$type)
 {
