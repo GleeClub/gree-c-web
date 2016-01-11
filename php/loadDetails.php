@@ -62,7 +62,7 @@ $html = '<style>
 	h4 { font-weight: normal; }
 	h5 { font-weight: normal; }
 	div.infoblock { display: inline-block; border-radius: 4px; padding: 10px; margin: 4px 10px; text-transform: uppercase; color: white; font-size: 20px; line-height: 24px; font-weight: bold; height: 60px; vertical-align: middle; text-align: center; }
-	div.infoblock div { position: relative; top: 50%; transform: translateY(-50%); } /* Hacky! */
+	div.infoblock div { position: relative; top: 50%; transform: translateY(-50%); -webkit-transform: translateY(-50%); } /* Hacky! */
 	div.event-btn { display: inline-block; margin: 10px; }
 	</style>';
 $html .= '<div style="text-align: center"><h3><u>' . $event['name'] . '</u></h3>';
