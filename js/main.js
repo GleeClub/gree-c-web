@@ -76,7 +76,7 @@ function checkHash()
 		h = window.location.hash.substring(1);
 		clearInterval(timer);
 		if (h == 'forgotPassword') loadForgotPassword();
-		else if (h == 'register') register();
+		else if (h == 'editProfile') editProfile();
 		else if (h == 'minutes') showMinutes();
 		else if (h == 'constitution') loaddoc('Constitution');
 		else if (h == 'handbook') loaddoc('Handbook');
@@ -88,7 +88,6 @@ function checkHash()
 		else if (h == "stats" || h == '') loadStats();
 		else if (h == 'allEvents' || h == 'rehearsal' || h == 'sectional' || h == 'tutti' || h == 'volunteer' || h == 'pastEvents') loadAllEvents(h);
 		else if (h == 'event') addOrRemoveEvent();
-		else if (h == 'editProfile') editProfile();
 		else if (h == 'feedback') feedbackForm();
 		else if (h == 'suggestSong') songForm();
 		else if (h == 'absenceRequest') seeAbsenceRequests();
@@ -125,17 +124,23 @@ function loadLogin()
 	$.post('php/loadLogin.php', function(data) { $("#main").html(data); });
 }
 
-function register()
+function editProfile()
 {
-	$.post('php/register.php', function(data) { $("#main").html(data); });
+	$.post('php/editProfile.php', function(data) {
+		$('#main').html(data);
+		$("#editProfileSubmit").click(doEditProfile);
+	});
 }
 
-function do_register()
-{
-	var serialized = $('#registerForm').serialize();
-	$.get('php/doRegister.php', serialized, function(data) {
+function doEditProfile() {
+	var array = $("#register").serialize();
+	$.post('php/doEditProfile.php', array, function(data) {
 		if (data != "OK") alert(data);
-		else { $("#main").load('php/stats.php'); alert("Account created successfully!  Now log in."); }
+		else
+		{
+			$("#main").load('php/stats.php');
+			alert("Information updated");
+		}
 	});
 }
 
@@ -798,25 +803,6 @@ function editDetails(){
 	var eventNo = $(".lighter").first().attr("id");
 	editEvent(eventNo, "#eventDetails", "Edit");
 	smoothScrollTo("eventDetails");
-}
-
-function editProfile() {
-	$.post(
-		'php/editProfile.php',
-		function(data) {
-			$('#main').html(data);
-			$("#editProfileSubmit").click(doEditProfile);
-		});
-}
-
-function doEditProfile() {
-	var array = $("input").serializeArray();
-	$("#editProfileSubmit").button('loading');
-	$.post('php/doEditProfile.php', array, function(data) {
-		$("#editProfileSubmit").button('reset');
-		if (data == 'OK') $('#success').show();
-		else alert(data);
-	});
 }
 
 function submitDetails(){

@@ -43,6 +43,21 @@ function getuser()
 	return rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $sessionkey, base64_decode($_COOKIE['email']), MCRYPT_MODE_ECB), "\0");
 }
 
+function dropdown($options, $name, $selected = '', $disabled = 0)
+{
+	$ret = "<select name='$name' class='$name'" . ($disabled ? " disabled" : "") . ">";
+	foreach ($options as $value => $option) $ret .= "<option value='$value'" . ($value == $selected ? " selected" : "") . ">$option</option>";
+	$ret .= "</select>";
+	return $ret;
+}
+
+function radio($options, $name, $selected = '', $disabled = 0)
+{
+	$ret = "";
+	foreach ($options as $value => $option) $ret .= "<span class='radio-option'><input type='radio' name='$name' value='$value'" . ($selected == $value ? " checked" : "" ) . ($disabled ? " disabled" : "") . "> $option</span>";
+	return $ret;
+}
+
 // First "Pref" Last if pref exists && pref != first
 function completeNameFromEmail($email) {
 	if ($email == '') return '';
@@ -110,25 +125,12 @@ function profilePic($email)
 	else return $result['picture'];
 }
 
-function sectionFromEmail($email)
+function sectionFromEmail($email, $friendly = 0)
 {
 	if ($email == '') return 0;
-	$sql = "SELECT section FROM member WHERE email='$email';";
+	$sql = "select `typeNo`, `typeName` from `member`, `sectionType` where `email` = '$email' and `section` = `typeNo`";
 	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	return $result['section'];
-}
-
-function sectionNameFromEmail($email)
-{
-	$section = sectionFromEmail($email);
-	switch ($section)
-	{
-		case 1: return "Bass";
-		case 2: return "Baritone";
-		case 3: return "Tenor 2";
-		case 4: return "Tenor 1";
-	}
-	return "None";
+	return $friendly ? $result['typeName'] : $result['typeNo'];
 }
 
 function enrollment($email, $semester = '')
@@ -189,30 +191,56 @@ function getMemberAttribute($attribute, $email){
         return $result[$attribute];
 }
 
+function members()
+{
+	$ret = array("" => "(nobody)");
+	$results = mysql_query("select `firstName`, `lastName`, `email` from `member` order by `lastName` asc");
+	while ($row = mysql_fetch_array($results)) $ret[$row['email']] = $row['lastName'] . ", " . $row['firstName'];
+	return $ret;
+}
+
 function memberDropdown($member = '')
 {
-	$html = "<select class='name'><option value=''>(nobody)</option>";
-	$sql = "select `firstName`, `lastName`, `email` from `member` order by `lastName` asc";
-	$results = mysql_query($sql);
-	while ($row = mysql_fetch_array($results)) $html .= "<option value='" . $row['email'] . "'" . ($row['email'] == $member ? ' selected' : '') . ">" . $row['lastName'] . ", " . $row['firstName'] . "</option>";
-	$html .= "</select>";
-	return $html;
+	return dropdown(members(), $member, "members");
+}
+
+function semesters()
+{
+	$ret = array();
+	$results = mysql_query("select `semester` from `semester` order by `beginning` desc");
+	while ($row = mysql_fetch_array($results)) $ret[$row['semester']] = $row['semester'];
+	return $ret;
 }
 
 function semesterDropdown()
 {
 	GLOBAL $CUR_SEM;
-	$html = "<select class='semester' style='width: 140px'>";
-	$sql = "select `semester` from `semester` order by `beginning` desc";
-	$results = mysql_query($sql);
-	while ($row = mysql_fetch_array($results))
-	{
-		$html .= "<option value='" . $row['semester'] . "'";
-		if ($row['semester'] == $CUR_SEM) $html .= " selected";
-		$html .= ">" . $row['semester'] . "</option>";
-	}
-	$html .= "</select>";
-	return $html;
+	return dropdown(semesters(), $CUR_SEM, "semester");
+}
+
+function sections()
+{
+	$ret = array();
+	$results = mysql_query("select * from `sectionType` order by `typeNo` desc");
+	while ($row = mysql_fetch_array($results)) $ret[$row["typeNo"]] = $row["typeName"];
+	return $ret;
+}
+
+function uniforms()
+{
+	$ret = array();
+	$result = mysql_query("select * from `uniform`");
+	while ($row = mysql_fetch_array($result)) $ret[$row["id"]] = $row["name"];
+	return $ret;
+}
+
+function eventTypes()
+{
+	$ret = array();
+	$result = mysql_query("select * from `eventType`");
+	while ($row = mysql_fetch_array($result)) $ret[$row["typeNo"]] = $row["typeName"];
+	return $ret;
+	#if ($eventNo && $value > 2 && $row['typeNo'] <= 2) continue;
 }
 
 /**** Carpool functions ****/

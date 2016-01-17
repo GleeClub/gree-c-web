@@ -40,13 +40,13 @@ $fields = array(
 		array('donetime', 'Release Time', 'time'),
 		array('location', 'Location', 'text'),
 		array('points', 'Points', 'number'),
-		array('semester', 'Semester', '.semester'),
+		array('semester', 'Semester', 'select', semesters(), $CUR_SEM, FALSE),
 		array('comments', 'Comments', 'textarea'),
-		array('repeat', 'Repeat', '.repeat'),
-		array('until', 'Repeat Until', 'date')
+		array('repeat', 'Repeat', 'select', array('no' => 'no', 'daily' => 'daily', 'weekly' => 'weekly', 'biweekly' => 'biweekly', 'monthly' => 'monthly', 'yearly' => 'yearly'), 'no', $eventNo),
+		array('until', 'Repeat Until', 'date'),
 	),
 	'gig' => array(
-		array('uniform', 'Uniform', '.uniform'),
+		array('uniform', 'Uniform', 'select', uniforms(), '', FALSE),
 		array('perftime', 'Performance Time', 'time'),
 		array('cname', 'Contact Name', 'text'),
 		array('cemail', 'Contact Email', 'text'),
@@ -58,118 +58,65 @@ $fields = array(
 		array('description', 'Public Description', 'textarea')
 	),
 	'rehearsal' => array(
-		array('section', 'Section', '.section')
-	)
+		array('section', 'Section', 'select', sections(), '', $eventNop),
+	),
 );
 	
 $html = '';
 foreach ($fields as $category => $catfields)
 {
-	$html .= "<table id='event_$category' class='table no-highlight no-border' style='width: 100%; display: none'>";
+	$html .= "<table id='event_$category' class='table no-highlight no-border' style='width: 100%; display: none'><style>select { width: 200px; }</style>";
 	foreach ($catfields as $field)
 	{
 		$html .= "<tr id='event_row_" . $field[0] . "'><td>" . $field[1] . "</td><td style='text-align: right'>";
-		if (gettype($field[2]) == 'array')
+		$value = '';
+		if ($eventNo) $value = htmlspecialchars(value($field[0]), ENT_QUOTES);
+		switch ($field[2])
 		{
-			$html .= "<select name='$field[0]' style='width: 200px'>";
-			foreach ($field[2] as $value => $name) $html .= "<option value='$value'>$name</option>";
-			$html .= "</select>";
+			case 'text':
+				$html .= "<input type='text' name='$field[0]' value='$value' style='width: 200px'>";
+				break;
+			case 'textarea':
+				$html .= "<textarea name='$field[0]' style='width: 200px; height: 60px'>$value</textarea>";
+				break;
+			case 'number':
+				$html .= "<input type='text' name='$field[0]' style='width: 60px' value='$value' onkeyup='$(this).prop(\"value\", $(this).prop(\"value\").replace(/[^0-9]/g, \"\"))'>";
+				break;
+			case 'bool':
+				$html .= "<input type='checkbox' name='$field[0]'";
+				if ($value) $html .= ' checked';
+				$html .= ">";
+				break;
+			case 'date':
+				if ($value == '') $value = date('Y-m-d');
+				$html .= "<input type='text' name='$field[0]' value='$value' style='width: 100px' data-date-format='yyyy-mm-dd' data-date='$value'>";
+				break;
+			case 'time':
+				$html .= "<input type='text' name='$field[0]' value='$value' style='width: 80px' placeholder='0:00 PM'>";
+				break;
+			case 'select':
+				$html .= dropdown($field[3], $field[0], $field[4], $field[5]);
+				break;
+			// The special cases
+			case '.type':
+				$html .= "<select name='type' style='width: 200px'";
+				if ($eventNo && $value <= 2) $html .= ' disabled';
+				$html .= ">";
+				$sql = "select * from `eventType`";
+				$result = mysql_query($sql);
+				while ($row = mysql_fetch_array($result))
+				{
+					if ($eventNo && $value > 2 && $row['typeNo'] <= 2) continue;
+					$html .= "<option value='" . $row['typeNo'] . "'";
+					if ($row['typeNo'] == $value) $html .= ' selected';
+					$html .= ">" . $row['typeName'] . "</option>";
+				}
+				$html .= "</select>";
+				break;
+			default:
+				$html .= "????";
+				break;
 		}
-		else if (gettype($field[2]) == 'string')
-		{
-			$value = '';
-			if ($eventNo) $value = htmlspecialchars(value($field[0]), ENT_QUOTES);
-			switch ($field[2])
-			{
-				case 'text':
-					$html .= "<input type='text' name='$field[0]' value='$value' style='width: 200px'>";
-					break;
-				case 'textarea':
-					$html .= "<textarea name='$field[0]' style='width: 200px; height: 60px'>$value</textarea>";
-					break;
-				case 'number':
-					$html .= "<input type='text' name='$field[0]' style='width: 60px' value='$value' onkeyup='$(this).prop(\"value\", $(this).prop(\"value\").replace(/[^0-9]/g, \"\"))'>";
-					break;
-				case 'bool':
-					$html .= "<input type='checkbox' name='$field[0]'";
-					if ($value) $html .= ' checked';
-					$html .= ">";
-					break;
-				case 'date':
-					if ($value == '') $value = date('Y-m-d');
-					$html .= "<input type='text' name='$field[0]' value='$value' style='width: 100px' data-date-format='yyyy-mm-dd' data-date='$value'>";
-					break;
-				case 'time':
-					$html .= "<input type='text' name='$field[0]' value='$value' style='width: 80px' placeholder='0:00 PM'>";
-					break;
-				// The special cases
-				case '.type':
-					$html .= "<select name='type' style='width: 200px'";
-					if ($eventNo && $value <= 2) $html .= ' disabled';
-					$html .= ">";
-					$sql = "select * from `eventType`";
-					$result = mysql_query($sql);
-					while ($row = mysql_fetch_array($result))
-					{
-						if ($eventNo && $value > 2 && $row['typeNo'] <= 2) continue;
-						$html .= "<option value='" . $row['typeNo'] . "'";
-						if ($row['typeNo'] == $value) $html .= ' selected';
-						$html .= ">" . $row['typeName'] . "</option>";
-					}
-					$html .= "</select>";
-					break;
-				case '.repeat':
-					$html .= "<select name='repeat' style='width: 200px'";
-					if ($eventNo) $html .= ' disabled';
-					$html .= ">";
-					foreach (array('no', 'daily', 'weekly', 'biweekly', 'monthly', 'yearly') as $option) $html .= "<option value='" . $option . "'>" . $option . "</option>";
-					$html .= "</select>";
-					break;
-				case '.uniform':
-					$html .= "<select name='uniform' style='width: 200px'>";
-					$sql = "select * from `uniform`";
-					$result = mysql_query($sql);
-					while ($row = mysql_fetch_array($result))
-					{
-						$html .= "<option value='" . $row['id'] . "'";
-						if ($row['id'] == $value) $html .= ' selected';
-						$html .= ">" . $row['name'] . "</option>";
-					}
-					$html .= "</select>";
-					break;
-				case '.section':
-					$html .= "<select name='section' style='width: 200px'";
-					if ($eventNo) $html .= ' disabled';
-					$html .= ">";
-					$sql = "select * from `sectionType` order by `typeNo` asc";
-					$result = mysql_query($sql);
-					while ($row = mysql_fetch_array($result)) $html .= "<option value='" . $row['typeNo'] . "'>" . $row['typeName'] . "</option>";
-					$html .= "</select>";
-					break;
-				case '.semester':
-					if ($value == '')
-					{
-						$sql = "select `semester` from `variables`";
-						$row = mysql_fetch_array(mysql_query($sql));
-						$value = $row['semester'];
-					}
-					$html .= "<select name='semester' style='width: 200px'>";
-					$sql = "select `semester` from `semester` order by `beginning` desc";
-					$result = mysql_query($sql);
-					while ($row = mysql_fetch_array($result))
-					{
-						$html .= "<option value='" . $row['semester'] . "'";
-						if ($row['semester'] == $value) $html .= " selected";
-						$html .= ">" . $row['semester'] . "</option>";
-					}
-					$html .= "</select>";
-					break;
-				default:
-					$html .= "????";
-					break;
-			}
-		}
-		else $html .= "????";
 		$html .= "</td></tr>";
 	}
 	$html .= "</table>";

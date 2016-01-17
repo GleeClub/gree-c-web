@@ -78,7 +78,7 @@ function basic_info($person)
 	$html .= "<table>";
 	$html .= "<tr><td class='key'>Email</td><td><a href='mailto:$person'>$person</a></td></tr>";
 	$html .= "<tr><td class='key'>Phone</td><td><a href='tel:" . phoneNumber($person) . "'>" . phoneNumber($person) . "</a></td></tr>";
-	$html .= "<tr><td class='key'>Section</td><td>".sectionNameFromEmail($person)."</td></tr>";
+	$html .= "<tr><td class='key'>Section</td><td>".sectionFromEmail($person, 1)."</td></tr>";
 	//$html .= "<tr><td class='key'>Position</td><td>".getMemberAttribute('position', $person)."</td></tr>";
 	$html .= "<tr><td class='key'>Major</td><td>".getMemberAttribute('major', $person)."</td></tr>";
 	$html .= "<tr><td class='key'>Year at Tech</td><td>".getMemberAttribute('techYear', $person)."</td></tr>";

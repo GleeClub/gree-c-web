@@ -12,7 +12,7 @@
 		<div class='controls'><input type="password" class="input-large" id="password" placeholder="password" name="password" /></div>
 	</div>
 	<div class='control-group'>
-		<div class='controls'><a href='#register'>Register</a><span class='spacer'></span><a href='#forgotPassword'>Forgot</a><span class='spacer'></span><button type="submit" value="Sign In" class="btn">Sign In</button></div>
+		<div class='controls'><a href='#editProfile'>Register</a><span class='spacer'></span><a href='#forgotPassword'>Forgot</a><span class='spacer'></span><button type="submit" value="Sign In" class="btn">Sign In</button></div>
 	</div>
 	</form>
 </div>
