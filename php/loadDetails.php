@@ -107,15 +107,11 @@ if (isgig($event))
 	$html .= '<div id="carpoolsButton" class="btn event-btn">View<br>Carpools</div>';
 	$html .= '<div id="setlistButton" class="btn event-btn">Set<br>List</div>';
 }
-if(isOfficer($userEmail))
-{
-	$html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
-	$html .= '<div id="editButton" class="btn event-btn">Edit<br>Event</div>';
-}
+if (isOfficer($userEmail)) $html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
+if (canEditEvents($userEmail)) $html .= '<div id="editButton" class="btn event-btn">Edit<br>Event</div>';
 if (positionFromEmail($userEmail) == 'Section Leader' && getEventType($event['type']) == "Sectional")
 {
-	$member = mysql_fetch_array(mysql_query("select `section` from `member` where `email` = '$userEmail'"));
-	if ($event['section'] == $member['section']) $html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
+	if ($event['section'] == sectionFromEmail($userEmail)) $html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
 }
 $html .= "</div>";
 if(isOfficer($userEmail))

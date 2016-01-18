@@ -523,7 +523,7 @@ function loadDetails(id){
 				setlist(id);
 			});
 			$("#editButton").on('click', function(){
-				editDetails();
+				editDetails(id);
 			});
 			//$("#eventDetailsDetails").html("<p>press a button</p>");
 			$(".eventDetailsValue").on('dblclick', editDetails);
@@ -799,15 +799,14 @@ function jQueryToJSON(array){
 	return string;
 }
 
-function editDetails(){
-	var eventNo = $(".lighter").first().attr("id");
+function editDetails(eventNo){
 	editEvent(eventNo, "#eventDetails", "Edit");
 	smoothScrollTo("eventDetails");
 }
 
 function submitDetails(){
 	var array = $("#eventDetails input").serializeArray();
-	$('.eventDetailsValue').on('dblclick', editDetails);
+	$('.eventDetailsValue').on('dblclick', editDetails); // FIXME What does this do?
 	$.post(
 		'php/submitEventDetails.php',
 		array,

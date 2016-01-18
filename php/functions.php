@@ -568,6 +568,8 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	$gigcount = 0;
 	$lastRehearsal = 0;
 	$lastAttendedRehearsal = 0;
+	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$CUR_SEM'"));
+	$gigreq = $result['gigreq'];
 	//make sure the member has some attends relationships
 	if(mysql_num_rows($attendses) == 0)
 	{
@@ -589,8 +591,6 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 		$attendsID = "attends_".$memberID."_$eventNo";
 		$tip = "";
 		$curgig = 0;
-		$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$CUR_SEM'"));
-		$gigreq = $result['gigreq'];
 		$event = mysql_fetch_array(mysql_query("select * from `event` where `eventNo` = '$eventNo'"));
 
 		if ($type == "Rehearsal")
