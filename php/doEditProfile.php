@@ -55,12 +55,18 @@ else
 mysql_query("begin");
 if (mysql_query($sql))
 {
-	if ($user && ! mysql_query("update `activeSemester` set `enrollment` = '" . mysql_real_escape_string($_POST["registration"]) . "' where `member` = '$newemail' and `semester` = '$CUR_SEM'"))
+	$reg = mysql_real_escape_string($_POST["registration"]);
+	if ($reg != "class" && $reg != "club")
+	{
+		mysql_query("rollback");
+		die("Invalid registration");
+	}
+	if ($user && ! mysql_query("update `activeSemester` set `enrollment` = '$reg' where `member` = '$newemail' and `semester` = '$CUR_SEM'"))
 	{
 		mysql_query("rollback");
 		die("Error: " . mysql_error());
 	}
-	if (! $user && ! mysql_query("insert into `activeSemester` (`member`, `semester`, `enrollment`) values ('$newemail', '$CUR_SEM', '" . mysql_real_escape_string($_POST["registration"]) . "')"))
+	if (! $user && ! mysql_query("insert into `activeSemester` (`member`, `semester`, `enrollment`) values ('$newemail', '$CUR_SEM', '$reg')"))
 	{
 		mysql_query("rollback");
 		die("Error: " . mysql_error());

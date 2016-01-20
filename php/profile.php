@@ -59,7 +59,6 @@ $userEmail = getuser();
 if (! $userEmail) die("You must be logged in to view member profiles.");
 $officer = isOfficer($userEmail);
 $uber = isUber($userEmail);
-$pos = positionFromEmail($userEmail);
 $email = mysql_real_escape_string($_GET['person']);
 $query = mysql_query("select `email` from `member` where `email` = '$email'");
 if (mysql_num_rows($query) == 0) die("No such user");
@@ -72,7 +71,7 @@ function basic_info($person)
 	$about = getMemberAttribute('about', $person);
 	if ($about == '') $about = "I don't have a quote";
 	$html .= "<img class='profile' src='" . profilePic($person) . "'>";
-	$html .= "<h3><span style='font-weight: normal; padding-right: 8pt'>" . getMemberAttribute('position', $person) . " </span> " . completeNameFromEmail($person)."</h3>";
+	$html .= "<h3><span style='font-weight: normal; padding-right: 8pt'>" . implode(" and ", positions($person)) . " </span> " . completeNameFromEmail($person)."</h3>";
 	$html .= "<div class='about'>\"$about\"</div>";
 	$html .= "<table style='width: initial'><tr><td style='width: 40%; vertical-align: top'>";
 	$html .= "<table>";
@@ -91,7 +90,7 @@ function basic_info($person)
 		$html .= "<tr><td class='key'>Active</td><td>$activeSemesters</td></tr>";
 		$html .= "</table></td><td style='width: 40%; vertical-align: top'><table>";
 		$html .= "<tr><td class='key'>Enrollment</td><td>" . rosterProp($member, "Enrollment") . "</td></tr>";
-		if ($uber || $pos == "Treasurer")
+		if ($uber || hasPosition($userEmail, "Treasurer"))
 		{
 			$html .= "<tr><td class='key'>Balance</td><td>" . rosterProp($member, "Balance") . "</td></tr>";
 			$html .= "<tr><td class='key'>Dues</td><td>" . rosterProp($member, "Dues") . "</td></tr>";

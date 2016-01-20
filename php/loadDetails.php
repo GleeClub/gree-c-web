@@ -109,7 +109,7 @@ if (isgig($event))
 }
 if (isOfficer($userEmail)) $html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
 if (canEditEvents($userEmail)) $html .= '<div id="editButton" class="btn event-btn">Edit<br>Event</div>';
-if (positionFromEmail($userEmail) == 'Section Leader' && getEventType($event['type']) == "Sectional")
+if (hasPosition($userEmail, 'Section Leader') && getEventType($event['type']) == "Sectional")
 {
 	if ($event['section'] == sectionFromEmail($userEmail)) $html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
 }

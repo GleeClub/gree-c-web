@@ -118,7 +118,7 @@ function tie_form($memberID)
 
 function active_semesters($memberID)
 {
-	$table = "<table style='width: auto'><tr><th>Semester</th><th>Status</th><th>Score</th></tr>";
+	$table = "<style>table.semesters { width: auto; } table.semesters td { padding: 2px 10px; }</style><table class='semesters'><tr><th>Semester</th><th>Status</th><th>Score</th></tr>";
 	$query = mysql_query("select `semester` from `semester` order by `beginning` asc");
 	while ($result = mysql_fetch_array($query))
 	{
@@ -146,7 +146,6 @@ function active_semesters($memberID)
 
 $officer = isOfficer($userEmail);
 $uber = isUber($userEmail);
-$pos = positionFromEmail($userEmail);
 $denied = "You do not have access to this functionality.";
 
 switch ($_POST['tab'])
@@ -160,7 +159,7 @@ switch ($_POST['tab'])
 		echo member_edit(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'money':
-		if (! $uber && $pos != "Treasurer") die($denied);
+		if (! $uber && ! hasPosition($userEmail, "Treasurer")) die($denied);
 		echo money_table(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'attendance':

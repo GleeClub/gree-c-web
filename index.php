@@ -4,7 +4,6 @@ $userEmail = getuser();
 
 function actionOptions($userEmail)
 {
-	$type = positionFromEmail($userEmail);
 	$officerOptions = '';
 	if (isOfficer($userEmail))
 	{
@@ -16,7 +15,7 @@ function actionOptions($userEmail)
 		$officerOptions .= '
 			<li><a href="#event">Add/Remove Event</a></li> ';
 	}
-	if ($type == "Treasurer" || isUber($userEmail))
+	if (hasPosition($userEmail, "Treasurer") || isUber($userEmail))
 	{
 		$officerOptions .= '
 			<li><a href="#money">Add Transactions</a></li>';
@@ -160,7 +159,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 			$arr = mysql_fetch_array(mysql_query($sql));
 			$semesterEnd = $arr['end'];
 
-			if (positionFromEmail($userEmail) == "President" && time() > $semesterEnd) echo newSemesterModal();
+			if (hasPosition($userEmail, "President") && time() > $semesterEnd) echo newSemesterModal();
 			else
 			{
 				//if the user is not confirmed for the semester, prompt them to confirm

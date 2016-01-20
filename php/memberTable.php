@@ -13,7 +13,6 @@ function member_table($conditions, $type = 'normal')
 {
 	global $CUR_SEM, $DEPOSIT;
 	$userEmail = getuser();
-	$role = positionFromEmail($userEmail);
 	$officer = isOfficer($userEmail);
 	$uber = isUber($userEmail);
 	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
@@ -21,7 +20,7 @@ function member_table($conditions, $type = 'normal')
 	{
 		$cols["Enrollment"] = 40;
 	}
-	if ($uber || $role == "Treasurer")
+	if ($uber || hasPosition($userEmail, "Treasurer"))
 	{
 		$cols["Balance"] = 60;
 		$cols["Dues"] = 60;
@@ -79,7 +78,6 @@ function member_table($conditions, $type = 'normal')
 function member_csv($conditions)
 {
 	$userEmail = getuser();
-	$role = positionFromEmail($userEmail);
 	if (! isOfficer($userEmail)) die("Access denied");
 	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major");
 

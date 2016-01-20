@@ -43,7 +43,7 @@ $addressed = "
 		<td style='font-weight: bold;'>Action</td>
 	</tr>";
 
-$sql = "SELECT  `absencerequest`.`eventNo` ,  `absencerequest`.`time` ,  `absencerequest`.`reason` ,  `absencerequest`.`replacement` ,  `absencerequest`.`memberID` ,  `absencerequest`.`state` ,  `event`.`callTime` , `event`.`name` ,  `member`.`firstName` ,  `member`.`lastName` FROM  `absencerequest` ,  `member` ,  `event` WHERE  `absencerequest`.`eventNo` =  `event`.`eventNo` AND  `absencerequest`.`memberID` =  `member`.`email` AND `event`.`semester`='".getCurrentSemester()."' ORDER BY  `member`.`lastName` ASC ,  `member`.`firstName` ASC ,  `absencerequest`.`time` DESC ";
+$sql = "SELECT  `absencerequest`.`eventNo` ,  `absencerequest`.`time` ,  `absencerequest`.`reason` ,  `absencerequest`.`replacement` ,  `absencerequest`.`memberID` ,  `absencerequest`.`state` ,  `event`.`callTime` , `event`.`name` ,  `member`.`firstName` ,  `member`.`lastName` FROM  `absencerequest` ,  `member` ,  `event` WHERE  `absencerequest`.`eventNo` =  `event`.`eventNo` AND  `absencerequest`.`memberID` =  `member`.`email` AND `event`.`semester`='" . $CUR_SEM . "' ORDER BY  `member`.`lastName` ASC ,  `member`.`firstName` ASC ,  `absencerequest`.`time` DESC ";
 
 $requests = mysql_query($sql);
 $oldMember = "";

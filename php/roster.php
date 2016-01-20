@@ -24,7 +24,7 @@ if (isOfficer($userEmail))
 		if ($result['gigCheck']) echo " checked";
 		echo "> <div style='display: inline-block'>Include gig requirement<br>in grade calculation</div></div>";
 	}
-	if (isUber($userEmail) || positionFromEmail($userEmail) == "Treasurer")
+	if (isUber($userEmail) || hasPosition($userEmail, "Treasurer"))
 	{
 		echo "<span class='spacer'></span><div class='btn-group'><button class='btn dropdown-toggle' data-toggle='dropdown' href='#'>Dues <span class='caret'></span></button><ul class='dropdown-menu'>";
 		echo "<li><a href='#' id='semdues' onclick='addDues(); return false;' data-placement='right' data-toggle='tooltip' title='Adds a $20 fee to the account of every active member who does not yet have a dues charge for this semester'>Apply semester dues</a></li>";

@@ -16,7 +16,8 @@ $userEmail = getuser();
 	return base64_encode($result);
 }*/
 
-$treasurerEmail = emailFromPosition("Treasurer");
+$treasurerEmail = getPosition("Treasurer")[0];
+die($treasurerEmail);
 if(isset($_POST['emails']))
 {
 	$emailArr = json_decode($_POST['emails']);

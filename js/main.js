@@ -1,7 +1,6 @@
 var h;
 
 $(document).ready(function() {
-
 	var timer;
 	$('.dropdown-toggle').dropdown();
 	$('.nav-tabs').button()
@@ -920,7 +919,7 @@ function loadOfficers()
 {
 	$.post('php/officers.php', function(data) {
 		$('#main').html(data);
-		$('select.name').change(function() {
+		$('select.member').change(function() {
 			var tracker = $(this).parent();
 			var position = $(this).parent().prev('td').html();
 			var newm = $(this).attr('value');

@@ -99,20 +99,40 @@ function prefFullNameFromEmail($email){
 	return prefNameFromEmail($email).' '.lastNameFromEmail($email);
 }
 
-function positionFromEmail($userEmail){
-	if (! isset($userEmail) || $userEmail == '') return 'None';
-	$sql = "SELECT * FROM `member` WHERE email='$userEmail';";
-	$result= mysql_fetch_array(mysql_query($sql));
-	//print_r($result);
-	$type = $result["position"];
-	return $type;
+function positions($email)
+{
+	global $CUR_SEM; // TODO Semester filtering
+	$result = mysql_query("select `role`.`name` from `role`, `memberRole` where `memberRole`.`member` = '" . mysql_real_escape_string($email) . "' and `memberRole`.`role` = `role`.`id` order by `role`.`rank` asc");
+	if (mysql_num_rows($result) == 0) return array("Member");
+	$ret = array();
+	while ($row = mysql_fetch_array($result)) $ret[] = $row["name"];
+	return $ret;
 }
 
-function emailFromPosition($position){
-	//this should be done with numbers!
-	$sql = "SELECT email FROM member WHERE position='$position';";
-	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	return $result['email'];
+function hasPosition($email, $position)
+{
+	if ($position == "Member")
+	{
+		if (mysql_num_rows(mysql_query("select * from `member` where `email` = '" . mysql_real_escape_string($email) . "'"))) return true;
+		return false;
+	}
+	if (array_search($position, positions($email)) !== false) return true;
+	return false;
+}
+
+function getPosition($position = "Member")
+{
+	global $CUR_SEM; // TODO Semester filtering
+	$ret = array();
+	if ($position == "Member")
+	{
+		$result = mysql_query("select `email` from `member`");
+		while ($row = mysql_fetch_array($result)) $ret[] = $row["email"];
+		return $ret;
+	}
+	$result = mysql_query("select `memberRole`.`member` as `member` from `role`, `memberRole` where `role`.`name` = '" . mysql_real_escape_string($position) . "' and `role`.`id` = `memberRole`.`role`");
+	while($row = mysql_fetch_array($result)) $ret[] = $row["member"];
+	return $ret;
 }
 
 function profilePic($email)
@@ -147,36 +167,28 @@ function isUber($email)
 {
 	// Webmaster needs full access for debugging
 	// And as long as I make 95% of the commits, I need access too.  -- Matthew Schauer
-	$pos = positionFromEmail($email);
-	if ($pos == "President" || $pos == "Vice President" || $pos == "Webmaster" || $email == 'awesome@gatech.edu') return true;
+	if (hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Webmaster") || $email == "awesome@gatech.edu") return true;
 	return false;
 }
 
 function isOfficer($email)
 {
 	if (isUber($email)) return true;
-	$pos = positionFromEmail($email);
-	if ($pos == "President" ||
-	$pos == "Vice President" ||
-	$pos == "Treasurer" ||
-	$pos == "Manager") return true;
+	if (hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Treasurer") || hasPosition($email, "Manager")) return true;
 	return false;
 }
 
 function canEditEvents($email)
 {
 	if (isUber($email)) return true;
-	$pos = positionFromEmail($email);
-	if ($pos == "President" ||
-	$pos == "Vice President" ||
-	$pos == "Liaison") return true;
+	if (hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Liaison")) return true;
 	return false;
 }
 
 function attendancePermission($email, $event)
 {
 	if (isOfficer($email)) return true;
-	if (positionFromEmail($email) != "Section Leader") return false;
+	if (! hasPosition($email, "Section Leader")) return false;
 	$result = mysql_fetch_array(mysql_query("select `section`, `type` from `event` where `eventNo` = '$event'"));
 	if ($result['type'] != '2') return false;
 	$eventSection = $result['section'];
@@ -201,7 +213,7 @@ function members()
 
 function memberDropdown($member = '')
 {
-	return dropdown(members(), $member, "members");
+	return dropdown(members(), "member", $member);
 }
 
 function semesters()
@@ -215,7 +227,7 @@ function semesters()
 function semesterDropdown()
 {
 	GLOBAL $CUR_SEM;
-	return dropdown(semesters(), $CUR_SEM, "semester");
+	return dropdown(semesters(), "semester", $CUR_SEM);
 }
 
 function sections()

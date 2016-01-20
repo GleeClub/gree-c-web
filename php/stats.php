@@ -2,7 +2,6 @@
 //it would seem you cannot connect to the database from outside a function and inside a function
 require_once('functions.php');
 $userEmail = getuser();
-$semester = getCurrentSemester();
 if(!getuser())
 {
 	loginBlock();
