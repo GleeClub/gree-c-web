@@ -203,10 +203,14 @@ function getMemberAttribute($attribute, $email){
         return $result[$attribute];
 }
 
-function members()
+function members($cond = "")
 {
+	global $CUR_SEM;
 	$ret = array("" => "(nobody)");
-	$results = mysql_query("select `firstName`, `lastName`, `email` from `member` order by `lastName` asc");
+	$sql = "";
+	if ($cond == "active") $sql = "select `member`.`firstName`, `member`.`lastName`, `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM' order by `member`.`lastName` asc";
+	else $sql = "select `firstName`, `lastName`, `email` from `member` order by `lastName` asc";
+	$results = mysql_query($sql);
 	while ($row = mysql_fetch_array($results)) $ret[$row['email']] = $row['lastName'] . ", " . $row['firstName'];
 	return $ret;
 }

@@ -1367,7 +1367,7 @@ function requestAbsence(eventID){
 */
 function submitAbsenceRequest(eventID){
 	if($("#absenceRequestTable").length>0){
-		var replacementEmail = $("#replacement").attr("value");
+		var replacementEmail = $(".replacement").attr("value");
 		var reasonText = $("#reason").attr("value");
 		$.post('php/requestAbsence.php', { eventNo:  eventID, replacement: replacementEmail, reason: reasonText }, function(data){
 			var eventButton = "<div class='btn' onclick='loadDetails(" + eventID + ");'><i class='icon-arrow-left'></i> Event</div>";

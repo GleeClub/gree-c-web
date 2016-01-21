@@ -13,18 +13,12 @@ if(isset($_POST['eventNo'])){
 	//make a drop down of possible replacements
 	$sql = "SELECT * FROM `member`";
 	$result= mysql_query($sql);
-	$dropdown="<select id='replacement'><option value='' id='null'>nobody :(</option>";
-	while($row = mysql_fetch_array($result)){
-		if($row['email']!=$userEmail)
-			$dropdown=$dropdown."<option ".$default." value='".$row["email"]."'>".$row["firstName"]." ".$row["lastName"]."</option>";
-	}
-	$dropdown=$dropdown."</select>";
-
+	$dropdown = dropdown(members("active"), "replacement");
 
 	echo "<div id='absenceRequestTable'>
 			<table>
 				<tr>
-					<td align='center' colspan='2'>Request Absence for ".$eventName."</td>
+					<td align='center' colspan='2'><b>Request Absence for ".$eventName."</b></td>
 				</tr>
 				<tr>
 					<td>Replacement:</td>
@@ -35,8 +29,8 @@ if(isset($_POST['eventNo'])){
 					<td><input type='text' size='50' id='reason' /></td>
 				</tr>
 				<tr>
-					<td><button type='button' onClick='loadDetails($eventNo);'>nevermind</button></td>
-					<td><button type='button' id='submitAbsenceRequest'>beg for mercy</button></td>
+					<td><button type='button' onClick='loadDetails($eventNo);'>Never Mind</button></td>
+					<td><button type='button' id='submitAbsenceRequest'>Beg for Mercy</button></td>
 				</tr>
 			</table>
 		</div>";
