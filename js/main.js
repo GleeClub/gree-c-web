@@ -1170,7 +1170,7 @@ function addMoneyForm()
 				var err = false;
 				$('.trans_row').each(function() {
 					sendEmailArr[i] = $(this).children().children('.receipt').prop('checked');
-					emailArr[i] = $(this).children().children('.name').prop('value');
+					emailArr[i] = $(this).children().children('.member').prop('value');
 					amountArr[i] = $(this).children().children('.amount').prop('value');
 					descArr[i] = $(this).children().children('.description').prop('value');
 					typeArr[i] = $(this).children().children('.ttype').prop('value');

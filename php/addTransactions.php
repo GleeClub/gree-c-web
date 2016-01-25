@@ -17,7 +17,6 @@ $userEmail = getuser();
 }*/
 
 $treasurerEmail = getPosition("Treasurer")[0];
-die($treasurerEmail);
 if(isset($_POST['emails']))
 {
 	$emailArr = json_decode($_POST['emails']);
@@ -31,7 +30,7 @@ if(isset($_POST['emails']))
 	foreach($emailArr as $email)
 	{
 		if ($email == '') continue; // Ignore transactions with nobody
-		mysql_query("insert into transaction (memberID, amount, description, semester, type) values ('".mysql_escape_string($email)."','".mysql_escape_string($amountArr[$count])."','".mysql_escape_string($descriptionArr[$count])."', '".mysql_escape_string($semArr[$count])."', '".mysql_escape_string($typeArr[$count])."')");
+		if (! mysql_query("insert into transaction (memberID, amount, description, semester, type) values ('".mysql_escape_string($email)."','".mysql_escape_string($amountArr[$count])."','".mysql_escape_string($descriptionArr[$count])."', '".mysql_escape_string($semArr[$count])."', '".mysql_escape_string($typeArr[$count])."')")) die(mysql_error());
 		if($sendArr[$count])
 		{
 			$name = fullNameFromEmail(mysql_real_escape_string($email));
