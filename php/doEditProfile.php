@@ -27,6 +27,8 @@ if ($user && $_POST["email"] != $email && $result > 0) die("That email address i
 
 if (! $user && (! isset($_POST["password"]) || $_POST["password"] == "" || ! isset($_POST["password2"]) || $_POST["password2"] == "")) die("Missing value for property \"password\".");
 if ($_POST["password"] != $_POST["password2"]) die("Passwords do not match");
+if ($_POST["password"] == "") unset($_POST["password"]);
+else $_POST["password"] = md5($_POST["password"]);
 
 if (! preg_match("/[0-9]{9,14}/", $_POST["phone"])) die("Invalid phone number (proper format is just 10 digits)");
 if (! preg_match("/[0-9]{1,2}/", $_POST["passengers"])) die("Invalid number of passengers (must be an integer, 0 if you don't have a car)");
@@ -36,7 +38,6 @@ if ($user)
 {
 	$sql = "update `member` set ";
 	$cond = array();
-	if ($_POST["password"] == "") unset($_POST["password"]);
 	foreach ($_POST as $key => $value) if (array_search($key, $permitted) !== FALSE) $cond[] = "`$key` = '" . mysql_real_escape_string($value) . "'";
 	$sql .= implode(", ", $cond) . " where `email` = '" . mysql_real_escape_string($email) . "'";
 }
