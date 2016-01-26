@@ -21,8 +21,12 @@ if (! isOfficer($user)) foreach ($restricted as $field) if (isset($_POST[$field]
 $newemail = mysql_real_escape_string($_POST["email"]);
 $validEmail = "/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._-]+)+$/";
 if (! preg_match($validEmail, $_POST["email"])) die("Invalid email");
-$result = mysql_num_rows(mysql_query("select * from `member` where `email` = '$newemail'"));
-if (! $user && $result > 0) die("That email address is already in use");
+$oldsect = 0;
+$newsect = mysql_real_escape_string($_POST["section"]);
+$query = mysql_query("select `section` from `member` where `email` = '$newemail'");
+$count = mysql_num_rows($query);
+if ($user) $oldsect = mysql_fetch_array($query)["section"];
+else if ($count > 0) die("That email address is already in use");
 if ($user && $_POST["email"] != $email && $result > 0) die("That email address is already in use");
 
 if (! $user && (! isset($_POST["password"]) || $_POST["password"] == "" || ! isset($_POST["password2"]) || $_POST["password2"] == "")) die("Missing value for property \"password\".");
@@ -32,6 +36,9 @@ else $_POST["password"] = md5($_POST["password"]);
 
 if (! preg_match("/[0-9]{9,14}/", $_POST["phone"])) die("Invalid phone number (proper format is just 10 digits)");
 if (! preg_match("/[0-9]{1,2}/", $_POST["passengers"])) die("Invalid number of passengers (must be an integer, 0 if you don't have a car)");
+
+$reg = mysql_real_escape_string($_POST["registration"]);
+if ($reg != "class" && $reg != "club") die("Invalid registration");
 
 $sql = "";
 if ($user)
@@ -54,31 +61,32 @@ else
 }
 
 mysql_query("begin");
-if (mysql_query($sql))
-{
-	$reg = mysql_real_escape_string($_POST["registration"]);
-	if ($reg != "class" && $reg != "club")
-	{
-		mysql_query("rollback");
-		die("Invalid registration");
-	}
-	if ($user && ! mysql_query("update `activeSemester` set `enrollment` = '$reg' where `member` = '$newemail' and `semester` = '$CUR_SEM'"))
-	{
-		mysql_query("rollback");
-		die("Error: " . mysql_error());
-	}
-	if (! $user && ! mysql_query("insert into `activeSemester` (`member`, `semester`, `enrollment`) values ('$newemail', '$CUR_SEM', '$reg')"))
-	{
-		mysql_query("rollback");
-		die("Error: " . mysql_error());
-	}
-	if (! $user || $user == $email) setcookie("email", base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $_POST["email"], MCRYPT_MODE_ECB)), time() + 60 * 60 * 24 * 120, "/", false, false);
-	mysql_query("commit");
-	echo "OK";
-}
-else
+if (! mysql_query($sql))
 {
 	mysql_query("rollback");
-	echo "Couldn't apply settings: " . mysql_error();
+	die("Couldn't apply settings: " . mysql_error());
 }
+if ($user && ! mysql_query("update `activeSemester` set `enrollment` = '$reg' where `member` = '$newemail' and `semester` = '$CUR_SEM'"))
+{
+	mysql_query("rollback");
+	die("Error: " . mysql_error());
+}
+if (! $user && ! mysql_query("insert into `activeSemester` (`member`, `semester`, `enrollment`) values ('$newemail', '$CUR_SEM', '$reg')"))
+{
+	mysql_query("rollback");
+	die("Error: " . mysql_error());
+}
+if (! $user)
+{
+	mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '1', `eventNo` from `event` where `semester` = '$CUR_SEM' and (`type` = 1 or `type` = 3 or `type` = 4)");
+	mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '1', `eventNo` from `event` where `semester` = '$CUR_SEM' and `type` = 2 and `section` = '$newsect'");
+}
+if ($user && $_POST["section"] != $oldsection)
+{
+	mysql_query("delete from `attends` where `memberID` = '$newemail' and `type` = 2 and `callTime` > current_timestamp");
+	mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '1', `eventNo` from `event` where `semester` = '$CUR_SEM' and `type` = 2 and `section` = '$newsect', and `callTime` = current_timestamp");
+}
+if (! $user || $user == $email) setcookie("email", base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $newemail, MCRYPT_MODE_ECB)), time() + 60 * 60 * 24 * 120, "/", false, false);
+mysql_query("commit");
+echo "OK";
 ?>

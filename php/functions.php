@@ -836,11 +836,13 @@ function getEventAttendanceRows($eventNo)
 		<td class='cellwrap'>Confirmed</td>
 	</tr>";
 
-	$sections = mysql_query("select `typeNo`, `typeName` from `sectionType` where `typeNo` > '0' order by `typeNo` asc");
-	while ($sect = mysql_fetch_array($sections))
+	$sections = array();
+	$sect = mysql_query("select `typeNo`, `typeName` from `sectionType` where `typeNo` > '0' order by `typeNo` asc");
+	while ($s = mysql_fetch_array($sect)) $sections[$s["typeNo"]] = $s["typeName"];
+	$unassigned = mysql_num_rows(mysql_query("select * from `member` where `section` = 0"));
+	if ($unassigned) $sections[0] = "<span style='color: red'>Not assigned to any section</span>";
+	foreach ($sections as $num => $name)
 	{
-		$num = $sect['typeNo'];
-		$name = $sect['typeName'];
 		$eventRows .= "<tr><td colspan=6><b>$name</b></td></tr>";
 		$members = mysql_query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM' and `member`.`section` = '$num' order by `member`.`lastName` asc");
 		while ($member = mysql_fetch_array($members)) $eventRows .= '<tr id="attends_' . $member['email'] . '_' . $eventNo . '">' . getSingleEventAttendanceRow($eventNo, $member['email']) . '</tr>';

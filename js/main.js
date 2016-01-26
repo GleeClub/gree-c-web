@@ -137,8 +137,8 @@ function doEditProfile() {
 		if (data != "OK") alert(data);
 		else
 		{
-			$("#main").load('php/stats.php');
 			alert("Information updated");
+			window.location.hash = "";
 		}
 	});
 }
