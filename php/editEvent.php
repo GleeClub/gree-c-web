@@ -41,13 +41,13 @@ $fields = array(
 		array('donetime', 'Release Time', 'time'),
 		array('location', 'Location', 'text'),
 		array('points', 'Points', 'number'),
-		array('semester', 'Semester', 'select', semesters(), $CUR_SEM, FALSE),
+		array('semester', 'Semester', 'select', semesters(), $CUR_SEM, false),
 		array('comments', 'Comments', 'textarea'),
 		array('repeat', 'Repeat', 'select', array('no' => 'no', 'daily' => 'daily', 'weekly' => 'weekly', 'biweekly' => 'biweekly', 'monthly' => 'monthly', 'yearly' => 'yearly'), 'no', $eventNo),
 		array('until', 'Repeat Until', 'date'),
 	),
 	'gig' => array(
-		array('uniform', 'Uniform', 'select', uniforms(), '', FALSE),
+		array('uniform', 'Uniform', 'select', uniforms(), '', false),
 		array('perftime', 'Performance Time', 'time'),
 		array('cname', 'Contact Name', 'text'),
 		array('cemail', 'Contact Email', 'text'),
@@ -59,7 +59,7 @@ $fields = array(
 		array('description', 'Public Description', 'textarea')
 	),
 	'rehearsal' => array(
-		array('section', 'Section', 'select', sections(), '', $eventNop),
+		array('section', 'Section', 'select', sections(), '', $eventNo),
 	),
 );
 	
