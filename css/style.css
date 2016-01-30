@@ -134,10 +134,6 @@ td.eventDetialsKey{
 	cursor:pointer;
 }
 
-#eventDetails table td input{
-	width:100%;
-}
-
 /* Carpools */
 .driver{
 	text-align:left;
@@ -194,4 +190,38 @@ td.eventDetialsKey{
 a:visited
 {
 	color: #08C;
+}
+#title{
+	font-size:30px;
+	text-align: center;
+}
+#form{
+	table-layout: fixed;
+	word-wrap: break-word;
+}
+.cellwrap{
+	width: 20%;
+}
+.center{
+	width: 20%;
+	text-align: center;
+}
+.headings{
+	font-weight: bold;
+	text-align: center;
+}
+tr.topborder td {
+	border-top: 1pt solid black;
+}
+.topRow {
+	font-weight: bold;
+	text-align: center;
+	border-top: 1pt solid black;
+	border-bottom: 1pt solid black;
+	border-left: 1pt solid black;
+	border-right: 1pt solid black;
+}
+.data {
+	border-top: 1px dotted #000000;
+	border-bottom: 1px dotted #000000;
 }

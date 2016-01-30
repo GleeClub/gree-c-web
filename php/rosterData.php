@@ -2,26 +2,28 @@
 require_once('functions.php');
 $userEmail = getuser();
 
-$member_fields = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
+function member_fields($email)
+{
+	$fieldnames = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
+	$ret = array();
+	$member = mysql_fetch_array(mysql_query("select * from member where email = '$email'"), MYSQL_ASSOC);
+	foreach ($fieldnames as $field) $ret[$field] = $member[$field];
+	$ret["registration"] = enrollment($email);
+	return $ret;
+}
 
 function member_details($email)
 {
-	GLOBAL $member_fields;
-	$sql = "select * from member where email = '$email'";
-	$member = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 	$html = "<span class='pull-right'><button type='button' class='btn edit_member'>Edit</button></span><div class='detail_table'><table>";
-	foreach ($member_fields as $field) $html .= "<tr><td><b>$field</b></td><td>" . $member[$field] . "</td></tr>";
+	foreach (member_fields($email) as $field => $value) $html .= "<tr><td><b>$field</b></td><td>$value</td></tr>";
 	$html .= "</table></div>";
 	return $html;
 }
 
 function member_edit($email)
 {
-	GLOBAL $member_fields;
-	$sql = "select * from member where email = '$email'";
-	$member = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 	$html = "<input type='hidden' name='user' value='$email'><table>";
-	foreach ($member_fields as $field) $html .= "<tr><td><b>$field</b></td><td><input type='text' name='$field' value='" . $member[$field] . "'></td></tr>";
+	foreach (member_fields($email) as $field => $value) $html .= "<tr><td><b>$field</b></td><td><input type='text' name='$field' value='$value'></td></tr>";
 	$html .= "</table>";
 	return $html;
 }

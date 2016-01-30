@@ -167,7 +167,7 @@ function isUber($email)
 {
 	// Webmaster needs full access for debugging
 	// And as long as I make 95% of the commits, I need access too.  -- Matthew Schauer
-	if (hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Webmaster") || $email == "awesome@gatech.edu") return true;
+	if (hasPosition($email, "Instructor") || hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Webmaster") || $email == "awesome@gatech.edu") return true;
 	return false;
 }
 
