@@ -14,7 +14,7 @@ if (! isset($_POST['action'])) die('MISSING_ARG');
 if ($action == 'return')
 {
 	if(! isset($_POST['member'])) die('MISSING_ARG');
-	if (mysql_num_rows(mysql_query("select * from `tieBorrow` where `member` = '$member' and `dateIn` is null")) != 1) die("$member does not have a tie out");
+	if (mysql_num_rows(mysql_query("select * from `tieBorrow` where `member` = '$member' and `dateIn` is null")) == 0) die("$member does not have a tie out");
 	if (! mysql_query("update `tieBorrow` set `dateIn` = curdate() where `member` = '$member' and `dateIn` is null")) die(mysql_error());
 	echo "OK";
 }
@@ -27,7 +27,14 @@ else if ($action == 'checkout')
 	{
 		$result = mysql_fetch_array($query);
 		$oldtie = $result['tie'];
-		die("$member already has tie $oldtie out");
+		die(fullNameFromEmail($member) . " already has tie $oldtie out");
+	}
+	$query = mysql_query("select * from `tieBorrow` where `tie` = '$tie' and `dateIn` is null");
+	if (mysql_num_rows($query) != 0)
+	{
+		$result = mysql_fetch_array($query);
+		$oldmember = $result['member'];
+		die("Tie $tie is already checked out to " . fullNameFromEmail($oldmember));
 	}
 	if (! mysql_query("insert into `tieBorrow` (`member`, `tie`, `dateOut`) values ('$member', '$tie', curdate())")) die(mysql_error());
 	echo "OK";
