@@ -117,6 +117,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 				<ul class="dropdown-menu">
 					<li><a href="#editProfile">My Profile</a></li>
 					<li><a href="php/logOut.php">Log Out</a></li>
+					<?php for (choirs() as $id => $name) echo "<li><a href='php/setChoir.php?choir=$id'>$name</a></li>" ?>
 				</ul>
 			</li>
 		<?php } ?>

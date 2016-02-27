@@ -11,7 +11,7 @@ span.spacer { display: inline-block; width: 20px; }
 
 function member_table($conditions, $type = 'normal')
 {
-	global $CUR_SEM, $DEPOSIT;
+	global $CUR_SEM;
 	$userEmail = getuser();
 	$officer = isOfficer($userEmail);
 	$uber = isUber($userEmail);

@@ -12,7 +12,7 @@ $type = $_POST['type'];
 if ($type == "dues")
 {
 	$query = mysql_query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM'");
-	$dues = -1 * $DUES;
+	$dues = -1 * fee("dues");
 	while ($row = mysql_fetch_array($query))
 	{
 		$member = $row['email'];
@@ -23,7 +23,7 @@ if ($type == "dues")
 }
 else if ($type == "late")
 {
-	$fee = -1 * $LATEFEE;
+	$fee = -1 * fee("latedues");
 	$query = mysql_query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM'");
 	while ($row = mysql_fetch_array($query))
 	{

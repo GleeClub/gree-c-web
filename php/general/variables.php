@@ -9,11 +9,6 @@ $BASEURL = "http://$domain/buzz";
 $admin_email = "Glee Club Officers <gleeclub_officers@lists.gatech.edu>";
 
 // Connect to the database
-$sql = "select * from variables";
-$variables = mysql_fetch_array(mysql_query($sql));
-
+$variables = mysql_fetch_array(mysql_query("select * from variables"));
 $CUR_SEM = $variables['semester'];
-$DUES = $variables['duesAmount'];
-$LATEFEE = $variables['lateFee'];
-$DEPOSIT = $variables['tieDeposit'];
 ?>

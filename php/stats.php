@@ -71,7 +71,7 @@ function gigBlock($userEmail)
 
 function info($userEmail)
 {
-	global $CUR_SEM, $DEPOSIT;
+	global $CUR_SEM;
 	$html = "";
 	$sql = "select sum(`amount`) as `balance` from `transaction` where `memberID` = '$userEmail' and `type` = 'dues' and `semester` = '$CUR_SEM'";
 	$result = mysql_fetch_array(mysql_query($sql));
@@ -85,7 +85,7 @@ function info($userEmail)
 	if ($dues >= 0) $html .= "<span class='color: green'><i class='icon-ok'></i></span>";
 	else $html .= "<span class='color: red'><i class='icon-remove'></i></span>";
 	$html .= "</td><td>Dues</td></tr><tr><td>";
-	if ($tie >= $DEPOSIT) $html .= "<span class='color: green'><i class='icon-ok'></i></span>";
+	if ($tie >= fee("tie")) $html .= "<span class='color: green'><i class='icon-ok'></i></span>";
 	else $html .= "<span class='color: red'><i class='icon-remove'></i></span>";
 	$html .= "</td><td>Tie Deposit</td></tr></table><br>";
 	$sql = "select `tie` from `tieBorrow` where `member` = '$userEmail' and `dateIn` is null";

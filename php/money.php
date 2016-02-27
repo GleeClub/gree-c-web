@@ -33,12 +33,14 @@ case 'values':
 	$member = mysql_real_escape_string($_POST['member']);
 	$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `total` from `transaction` where `memberID` = '$member' and `type` = 'deposit'"));
 	$total = $result['total'];
-	if ($total >= $DEPOSIT) $dep = -1 * $DEPOSIT;
-	else $dep = $DEPOSIT;
+	$deposit = fee("tie");
+	$dues = fee("dues");
+	if ($total >= $deposit) $dep = -1 * $deposit;
+	else $dep = $deposit;
 	echo "$dep";
 	break;
 case 'row':
-	echo "<tr class='trans_row'><td>" . memberDropdown() . "</td><td>" . transacTypes() . "</td><td>" . semesterDropdown() . "</td><td><input type='text' class='amount' data-amount-dues='$DUES' data-amount-deposit='$DEPOSIT' placeholder='Amount' style='width: 60px'></input></td><td><input type='text' class='description' placeholder='Description' maxlength='500'></input></td><td><input type='checkbox' class='receipt'> Send receipt</td><td><button type='button' class='btn cancel'><i class='icon-remove'></i></button></td></tr>";
+	echo "<tr class='trans_row'><td>" . memberDropdown() . "</td><td>" . transacTypes() . "</td><td>" . semesterDropdown() . "</td><td><input type='text' class='amount' data-amount-dues='$dues' data-amount-deposit='$deposit' placeholder='Amount' style='width: 60px'></input></td><td><input type='text' class='description' placeholder='Description' maxlength='500'></input></td><td><input type='checkbox' class='receipt'> Send receipt</td><td><button type='button' class='btn cancel'><i class='icon-remove'></i></button></td></tr>";
 	break;
 default:
 	die("Unknown action $_POST[action]");

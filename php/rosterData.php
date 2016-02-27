@@ -87,7 +87,6 @@ function money_table($memberID)
 function tie_form($memberID)
 {
 	GLOBAL $CUR_SEM;
-	GLOBAL $DEPOSIT;
 	$tie = 0;
 	$query = mysql_query("select `tie` from `tieBorrow` where `member` = '$memberID' and `dateIn` is null");
 	$result = mysql_fetch_array($query);
@@ -114,7 +113,7 @@ function tie_form($memberID)
 	$balance = $result['balance'];
 	if ($balance == '') $balance = 0;
 	$deposit = "<span style='color: red'>unpaid</span>";
-	if ($balance >= $DEPOSIT) $deposit = "<span style='color: green'>paid</span>";
+	if ($balance >= fee("tie")) $deposit = "<span style='color: green'>paid</span>";
 	return "$head<br>Tie deposit:  $deposit<br><br>$form";
 }
 

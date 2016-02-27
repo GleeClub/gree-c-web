@@ -4,7 +4,7 @@ if (! isUber(getuser())) die("DENIED");
 
 function tietable($result)
 {
-	global $CUR_SEM, $DEPOSIT;
+	global $CUR_SEM;
 	echo "<table class='table'><tr><th>#</th><th>Status</th><th>Comments</th><th>Actions</th></tr>";
 	while ($row = mysql_fetch_array($result))
 	{
@@ -24,7 +24,7 @@ function tietable($result)
 			if ($active) $status .= "<br><span style='color: green'>Active</span> this semester";
 			else $status .= "<br><span style='color: red'>Inactive</span> this semester";
 			$deposit = mysql_fetch_array(mysql_query("select sum(`amount`) as `total` from `transaction` where `type` = 'deposit' and `memberID` = '$row[borrower]'"));
-			if ($deposit['total'] >= $DEPOSIT) $depok = true;
+			if ($deposit['total'] >= fee("tie")) $depok = true;
 			else $depok = false;
 			if ($depok) $status .= "<br>Tie deposit <span style='color: green'>paid</span>";
 			else $status .= "<br>Tie deposit <span style='color: red'>unpaid</span>";

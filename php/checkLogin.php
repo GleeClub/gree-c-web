@@ -7,19 +7,6 @@ $myusername = mysql_real_escape_string($_POST['email']);
 $mypassword = mysql_real_escape_string($_POST['password']);
 
 
-//debug stuff
-/*if(!isset($_POST['email'])){
-	$myusername=$_GET['email']; 
-	$mypassword=$_GET['password'];
-}
-
-setcookie('email', $myusername, time()-3600);
-echo $myusername."<br />";
-echo $mypassword."<br />";
-setcookie('email', $myusername, time()+60*60*24*120, '/', false, false);
-print_r($_COOKIE);
-echo getuser();*/
-
 $sql="SELECT * FROM `member` WHERE email='$myusername' and password=md5('$mypassword')";
 $result=mysql_query($sql);
 
@@ -31,5 +18,10 @@ if ($count != 1) die("Wrong email or password");
 // Register $myusername, $mypassword and redirect to file "login_success.php"
 //session_register("myusername");
 setcookie('email', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $myusername, MCRYPT_MODE_ECB)), time() + 60*60*24*120, '/', false, false);
+if (! isset($_COOKIE['choir']))
+{
+	$choir = "glee"; # TODO Use stored last choir in database to set this
+	setcookie('choir', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $choir, MCRYPT_MODE_ECB)), time() + 60*60*24*120, '/', false, false);
+}
 echo "OK";
 ?>
