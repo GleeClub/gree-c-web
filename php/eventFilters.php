@@ -5,7 +5,7 @@ $userEmail = getuser();
 $sql = "select * from semester where 1 order by beginning desc";
 $semesters = mysql_query($sql);
 
-$sql = "select * from eventType where 1 order by typeName asc";
+$sql = "select * from eventType where 1 order by name asc";
 $types = mysql_query($sql);
 
 $html = "
@@ -30,8 +30,8 @@ $html .= "
 			<div class='span6'>";
 
 while($row = mysql_fetch_array($types)){
-	$typeName = $row['typeName'];
-	$typeNo = $row['typeNo'];
+	$typeName = $row['name'];
+	$typeNo = $row['id'];
 	$html .= "
 					<button type='button' class='btn' name='type' id='$typeNo'>$typeName</button>";
 }

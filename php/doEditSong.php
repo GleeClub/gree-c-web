@@ -7,6 +7,8 @@ $title = mysql_real_escape_string($_POST['name']);
 $info = mysql_real_escape_string($_POST['desc']);
 $note = mysql_real_escape_string($_POST['note']);
 $current = mysql_real_escape_string($_POST['current']);
+$choir = getchoir();
+if (! $choir) die("Choir is not set");
 if (! getuser() || ! isOfficer(getuser()))
 {
 	echo "UNAUTHORIZED";
@@ -14,7 +16,7 @@ if (! getuser() || ! isOfficer(getuser()))
 }
 if ($action == "add")
 {
-	$query = "insert into `song` (`title`, `info`) values ('$title', '$info')";
+	$query = "insert into `song` (`choir`, title`, `info`) values ('$choir', '$title', '$info')";
 	if (mysql_query($query))
 	{
 		$query = "select `id` from `song` where `title` = '$title' and `info` = '$info'";

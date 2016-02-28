@@ -30,7 +30,9 @@ function member_edit($email)
 
 function basic_money_table($memberID, $resolved)
 {
-	$sql = "select * from transaction where memberID = '$memberID' and `resolved` = '$resolved' order by time desc";
+	$choir = getchoir();
+	if (! $choir) die("Choir is not set");
+	$sql = "select * from transaction where memberID = '$memberID' and `choir` = '$choir' and `resolved` = '$resolved' order by time desc";
 	$transactions = mysql_query($sql);
 	if (mysql_num_rows($transactions) == 0) return "<span style='color: gray'>(No transactions)</span><br>";
 	$html = "<table>";
@@ -119,13 +121,15 @@ function tie_form($memberID)
 
 function active_semesters($memberID)
 {
+	$choir = getchoir();
+	if (! $choir) die("Choir is not set");
 	$table = "<style>table.semesters { width: auto; } table.semesters td { padding: 2px 10px; }</style><table class='semesters'><tr><th>Semester</th><th>Status</th><th>Score</th></tr>";
 	$query = mysql_query("select `semester` from `semester` order by `beginning` asc");
 	while ($result = mysql_fetch_array($query))
 	{
 		$activebtn = 0;
 		$semester = $result['semester'];
-		$query1 = mysql_query("select `enrollment` from `activeSemester` where `member` = '$memberID' and `semester` = '$semester'");
+		$query1 = mysql_query("select `enrollment` from `activeSemester` where `member` = '$memberID' and `semester` = '$semester' and `choir` = '$choir'");
 		$active = mysql_num_rows($query1);
 		if ($active)
 		{

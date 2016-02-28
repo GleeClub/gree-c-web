@@ -1,6 +1,6 @@
 <?php
 
-require_once('variables.php');
+require_once('functions.php');
 
 // username and password sent from form 
 $myusername = mysql_real_escape_string($_POST['email']);

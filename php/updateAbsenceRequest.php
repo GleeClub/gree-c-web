@@ -49,8 +49,13 @@ function absenceEmail($recipient, $state, $event){
 	</body>
 	</html>
 	';
-	$headers = 'Content-type:text/html;\n' . "\n" .
-				'From: Glee Club Officers <gleeclub_officers@lists.gatech.edu>' . "\n" .
+	$choir = getchoir();
+	if (! $choir) die("Choir not set");
+	$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$choir'"));
+	$sender = $row['admin'];
+	$recipient = $row['list'];
+	$headers = "Content-type:text/html;\n\n" .
+				"From: $sender\n" .
 				'X-Mailer: PHP/' . phpversion();
 	mail($to, $subject, $message, $headers);
 	//echo $toField." ".$subjectField." ".$messageField." ".$headers;

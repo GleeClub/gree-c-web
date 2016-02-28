@@ -1,22 +1,26 @@
 <?php
 require_once('functions.php');
 
-$sql = "SELECT `event`.`eventNo`, `event`.`name`, `event`.`callTime`, `event`.`releaseTime`, `event`.`comments`, `event`.`location`, `uniform`.`name` as `uniform`, `eventType`.`typeName` as `type`
+$sql = "SELECT `event`.`eventNo`, `event`.`name`, `event`.`callTime`, `event`.`releaseTime`, `event`.`comments`, `event`.`location`, `uniform`.`name` as `uniform`, `eventType`.`name` as `type`
 	FROM `event`, `eventType`, `gig`, `uniform`
-	WHERE `event`.`type` = `eventType`.`typeNo`
+	WHERE `event`.`type` = `eventType`.`id`
 		AND `event`.`eventNo` = `gig`.`eventNo`
 		AND `uniform`.`id` = `gig`.`uniform`
-		AND (`eventType`.`typeName` = 'Volunteer Gig' OR `eventType`.`typeName` = 'Tutti Gig')
+		AND (`eventType`.`id` = 'volunteer' OR `eventType`.`id` = 'tutti')
 		AND TIMESTAMPDIFF(HOUR, CURRENT_TIMESTAMP, `event`.`callTime`) = 48
 	ORDER BY `event`.`callTime` ASC";
 
 $result = mysql_query($sql);
 
-$recipient = "Glee Club <gleeclub@lists.gatech.edu>";
+$choir = getchoir();
+if (! $choir) die("Choir not set");
+$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$choir'"));
+$sender = $row['admin'];
+$recipient = $row['list'];
 //$recipient = "Matthew Schauer <awesome@gatech.edu>";
-$headers = 'Content-type:text/html;' . "\n" .
-	'Reply-To: Glee Club Officers <gleeclub_officers@lists.gatech.edu>' . "\n" .
-	'From: Glee Club Officers <gleeclub_officers@lists.gatech.edu>' . "\n" .
+$headers = "Content-type:text/html;\n" .
+	"Reply-To: $sender\n" .
+	"From: $sender\n" .
 	'X-Mailer: PHP/' . phpversion();
 
 while($event = mysql_fetch_array($result))

@@ -1,12 +1,22 @@
 <?php
 require_once('functions.php');
 if (! getuser() || ! isOfficer(getuser())) die("Go home, earthling.");
+$choir = getchoir();
+if (! $choir) die("Choir not set");
 
 if (isset($_POST['name']))
 {
 	$name = mysql_real_escape_string($_POST['name']);
 	$url = mysql_real_escape_string($_POST['url']);
-	if (! mysql_query("update `gdocs` set `url` = '$url' where `name` = '$name'")) die("Couldn't update $name link");
+	# TODO Check for special chars in name
+	if (mysql_num_rows(mysql_query("select * from `gdocs` where `name` = '$name'")) > 0)
+	{
+		if (! mysql_query("update `gdocs` set `url` = '$url' where `name` = '$name' and `choir` = '$choir'")) die("Couldn't update $name link: " . mysql_error());
+	}
+	else
+	{
+		if (! mysql_query("insert into `gdocs` (`name`, `choir`, `url`) values ('$name', '$choir', '$url')")) die("Couldn't create $name link: " . mysql_error());
+	}
 	echo "OK";
 }
 else

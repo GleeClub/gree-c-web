@@ -1,10 +1,13 @@
 <?php
 require_once('functions.php');
-$recipient = 'gleeclub_officers@lists.gatech.edu';
+$choir = getchoir();
+if (! $choir) die("Choir not set");
+$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$choir'"));
+$recipient = $row['admin'];
 $prefix = "<html><head></head><body>";
 $suffix = "</body></html>";
 $headers = 'Content-type:text/html; charset=utf-8' . "\n" .
-	'From: $admin_email' . "\n" .
+	'From: $recipient' . "\n" .
 	'X-Mailer: PHP/' . phpversion();
 
 if (! isset($_POST['id'])) die("No ID specified");

@@ -1,27 +1,19 @@
 <?php
 require_once('functions.php');
 $userEmail = getuser();
-
 if (! getuser()) die("<p>It would seem that you are logged out.</p>");
+$choir = getchoir();
+if (! $choir) die("Choir not set");
 
-$type = $_POST['type'];
-$cond = '';
-switch($type)
-{
-	case 'other':     $cond = "`type` = '0'"; break;
-	case 'rehearsal': $cond = "`type` = '1'"; break;
-	case 'sectional': $cond = "`type` = '2'"; break;
-	case 'volunteer': $cond = "`type` = '3'"; break;
-	case 'tutti':     $cond = "`type` = '4'"; break;
-	case 'allEvents': case 'pastEvents': break;
-	default: die("Unknown event type \"$type\"");
-}
+$type = mysql_real_escape_string($_POST['type']);
+$cond = "`choir` = '$choir'";
+if ($type != "all" && $type != "past") $cond = "`type` = '$type'";
 if (! isOfficer($userEmail))
 {
 	if ($cond != '') $cond .= " and ";
 	$cond .= "exists(select * from `attends` where `eventNo` = `event`.`eventNo` and `memberID` = '$userEmail')";
 }
-if ($type != 'pastEvents')
+if ($type != 'past')
 {
 	if ($cond != '') $cond .= " and ";
 	$cond .= "`semester` = '$CUR_SEM'";

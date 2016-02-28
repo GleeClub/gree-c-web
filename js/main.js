@@ -77,15 +77,12 @@ function checkHash()
 		if (h == 'forgotPassword') loadForgotPassword();
 		else if (h == 'editProfile') editProfile();
 		else if (h == 'minutes') showMinutes();
-		else if (h == 'constitution') loaddoc('Constitution');
-		else if (h == 'handbook') loaddoc('Handbook');
-		else if (h == 'syllabus') loaddoc('Syllabus');
 		else if (document.cookie.indexOf("email") == -1 && h.indexOf(':') <= 0) loadLogin();
 		else if (h == "messages") loadMessages();
 		else if (h.indexOf("message") == 0) loadMessage(parseInt(h.substring(h.indexOf("id=")+3), 10));
 		else if (h == "newMessage") newMessage();
 		else if (h == "stats" || h == '') loadStats();
-		else if (h == 'allEvents' || h == 'rehearsal' || h == 'sectional' || h == 'tutti' || h == 'volunteer' || h == 'pastEvents') loadAllEvents(h);
+		else if (h == 'events') loadEvents('all');
 		else if (h == 'event') addOrRemoveEvent();
 		else if (h == 'feedback') feedbackForm();
 		else if (h == 'suggestSong') songForm();
@@ -110,9 +107,11 @@ function checkHash()
 			var arg = h.substring(h.indexOf(':') + 1);
 			if (query == 'minutes') showMinutes(arg);
 			else if (document.cookie.indexOf("email") == -1) loadLogin();
-			else if (query == 'event') loadAllEvents('allEvents', arg);
+			else if (query == 'events') loadEvents(arg);
+			else if (query == 'event') loadEvents('all', arg);
 			else if (query == 'profile') loadProfile(arg);
 			else if (query == 'song') showRepertoire(arg);
+			else if (query == 'doc') loaddoc(arg);
 			else $('#main').html("What's a " + query + "?");
 		}
 		else $('#main').html("I don't exist.");
@@ -424,11 +423,11 @@ function sendMessage(){
 	}
 }
 
-function loadAllEvents(h, id){
+function loadEvents(type, id){
 	//console.log('load all events!');
 	$.post(
 		'php/loadAllEvents.php',
-		{ type : h },
+		{ type : type },
 		function(data){
 			//console.log('done');
 			$("#main").html(data);
@@ -750,7 +749,7 @@ function editCarpools(id){
 	$('#carpools').append("<div class='carpool block'><div class='driver block'>add new driver here first</div><div class='passengers block'></div></div>");
 	$("#editCarpoolsButton").html('save carpools').off().on('click', function(){
 		saveCarpools(id);
-		loadAllEvents(h);
+		loadEvents(h);
 	});
 }
 
@@ -765,7 +764,7 @@ function saveCarpools(id){
 		//$('.span5').eq(1).removeClass('span5').addClass('span3');
 		//$('.span5').eq(1).removeClass('span5').addClass('span3'); //tricksy
 		//console.log('h is ');
-		loadAllEvents(h);
+		loadEvents(h);
 		loadDetails('current');
 		seeCarpools(id);
 	});
@@ -1107,11 +1106,19 @@ function chgusr(user)
 	$.post('php/chgusr.php', { user : user }, function(data) { location.href = '#'; location.reload();});
 }
 
+function setChoir(choir)
+{
+	$.post('php/setChoir.php', { choir : choir }, function(data) {
+		if (data != 'OK') alert(data);
+		else location.reload();
+	});
+}
+
 function delusr(user)
 {
 	if (confirm("This will irreversibly delete all of " + user + "'s data.  Proceed?")) $.post('php/doDeleteMember.php', { email : user }, function(data) {
 		if (data != 'OK') alert(data);
-		else { location.href= '#'; alert("User deleted successfully"); }
+		else { location.href = '#'; alert("User deleted successfully"); }
 	});
 }
 
@@ -1833,20 +1840,20 @@ function editEvent(id, element, mode)
 			$('#event_gig').hide();
 			$('#event_rehearsal').hide();
 			var type = $(this).prop('value');
-			if (type == 1 || type == 2) $('#event_rehearsal').show();
-			else if (type == 3 || type == 4) $('#event_gig').show();
-			$('input[name="gigcount"]').prop('checked', type == 3);
-			if (type == 2) $('#event_row_section').show();
+			if (type == 'rehearsal' || type == 'sectional') $('#event_rehearsal').show();
+			else if (type == 'volunteer' || type == 'tutti') $('#event_gig').show();
+			$('input[name="gigcount"]').prop('checked', type == 'volunteer');
+			if (type == 'sectional') $('#event_row_section').show();
 			else $('#event_row_section').hide();
 			if (! id)
 			{
-				$('input[name="gigcount"]').prop('checked', type == 3);
+				$('input[name="gigcount"]').prop('checked', type == 'volunteer');
 				var points = 10;
-				if (type == 0) points = 0;
-				if (type == 2) points = 5;
-				else if (type == 4) points = 35;
+				if (type == 'other') points = 0;
+				if (type == 'sectional') points = 5;
+				else if (type == 'tutti') points = 35;
 				$('#event_row_points').find('input').prop('value', points);
-				if (type == 1 || type == 2) $('select[name="repeat"]').prop('value', 'weekly');
+				if (type == 'rehearsal' || type == 'sectional') $('select[name="repeat"]').prop('value', 'weekly');
 				else $('select[name="repeat"]').prop('value', 'no');
 			}
 			$('select[name="repeat"]').trigger('change');

@@ -101,16 +101,16 @@ foreach ($fields as $category => $catfields)
 			// The special cases
 			case '.type':
 				$html .= "<select name='type' style='width: 200px'";
-				if ($eventNo && $value <= 2) $html .= ' disabled';
+				if ($eventNo && $value != 'volunteer' && $value != 'tutti') $html .= ' disabled';
 				$html .= ">";
 				$sql = "select * from `eventType`";
 				$result = mysql_query($sql);
 				while ($row = mysql_fetch_array($result))
 				{
-					if ($eventNo && $value > 2 && $row['typeNo'] <= 2) continue;
-					$html .= "<option value='" . $row['typeNo'] . "'";
-					if ($row['typeNo'] == $value) $html .= ' selected';
-					$html .= ">" . $row['typeName'] . "</option>";
+					if ($eventNo && ($value == 'volunteer' || $value == 'tutti') && $row['id'] != 'volunteer' && $row['id'] != 'tutti') continue;
+					$html .= "<option value='" . $row['id'] . "'";
+					if ($row['id'] == $value) $html .= ' selected';
+					$html .= ">" . $row['name'] . "</option>";
 				}
 				$html .= "</select>";
 				break;

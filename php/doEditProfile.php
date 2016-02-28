@@ -40,6 +40,8 @@ if (! preg_match("/[0-9]{1,2}/", $_POST["passengers"])) die("Invalid number of p
 $reg = mysql_real_escape_string($_POST["registration"]);
 if ($reg != "class" && $reg != "club") die("Invalid registration");
 
+$choir = "glee"; # TODO
+
 $sql = "";
 if ($user)
 {
@@ -70,16 +72,16 @@ function cancel()
 mysql_query("begin");
 if (! mysql_query($sql)) cancel();
 if ($user && ! mysql_query("update `activeSemester` set `enrollment` = '$reg' where `member` = '$newemail' and `semester` = '$CUR_SEM'")) cancel();
-if (! $user && ! mysql_query("insert into `activeSemester` (`member`, `semester`, `enrollment`) values ('$newemail', '$CUR_SEM', '$reg')")) cancel();
+if (! $user && ! mysql_query("insert into `activeSemester` (`member`, `semester`, `choir`, `enrollment`) values ('$newemail', '$CUR_SEM', '$choir', '$reg')")) cancel();
 if (! $user)
 {
-	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$CUR_SEM' and (`type` = 1 or `type` = 3 or `type` = 4)")) cancel();
-	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$CUR_SEM' and `type` = 2 and `section` = '$newsect'")) cancel();
+	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$CUR_SEM' and `choir` = '$choir' and (`type` = 'rehearsal' or `type` = 'volunteer' or `type` = 'tutti')")) cancel();
+	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$CUR_SEM' and `choir` = '$choir' and `type` = 'sectional' and `section` = '$newsect'")) cancel();
 }
 if ($user && $newsect != $oldsect)
 {
-	if (! mysql_query("delete from `attends` where `memberID` = '$newemail' and `eventNo` in (select `eventNo` from `event` where `type` = 2) and (select `callTime` from `event` where `event`.`eventNo` = `attends`.`eventNo`) > current_timestamp")) cancel();
-	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$CUR_SEM' and `type` = 2 and `section` = '$newsect' and `callTime` > current_timestamp")) cancel();
+	if (! mysql_query("delete from `attends` where `memberID` = '$newemail' and `eventNo` in (select `eventNo` from `event` where `type` = 'sectional' and `choir` = '$choir') and (select `callTime` from `event` where `event`.`eventNo` = `attends`.`eventNo`) > current_timestamp")) cancel();
+	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$CUR_SEM' and `choir` = '$choir' and `type` = 'sectional' and `section` = '$newsect' and `callTime` > current_timestamp")) cancel();
 }
 if (! $user || $user == $email) setcookie("email", base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $newemail, MCRYPT_MODE_ECB)), time() + 60 * 60 * 24 * 120, "/", false, false);
 mysql_query("commit");

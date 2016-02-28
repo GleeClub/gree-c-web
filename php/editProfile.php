@@ -44,7 +44,7 @@ $fields = array(
 	"techYear" => array("How many years have you been at GT?", "number", 0),
 	"gChat" => array("GChat screen name", "text", 0),
 	"twitter" => array("Twitter handle", "text", 0),
-	"gatewayDrug" => array("How did you hear about the Glee Club?", "text", 0),
+	"gatewayDrug" => array("How did you hear about this organization?", "text", 0),
 	"conflicts" => array("Any conflicts we should know about", "text", 0),
 );
 

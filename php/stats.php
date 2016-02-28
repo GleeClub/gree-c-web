@@ -10,7 +10,8 @@ if(!getuser())
 
 function user_money_table($memberID)
 {
-	$sql = "select * from transaction where memberID = '$memberID' and `resolved` = '0' order by time desc";
+	$choir = getchoir();
+	$sql = "select * from `transaction` where `memberID` = '$memberID' and `choir` = '$choir' and `resolved` = '0' order by time desc";
 	$transactions = mysql_query($sql);
 	if (mysql_num_rows($transactions) == 0) return "<span style='color: gray'>(No transactions)</span><br>";
 	$html = "<table style='width: 100%'>";
@@ -98,9 +99,10 @@ function info($userEmail)
 	}
 	$html .= "<br>";
 	$balance = balance($userEmail);
-	if ($balance > 0) $html .= "The Glee Club owes you <span style='font-weight: bold; color: blue'>\$$balance</span>.";
-	else if ($balance < 0) { $balance *= -1; $html .= "You owe the Glee Club <span style='font-weight: bold; color: red'>\$$balance</span>."; }
-	else $html .= "Your Glee Club balance is <span style='font-weight: bold'>\$0</span>.";
+	$choir = choirname(getchoir());
+	if ($balance > 0) $html .= "$choir owes you <span style='font-weight: bold; color: blue'>\$$balance</span>.";
+	else if ($balance < 0) { $balance *= -1; $html .= "You owe $choir <span style='font-weight: bold; color: red'>\$$balance</span>."; }
+	else $html .= "Your $choir balance is <span style='font-weight: bold'>\$0</span>.";
 	$html .= "<br><br>" . user_money_table($userEmail);
 	return "$html";
 }

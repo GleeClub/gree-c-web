@@ -10,7 +10,7 @@ if($n) {
 	$toenc = $email . " $now";
 	$enc = encrypt2($toenc);
 	$msg = "We have received a request to reset your password on Gree-C-Web.  To reset your password, <a href='" .
-"http://mensgleeclub.gatech.edu/buzz/php/resetPassword.php?enc=" . $enc . "'>click here.</a>  If you did not request " .
+"$BASEURL/php/resetPassword.php?enc=" . $enc . "'>click here.</a>  If you did not request " .
 "a password reset, please ignore this email.";
 	$headers  = 'MIME-Version: 1.0' . "\n";
 	$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\n";

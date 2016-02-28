@@ -20,7 +20,7 @@ if (! attendancePermission($userEmail, $eventNo))
 	$event = mysql_fetch_array(mysql_query("select * from `event` where `eventNo` = '$eventNo'"));
 	if ($action == "did") die();
 	if ($action == "should" && strtotime($event['callTime'] < strtotime('+1 day')) && $value != 1) die();
-	if ($action == "should" && $event['type'] != 3 && $value != 1) die();
+	if ($action == "should" && $event['type'] != 'volunteer' && $value != 1) die();
 	if ($action == "late") die();
 	if ($action == "confirmed" && $value == "0") die();
 	if ($action == "excuse_all") die();

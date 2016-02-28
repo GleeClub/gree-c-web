@@ -10,11 +10,6 @@ function actionOptions($userEmail)
 		$officerOptions .= '
 			<li><a href="#addAnnouncement">Make an Announcement</a></li>';
 	}
-	if (canEditEvents($userEmail))
-	{
-		$officerOptions .= '
-			<li><a href="#event">Add/Remove Event</a></li> ';
-	}
 	if (hasPosition($userEmail, "Treasurer") || isUber($userEmail))
 	{
 		$officerOptions .= '
@@ -23,7 +18,6 @@ function actionOptions($userEmail)
 	if (isUber($userEmail))
 	{
 		$officerOptions .= '
-			<li><a href="timeMachine">Look at Past Semesters</a></li>
 			<li><a href="#absenceRequest">Absence Requests</a></li>
 			<li><a href="#ties">Ties</a></li>
 			<li><a href="#semester">Edit Semester</a></li>
@@ -34,6 +28,8 @@ function actionOptions($userEmail)
 }
 
 if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
+$choir = getchoir();
+$choirname = choirname($choir);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,7 +60,7 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 	<div class="navbar-inner">
 	<div class="container">
 		<ul class="nav">
-			<li><a class="brand" href="index.php">Greasy Web</a></li>
+			<li><a class="brand" href="index.php"><?php echo $choirname; ?></a></li>
 			<li class="divider-vertical"></li>
 			<?php if ($userEmail) { ?>
 			<li><a href="#chatbox">Chatbox</a></li>
@@ -73,12 +69,12 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 			<li class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">Events <b class="caret"></b></a>
 				<ul class="dropdown-menu">
-					<li><a href="#allEvents">All</a></li>
-					<li><a href="#rehearsal">Rehearsal</a></li>
-					<li><a href="#sectional">Sectional</a></li>
-					<li><a href="#tutti">Tutti</a></li>
-					<li><a href="#volunteer">Volunteer</a></li>
-					<?php if (isOfficer($userEmail)) { ?> <li><a href="#pastEvents">Everything Ever</a></li> <?php } ?>
+					<li><a href="#events">All</a></li>
+					<?php foreach (eventTypes() as $id => $name) echo "<li><a href='#events:$id'>$name</a></li>"; ?>
+					<?php if (isOfficer($userEmail)) { ?>
+						<li><a href="#events:past">Everything Ever</a></li>
+						<li><a href="#event">Create/Delete</a></li>
+					<?php } ?>
 				</ul>
 			</li>
 			<li class="dropdown">
@@ -96,9 +92,10 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 				<ul class="dropdown-menu">
 					<?php if ($userEmail) { ?><li><a href="#repertoire">Repertoire</a></li><?php } ?>
 					<li><a href="#minutes">Meeting Minutes</a></li>
-					<li><a href="#syllabus">Syllabus</a></li>
-					<li><a href="#handbook">GC Handbook</a></li>
-					<li><a href="#constitution">GC Constitution</a></li>
+					<?php
+						$query = mysql_query("select * from `gdocs` where `choir` = '$choir'");
+						while ($row = mysql_fetch_array($query)) echo "<li><a href='#doc:" . $row['name'] . "'>" . $row['name'] . "</a></li>";
+					?>
 				</ul>
 			</li>
 			<li class="divider-vertical"></li>
@@ -117,7 +114,8 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 				<ul class="dropdown-menu">
 					<li><a href="#editProfile">My Profile</a></li>
 					<li><a href="php/logOut.php">Log Out</a></li>
-					<?php for (choirs() as $id => $name) echo "<li><a href='php/setChoir.php?choir=$id'>$name</a></li>" ?>
+					<li class="divider"><li>
+					<?php foreach (choirs() as $id => $name) echo "<li><a href='#' onclick='setChoir(\"$id\")' style='" . ($id == $choir ? "font-weight: bold" : "") . "'>$name</a></li>" ?>
 				</ul>
 			</li>
 		<?php } ?>
@@ -133,10 +131,10 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 	<div class="modal hide fade" id='confirmModal'>
 		<div class="modal-header">
 		 	<button type="button" class="close" data-dismiss="modal">×</button>
-		    <h3>Confirm your account for this semester!</h3>
+		    <h3>Confirm your account!</h3>
 		</div>
 		<div class="modal-body">
-		    <p>Will you be in the Glee Club this semester?  If not, hit Close and you will still be able to view the site, but you won't be assessed dues or expected at events.  If you are returning, please verify the information below, then hit Confirm to confirm your account.</p>
+			<p>Are you in <?php echo $choirname; ?> this semester?  If not, hit Close and you will still be able to view the site, but you won't be assessed dues or expected at events.  If you are returning, please verify the information below, then hit Confirm to confirm your account.</p>
 		<form class="form-horizontal">
 		    <div class="control-group">
 			<label class="control-label" style='font-weight: bold'>Registration:</label>
@@ -165,7 +163,8 @@ if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 			{
 				//if the user is not confirmed for the semester, prompt them to confirm
 				$arr = mysql_fetch_array(mysql_query("SELECT `location` FROM `member` WHERE `email` = '$userEmail'"));
-				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$userEmail' and `semester` = '$CUR_SEM'"));
+				if (! $choir) die("Choir is not set");
+				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$userEmail' and `semester` = '$CUR_SEM' and `choir` = '$choir'"));
 				if (! $confirmed)
 				{
 					$loc = addslashes($arr['location']);

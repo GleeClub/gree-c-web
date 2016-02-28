@@ -9,7 +9,7 @@ function eventFilters()
 	$sql = "select * from semester where 1 order by beginning desc";
 	$semesters = mysql_query($sql);
 
-	$sql = "select * from eventType where 1 order by typeName asc";
+	$sql = "select * from eventType where 1 order by name asc";
 	$types = mysql_query($sql);
 
 	$html = "
@@ -31,8 +31,8 @@ function eventFilters()
 				<h3>Choose the Event's Type</h3><br>";
 
 	while($row = mysql_fetch_array($types)){
-		$typeName = $row['typeName'];
-		$typeNo = $row['typeNo'];
+		$typeName = $row['name'];
+		$typeNo = $row['id'];
 		$html .= "
 				<button type='button' class='btn removeFilterBtn' name='type' id='$typeNo'>$typeName</button>";
 	}

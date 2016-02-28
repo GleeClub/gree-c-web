@@ -5,8 +5,10 @@ $newname = mysql_real_escape_string($_POST['newname']);
 $private = mysql_real_escape_string($_POST['private']);
 $public = mysql_real_escape_string($_POST['public']);
 if (! getuser() || ! isOfficer(getuser())) die("UNAUTHORIZED");
+$choir = getchoir();
+if (! $choir) die("NO_CHOIR");
 
-if ($id == '') $query = "insert into `minutes` (`date`, `name`, `private`, `public`)  values (curdate(), '$newname', '$private', '$public')"; // New record
+if ($id == '') $query = "insert into `minutes` (`choir`, `date`, `name`, `private`, `public`)  values ('$choir', curdate(), '$newname', '$private', '$public')"; // New record
 else if ($newname == ".DELETE") $query = "delete from `minutes` where `id` = '$id'";
 else $query = "update `minutes` set `name` = '$newname', `private` = '$private', `public` = '$public' where `id` = '$id'"; // Edit existing record
 if (mysql_query($query))

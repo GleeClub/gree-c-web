@@ -3,26 +3,26 @@
 require_once('functions.php');
 $userEmail = mysql_real_escape_string(getuser());
 
-if(getuser()) {
-	$text = $_POST['text'];
-	$sql = "INSERT INTO  `announcement` (`announcementNo`,`memberID`,`timePosted`,`announcement`) VALUES (NULL ,'$userEmail', NOW( ),'".mysql_real_escape_string($text)."');";
-	mysql_query($sql);
+if (!getuser()) die("Access denied");
+$choir = getchoir();
+if (! $choir) die("Choir not set");
+$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$choir'"));
+$sender = $row['admin'];
+$recipient = $row['list'];
 
-	$sql = "select * from member where email='$userEmail'";
-	$user = mysql_fetch_array(mysql_query($sql));
-	$firstName = $user['firstName'];
-	$prefName = $user['prefName'];
-	$lastName = $user['lastName'];
-	$position = $user['position'];
+$text = $_POST['text'];
+$sql = "INSERT INTO  `announcement` (`announcementNo`,`memberID`,`timePosted`,`announcement`) VALUES (NULL ,'$userEmail', NOW( ),'".mysql_real_escape_string($text)."');";
+mysql_query($sql);
 
-	$recipient = "gleeclub@lists.gatech.edu";
-	$subject = "Important message from your $position!";
+$sql = "select * from member where email='$userEmail'";
+$user = mysql_fetch_array(mysql_query($sql));
+$position = $user['position'];
 
-	$headers = 'Reply-To: Glee Club Officers <gleeclub_officers@lists.gatech.edu>' . "\n" .
-				'From: Glee Club Officers <gleeclub_officers@lists.gatech.edu>' . "\n" .
-				'X-Mailer: PHP/' . phpversion();
-	mail($recipient, $subject, $text, $headers);
-	//sendMessageEmail($recipient, $from, $text, $subject);
-}
+$subject = "Important message from your $position!";
 
+$headers = "Reply-To: $sender\n" .
+			"From: $sender\n" .
+			'X-Mailer: PHP/' . phpversion();
+mail($recipient, $subject, $text, $headers);
+//sendMessageEmail($recipient, $from, $text, $subject);
 ?>

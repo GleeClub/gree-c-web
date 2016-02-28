@@ -1,6 +1,8 @@
 <div class="span3 block" id=minutes_list><?php
 require_once('functions.php');
-$query = "select `id`, `name` from `minutes` order by `date` desc, `name`";
+$choir = getchoir();
+if (! $choir) die("Not logged in"); # FIXME
+$query = "select `id`, `name` from `minutes` where `choir` = '$choir' order by `date` desc, `name`";
 $results = mysql_query($query);
 if (! $results) die("Database query failed.");
 if (getuser() && isOfficer(getuser())) echo "<div style=\"padding-top: 5px\"><button class=\"btn\" style=\"padding: 5px; width: 100%\" id=minutes_add>Add Minutes</button></div>";

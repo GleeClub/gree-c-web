@@ -107,7 +107,8 @@ function prefFullNameFromEmail($email){
 function positions($email)
 {
 	global $CUR_SEM; // TODO Semester filtering
-	$result = mysql_query("select `role`.`name` from `role`, `memberRole` where `memberRole`.`member` = '" . mysql_real_escape_string($email) . "' and `memberRole`.`role` = `role`.`id` order by `role`.`rank` asc");
+	$choir = getchoir();
+	$result = mysql_query("select `role`.`name` from `role`, `memberRole` where `memberRole`.`member` = '" . mysql_real_escape_string($email) . "' and `memberRole`.`role` = `role`.`id` and `role`.`choir` = '$choir' order by `role`.`rank` asc");
 	if (mysql_num_rows($result) == 0) return array("Member");
 	$ret = array();
 	while ($row = mysql_fetch_array($result)) $ret[] = $row["name"];
@@ -118,7 +119,7 @@ function hasPosition($email, $position)
 {
 	if ($position == "Member")
 	{
-		if (mysql_num_rows(mysql_query("select * from `member` where `email` = '" . mysql_real_escape_string($email) . "'"))) return true;
+		if (mysql_num_rows(mysql_query("select * from `member` where `email` = '" . mysql_real_escape_string($email) . "'"))) return true; # TODO Active semester and choir filtering
 		return false;
 	}
 	if (array_search($position, positions($email)) !== false) return true;
@@ -135,7 +136,8 @@ function getPosition($position = "Member")
 		while ($row = mysql_fetch_array($result)) $ret[] = $row["email"];
 		return $ret;
 	}
-	$result = mysql_query("select `memberRole`.`member` as `member` from `role`, `memberRole` where `role`.`name` = '" . mysql_real_escape_string($position) . "' and `role`.`id` = `memberRole`.`role`");
+	$choir = getchoir();
+	$result = mysql_query("select `memberRole`.`member` as `member` from `role`, `memberRole` where `role`.`name` = '" . mysql_real_escape_string($position) . "' and `role`.`id` = `memberRole`.`role` and `role`.`choir` = '$choir'");
 	while($row = mysql_fetch_array($result)) $ret[] = $row["member"];
 	return $ret;
 }
@@ -150,7 +152,7 @@ function profilePic($email)
 	else return $result['picture'];
 }
 
-function sectionFromEmail($email, $friendly = 0)
+function sectionFromEmail($email, $friendly = 0) # FIXME different sections per member and choir
 {
 	if ($email == '') return 0;
 	$sql = "select `typeNo`, `typeName` from `member`, `sectionType` where `email` = '$email' and `section` = `typeNo`";
@@ -162,7 +164,8 @@ function enrollment($email, $semester = '')
 {
 	global $CUR_SEM;
 	if ($semester == '') $semester = $CUR_SEM;
-	$query = mysql_query("select `enrollment` from `activeSemester` where `member` = '$email' and `semester` = '$semester'");
+	$choir = getchoir();
+	$query = mysql_query("select `enrollment` from `activeSemester` where `member` = '$email' and `semester` = '$semester' and `choir` = '$choir'");
 	if (mysql_num_rows($query) != 1) return "inactive";
 	$result = mysql_fetch_array($query);
 	return $result['enrollment'];
@@ -195,7 +198,7 @@ function attendancePermission($email, $event)
 	if (isOfficer($email)) return true;
 	if (! hasPosition($email, "Section Leader")) return false;
 	$result = mysql_fetch_array(mysql_query("select `section`, `type` from `event` where `eventNo` = '$event'"));
-	if ($result['type'] != '2') return false;
+	if ($result['type'] != 'sectional') return false;
 	$eventSection = $result['section'];
 	if ($eventSection == 0) return true;
 	if (sectionFromEmail($email) == $eventSection) return true;
@@ -213,7 +216,8 @@ function members($cond = "")
 	global $CUR_SEM;
 	$ret = array("" => "(nobody)");
 	$sql = "";
-	if ($cond == "active") $sql = "select `member`.`firstName`, `member`.`lastName`, `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM' order by `member`.`lastName` asc";
+	$choir = getchoir();
+	if ($cond == "active") $sql = "select `member`.`firstName`, `member`.`lastName`, `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' order by `member`.`lastName` asc";
 	else $sql = "select `firstName`, `lastName`, `email` from `member` order by `lastName` asc";
 	$results = mysql_query($sql);
 	while ($row = mysql_fetch_array($results)) $ret[$row['email']] = $row['lastName'] . ", " . $row['firstName'];
@@ -235,7 +239,8 @@ function semesters()
 
 function fee($type)
 {
-	$query = mysql_query("select `amount` from `fee` where `choir` = 'glee' and `id` = '$type'");
+	$choir = getchoir();
+	$query = mysql_query("select `amount` from `fee` where `choir` = '$choir' and `id` = '$type'");
 	if (mysql_num_rows($query) == 0) return 0;
 	$row = mysql_fetch_array($query);
 	return $row["amount"];
@@ -250,7 +255,8 @@ function semesterDropdown()
 function sections()
 {
 	$ret = array();
-	$results = mysql_query("select * from `sectionType` order by `typeNo` desc");
+	$choir = getchoir();
+	$results = mysql_query("select * from `sectionType` where `choir` = '$choir' order by `typeNo` desc");
 	while ($row = mysql_fetch_array($results)) $ret[$row["typeNo"]] = $row["typeName"];
 	return $ret;
 }
@@ -258,7 +264,8 @@ function sections()
 function uniforms()
 {
 	$ret = array();
-	$result = mysql_query("select * from `uniform`");
+	$choir = getchoir();
+	$result = mysql_query("select * from `uniform` where `choir` = '$choir'");
 	while ($row = mysql_fetch_array($result)) $ret[$row["id"]] = $row["name"];
 	return $ret;
 }
@@ -271,11 +278,17 @@ function choirs()
 	return $ret;
 }
 
+function choirName($choir)
+{
+	$row = mysql_fetch_array(mysql_query("select `name` from `choir` where `id` = '$choir'"));
+	return $row["name"];
+}
+
 function eventTypes()
 {
 	$ret = array();
 	$result = mysql_query("select * from `eventType`");
-	while ($row = mysql_fetch_array($result)) $ret[$row["typeNo"]] = $row["typeName"];
+	while ($row = mysql_fetch_array($result)) $ret[$row["id"]] = $row["name"];
 	return $ret;
 	#if ($eventNo && $value > 2 && $row['typeNo'] <= 2) continue;
 }

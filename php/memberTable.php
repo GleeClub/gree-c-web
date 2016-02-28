@@ -96,6 +96,8 @@ function member_csv($conditions)
 }
 
 global $CUR_SEM;
+$choir = getchoir();
+if (! $choir) die("NULL choir");
 $conds = split(';', $_POST['cond']);
 $condarr = array();
 foreach ($conds as $cond)
@@ -106,16 +108,16 @@ foreach ($conds as $cond)
 	foreach ($subconds as $subcond)
 	{
 		if ($subcond == '') continue;
-		else if ($subcond == 'active') $subcondarr[] = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
-		else if ($subcond == 'inactive') $subcondarr[] = "not exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
-		else if ($subcond == 'class') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`) = 'class'";
-		else if ($subcond == 'club') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`) = 'club'";
+		else if ($subcond == 'active') $subcondarr[] = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`member` = `member`.`email`)";
+		else if ($subcond == 'inactive') $subcondarr[] = "not exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`member` = `member`.`email`)";
+		else if ($subcond == 'class') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`member` = `member`.`email`) = 'class'";
+		else if ($subcond == 'club') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`member` = `member`.`email`) = 'club'";
 		else if ($subcond == 'dues') $subcondarr[] = "(select sum(`transaction`.`amount`) from `transaction` where `transaction`.`semester` = '$CUR_SEM' and `transaction`.`type` = 'dues' and `transaction`.`memberID` = `member`.`email`) < 0";
 		//else if ($subcond == 'fail') $subcondarr[] = "`` = ''";
 		else if ($subcond == 'b2') $subcondarr[] = "`section` = '1'";
 		else if ($subcond == 'b1') $subcondarr[] = "`section` = '2'";
 		else if ($subcond == 't2') $subcondarr[] = "`section` = '3'";
-		else if ($subcond == 't1') $subcondarr[] = "`section` = '4'";
+		else if ($subcond == 't1') $subcondarr[] = "`section` = '4'"; // FIXME multichoir
 		
 	}
 	$condarr[] = join(' or ', $subcondarr);
@@ -126,7 +128,8 @@ if (! isOfficer(getuser())) $condstr = "exists (select * from `activeSemester` w
 
 if ($_POST['type'] == "print")
 {
-	echo "<html><head><meta charset='UTF-8'><title>Glee Club Roster</title></head><body>$style";
+	$choir = choirname(getchoir());
+	echo "<html><head><meta charset='UTF-8'><title>$choir Roster</title></head><body>$style";
 	echo member_table($condstr, "print");
 	echo "</body></html>";
 }
