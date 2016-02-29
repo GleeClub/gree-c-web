@@ -106,12 +106,12 @@ function checkHash()
 			var query = h.substring(0, h.indexOf(':'));
 			var arg = h.substring(h.indexOf(':') + 1);
 			if (query == 'minutes') showMinutes(arg);
+			else if (query == 'doc') loaddoc(arg);
 			else if (document.cookie.indexOf("email") == -1) loadLogin();
 			else if (query == 'events') loadEvents(arg);
 			else if (query == 'event') loadEvents('all', arg);
 			else if (query == 'profile') loadProfile(arg);
 			else if (query == 'song') showRepertoire(arg);
-			else if (query == 'doc') loaddoc(arg);
 			else $('#main').html("What's a " + query + "?");
 		}
 		else $('#main').html("I don't exist.");

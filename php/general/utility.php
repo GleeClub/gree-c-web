@@ -282,8 +282,9 @@ function choirs()
 	return $ret;
 }
 
-function choirName($choir)
+function choirname($choir)
 {
+	if (! $choir) return "Georgia Tech Choirs";
 	$row = mysql_fetch_array(mysql_query("select `name` from `choir` where `id` = '$choir'"));
 	return $row["name"];
 }

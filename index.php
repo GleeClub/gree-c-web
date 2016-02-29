@@ -86,7 +86,7 @@ $choirname = choirname($choir);
 					<?php if ($userEmail) actionOptions($userEmail); ?>
 				</ul>
 			</li>
-			<?php } ?>
+			<?php } if ($choir) { ?>
 			<li class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">Documents <b class="caret"></b></a>
 				<ul class="dropdown-menu">
@@ -99,7 +99,7 @@ $choirname = choirname($choir);
 				</ul>
 			</li>
 			<li class="divider-vertical"></li>
-			<?php if ($userEmail) { ?>
+			<?php } if ($userEmail) { ?>
 			<li>
 				<form class="navbar-search pull-left">
 					<input type="text" class="search-query" data-provide="typeahead"  data-items="4" data-source='["Taylor","Drew","Tot"]'>
