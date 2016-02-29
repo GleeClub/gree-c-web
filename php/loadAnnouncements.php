@@ -1,9 +1,11 @@
 <?php
 require_once('functions.php');
 $userEmail = getuser();
+$choir = getchoir();
+if (! $choir) die("Choir not set");
 echo "<div class='span6 block'>";
 	//announcements
-	$sql = "SELECT * FROM `announcement` ORDER BY `timePosted` DESC";
+	$sql = "SELECT * FROM `announcement` where `choir` = '$choir' ORDER BY `timePosted` DESC";
 	$result = mysql_query($sql);
 	while($announcement=mysql_fetch_array($result)){
 		$timestamp = strtotime($announcement['timePosted']);

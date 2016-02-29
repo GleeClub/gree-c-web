@@ -207,4 +207,110 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	if ($mode == 0) return $score;
 	else return $tableOpen . $eventRows . $tableClose;
 }
+
+function rosterPropList($type)
+{
+	$userEmail = getuser();
+	$officer = isOfficer($userEmail);
+	$uber = isUber($userEmail);
+	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
+	if ($officer)
+	{
+		$cols["Enrollment"] = 40;
+	}
+	if ($uber || hasPosition($userEmail, "Treasurer"))
+	{
+		$cols["Balance"] = 60;
+		$cols["Dues"] = 60;
+		$cols["Tie"] = 40;
+	}
+	if ($uber)
+	{
+		$cols["Gigs"] = 40;
+		$cols["Score"] = 60;
+	}
+	if ($type == 'print')
+	{
+		unset($cols["Contact"]);
+		unset($cols["Location"]);
+		unset($cols["Balance"]);
+	}
+	return $cols;
+}
+
+function rosterProp($member, $prop)
+{
+	global $CUR_SEM;
+	$choir = getchoir();
+	if (! $choir) die("No choir selected");
+	$html = '';
+	switch ($prop)
+	{
+		case "Section":
+			$section = mysql_fetch_array(mysql_query("select `sectionType`.`name` from `sectionType`, `activeSemester` where `sectionType`.`id` = `activeSemester`.`section` and `activeSemester`.`choir` = '$choir' and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = '" . $member["email"] . "'"));
+			$html .= $section['name'];
+			break;
+		case "Contact":
+			$html .= "<a href='tel:" . $member["phone"] . "'>" . $member["phone"] . "</a><br><a href='mailto:" . $member['email'] . "'>" . $member["email"] . "</a>";
+			break;
+		case "Location":
+			$html .= $member["location"];
+			break;
+		case "Enrollment":
+			$enr = enrollment($member["email"]);
+			if ($enr == "class") $html .= "<span style=\"color: blue\">class</span>";
+			else if ($enr == "club") $html .= "club";
+			else $html .= "<span style=\"color: gray\">inactive</span>";
+			break;
+		case "Balance":
+			$balance = balance($member['email']);
+			if ($balance < 0) $html .= "<span class='moneycell' style='color: red'>$balance</span>";
+			else $html .= "<span class='moneycell'>$balance</span>";
+			break;
+		case "Dues":
+			$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `balance` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'dues' and `semester` = '$CUR_SEM'"));
+			$balance = $result['balance'];
+			if ($balance == '') $balance = 0;
+			if ($balance >= 0) $html .= "<span class='duescell' style='color: green'>$balance</span>";
+			else $html .= "<span class='duescell' style='color: red'>$balance</span>";
+			break;
+		case "Gigs":
+			$gigcount = attendance($member["email"], 3);
+			$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$CUR_SEM'"));
+			$gigreq = $result['gigreq'];
+			if ($gigcount >= $gigreq) $html .= "<span class='gigscell' style='color: green'>";
+			else $html .= "<span class='gigscell' style='color: red'>";
+			$html .= "$gigcount</span>";
+			break;
+		case "Score":
+			if (enrollment($member["email"]) == 'inactive') $grade = "--";
+			else $grade = attendance($member["email"], 0);
+			$html .= "<span class='gradecell'";
+			if (enrollment($member["email"]) == "class" && $grade < 80) $html .= " style=\"color: red\"";
+			$html .= ">$grade</span>";
+			break;
+		case "Tie":
+			$html .= "<span class='tiecell' ";
+			$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `amount` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'deposit'"));
+			$tieamount = $result['amount'];
+			if ($tieamount == '') $tieamount = 0;
+			if ($tieamount >= fee("tie")) $html .= "style='color: green'";
+			else $html .= "style='color: red'";
+			$html .= ">";
+			$query = mysql_query("select `tie` from `tieBorrow` where `member` = '" . $member['email'] . "' and `dateIn` is null");
+			if (mysql_num_rows($query) != 0)
+			{
+				$result = mysql_fetch_array($query);
+				$html .= $result['tie'];
+			}
+			else $html .= "•";
+			$html .= "</span>";
+			break;
+		default:
+			$html .= "???";
+			break;
+	}
+	return $html;
+}
+
 ?>

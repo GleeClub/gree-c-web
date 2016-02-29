@@ -77,7 +77,7 @@ function createEvent($name, $type, $call, $done, $location, $points, $sem, $comm
 		else
 		{
 			if (! mysql_query("update `event` set `section` = '$section' where `eventNo` = '$eventNo'")) die("Failed to set section: " . mysql_error());
-			if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `email`, '$eventNo' from `member` where `section` = '$section' and `email` in (select `member` from `activeSemester` where `semester` = '$CUR_SEM' and `choir` = '$choir')")) die("Failed to create attends relation for sectional: " . mysql_error());
+			if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `member`, '$eventNo' from `activeSemester` where `section` = '$section' and `semester` = '$CUR_SEM' and `choir` = '$choir'")) die("Failed to create attends relation for sectional: " . mysql_error());
 		}
 	}
 	return $eventNo;

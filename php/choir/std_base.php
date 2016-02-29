@@ -51,21 +51,28 @@ function rosterPropList($type)
 {
 	$userEmail = getuser();
 	$uber = isUber($userEmail);
-	$cols = array("#" => 10, "Name" => 260, "Contact" => 180, "Location" => 200);
+	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
 	if ($uber || hasPosition($userEmail, "Treasurer"))
 	{
 		$cols["Balance"] = 60;
 		$cols["Dues"] = 60;
 	}
+	if ($uber) $cols["Score"] = 60;
 	return $cols;
 }
 
 function rosterProp($member, $prop)
 {
 	global $CUR_SEM;
+	$choir = getchoir();
+	if (! $choir) die("No choir selected");
 	$html = '';
 	switch ($prop)
 	{
+		case "Section":
+			$section = mysql_fetch_array(mysql_query("select `sectionType`.`name` from `sectionType`, `activeSemester` where `sectionType`.`id` = `activeSemester`.`section` and `activeSemester`.`choir` = '$choir' and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = '" . $member["email"] . "'"));
+			$html .= $section['name'];
+			break;
 		case "Contact":
 			$html .= "<a href='tel:" . $member["phone"] . "'>" . $member["phone"] . "</a><br><a href='mailto:" . $member['email'] . "'>" . $member["email"] . "</a>";
 			break;
@@ -83,6 +90,13 @@ function rosterProp($member, $prop)
 			if ($balance == '') $balance = 0;
 			if ($balance >= 0) $html .= "<span class='duescell' style='color: green'>$balance</span>";
 			else $html .= "<span class='duescell' style='color: red'>$balance</span>";
+			break;
+		case "Score":
+			if (enrollment($member["email"]) == 'inactive') $grade = "--";
+			else $grade = attendance($member["email"], 0);
+			$html .= "<span class='gradecell'";
+			if (enrollment($member["email"]) == "class" && $grade < 80) $html .= " style=\"color: red\"";
+			$html .= ">$grade</span>";
 			break;
 		default:
 			$html .= "???";

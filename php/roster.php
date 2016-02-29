@@ -7,10 +7,10 @@ echo "<div id='roster_table'></div>";
 if (isOfficer($userEmail))
 {
 	echo "<br><br>";
+		//<div class='btn-group'><button class='btn filter active' data-toggle='button' data-cond='b2'>B2</button><button class='btn filter active' data-toggle='button' data-cond='b1'>B1</button><button class='btn filter active' data-toggle='button' data-cond='t2'>T2</button><button class='btn filter active' data-toggle='button' data-cond='t1'>T1</button></div>
 	echo "<span class='pull-left'><div class='btn-toolbar' style='display: inline-block' id='roster_filters'>
 		<div class='btn-group'><button class='btn filter' data-toggle='button' data-cond='inactive'>Inactive</button><button class='btn filter active' data-toggle='button' data-cond='club'>Club</button><button class='btn filter active' data-toggle='button' data-cond='class'>Class</button></div>
 		<div class='btn-group'><button class='btn filter' data-toggle='button' data-cond='dues'>Dues unpaid</button></div>
-		<div class='btn-group'><button class='btn filter active' data-toggle='button' data-cond='b2'>B2</button><button class='btn filter active' data-toggle='button' data-cond='b1'>B1</button><button class='btn filter active' data-toggle='button' data-cond='t2'>T2</button><button class='btn filter active' data-toggle='button' data-cond='t1'>T1</button></div>
 		</div><span class='spacer'></span><a href='#' class='fmt_tbl' data-format='print'>Printable</a> &middot; <a href='#' class='fmt_tbl' data-format='csv'>CSV</a>
 		</span>";
 		//<div class='btn-group'><button class='btn filter' data-toggle='button' data-cond='fail'>Below 80%</button></div>

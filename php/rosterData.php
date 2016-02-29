@@ -4,7 +4,7 @@ $userEmail = getuser();
 
 function member_fields($email)
 {
-	$fieldnames = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
+	$fieldnames = array('firstName', 'prefName', 'lastName', 'position', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
 	$ret = array();
 	$member = mysql_fetch_array(mysql_query("select * from member where email = '$email'"), MYSQL_ASSOC);
 	foreach ($fieldnames as $field) $ret[$field] = $member[$field];
@@ -123,7 +123,7 @@ function active_semesters($memberID)
 {
 	$choir = getchoir();
 	if (! $choir) die("Choir is not set");
-	$table = "<style>table.semesters { width: auto; } table.semesters td { padding: 2px 10px; }</style><table class='semesters'><tr><th>Semester</th><th>Status</th><th>Score</th></tr>";
+	$table = "<style>table.semesters { width: auto; } table.semesters td { padding: 2px 10px; }</style><table class='semesters'><tr><th>Semester</th><th>Status</th><th>Section</th><th>Score</th></tr>";
 	$query = mysql_query("select `semester` from `semester` order by `beginning` asc");
 	while ($result = mysql_fetch_array($query))
 	{
@@ -143,7 +143,8 @@ function active_semesters($memberID)
 			"<button class='btn btn-small semesterbutton" . ($activebtn == 0 ? ' active' : '') . "' data-semester='$semester' data-val='0'>Inactive</button>" .
 			"<button class='btn btn-small semesterbutton" . ($activebtn == 1 ? ' active' : '') . "' data-semester='$semester' data-val='1'>Club</button>" .
 			"<button class='btn btn-small semesterbutton" . ($activebtn == 2 ? ' active' : '') . "' data-semester='$semester' data-val='2'>Class</button>" .
-			"</div></td><td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, 0, $semester) . "</span></td></tr>";
+			"</div></td><td>" . ($active ? "<span>" : "<span style='color: gray'>") . sectionFromEmail($memberID, true, $semester) . "</span></td>";
+			"<td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, 0, $semester) . "</span></td></tr>";
 	}
 	$table .= "</table>";
 	return $table;

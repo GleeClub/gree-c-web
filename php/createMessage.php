@@ -2,6 +2,7 @@
 require_once('functions.php');
 global $CUR_SEM;
 $email = getuser();
+$choir = getchoir();
 $members = explode(",", $_POST['members']);
 $members[] = getuser();
 $title = mysql_real_escape_string($_POST['title']);
@@ -21,7 +22,7 @@ foreach($members as $member) {
 	else if($member == "tenor2s") $section = 3;
 	else if($member == "baritones") $section = 2;
 	else if($member == "basses") $section = 1;
-	$sql = "select `member`.`email` from `member`, `activeSemester` where `member`.`section` = '$section' and `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM'";
+	$sql = "select `member`.`email` from `member`, `activeSemester` where `activeSemester`.`section` = '$section' and `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir'";
 	$res = mysql_query($sql);
 	while($array = mysql_fetch_array($res)) $members[] = $array['email'];
 }

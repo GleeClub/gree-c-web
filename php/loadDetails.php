@@ -5,10 +5,10 @@ $eventNo = $_POST['id'];
 
 function isgig($event)
 {
-	return ($event['type'] == 3 || $event['type'] == 4);
+	return ($event['type'] == 'volunteer' || $event['type'] == 'tutti');
 }
 
-function uniform($id)
+function uniform($id) # FIXME Use the values stored in the database rather than rewriting them!
 {
 	$sql = "select `uniform`.`name` as `uniform` from `gig`, `uniform` where `gig`.`eventNo` = '$id' and `gig`.`uniform` = `uniform`.`id`";
 	$res = mysql_fetch_array(mysql_query($sql));
@@ -25,10 +25,10 @@ function uniform($id)
 		$background = '#000';
 		$html .= 'Black<br>slacks';
 	}
-	else if ($uni == 'T-Shirt')
+	else if ($uni == 'GT/GC Casual')
 	{
 		$background = '#dc3';
-		$html .= 'T-Shirt';
+		$html .= 'GT/GC Casual';
 	}
 	else if ($uni == 'Casual')
 	{

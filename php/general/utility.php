@@ -108,7 +108,7 @@ function positions($email)
 {
 	global $CUR_SEM; // TODO Semester filtering
 	$choir = getchoir();
-	$result = mysql_query("select `role`.`name` from `role`, `memberRole` where `memberRole`.`member` = '" . mysql_real_escape_string($email) . "' and `memberRole`.`role` = `role`.`id` and `role`.`choir` = '$choir' order by `role`.`rank` asc");
+	$result = mysql_query("select `role`.`name` from `role`, `memberRole` where `memberRole`.`member` = '" . mysql_real_escape_string($email) . "' and `memberRole`.`role` = `role`.`id` and (`role`.`choir` = '$choir' or `role`.`name` = 'Webmaster') order by `role`.`rank` asc");
 	if (mysql_num_rows($result) == 0) return array("Member");
 	$ret = array();
 	while ($row = mysql_fetch_array($result)) $ret[] = $row["name"];
@@ -119,7 +119,7 @@ function hasPosition($email, $position)
 {
 	if ($position == "Member")
 	{
-		if (mysql_num_rows(mysql_query("select * from `member` where `email` = '" . mysql_real_escape_string($email) . "'"))) return true; # TODO Active semester and choir filtering
+		if (mysql_num_rows(mysql_query("select * from `member` where `email` = '" . mysql_real_escape_string($email) . "'"))) return true; # TODO Active semester
 		return false;
 	}
 	if (array_search($position, positions($email)) !== false) return true;
@@ -152,12 +152,16 @@ function profilePic($email)
 	else return $result['picture'];
 }
 
-function sectionFromEmail($email, $friendly = 0) # FIXME different sections per member and choir
+function sectionFromEmail($email, $friendly = 0, $semester = "")
 {
-	if ($email == '') return 0;
-	$sql = "select `typeNo`, `typeName` from `member`, `sectionType` where `email` = '$email' and `section` = `typeNo`";
-	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	return $friendly ? $result['typeName'] : $result['typeNo'];
+	global $CUR_SEM;
+	if ($semester == "") $semester = $CUR_SEM;
+	if ($email == '') return ($friendly ? "" : 0);
+	$choir = getchoir();
+	$sql = mysql_query("select `sectionType`.`id`, `sectionType`.`name` from `activeSemester`, `sectionType` where `activeSemester`.`member` = '$email' and `activeSemester`.`section` = `sectionType`.`id` and `activeSemester`.`semester` = '$semester' and `activeSemester`.`choir` = '$choir'");
+	if (mysql_num_rows($sql) == 0) return ($friendly ? "" : 0);
+	$result = mysql_fetch_array($sql, MYSQL_ASSOC);
+	return $friendly ? $result['name'] : $result['id'];
 }
 
 function enrollment($email, $semester = '')
@@ -256,8 +260,8 @@ function sections()
 {
 	$ret = array();
 	$choir = getchoir();
-	$results = mysql_query("select * from `sectionType` where `choir` = '$choir' order by `typeNo` desc");
-	while ($row = mysql_fetch_array($results)) $ret[$row["typeNo"]] = $row["typeName"];
+	$results = mysql_query("select * from `sectionType` where `choir` = '$choir' order by `id` desc");
+	while ($row = mysql_fetch_array($results)) $ret[$row["id"]] = $row["name"];
 	return $ret;
 }
 

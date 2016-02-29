@@ -109,10 +109,11 @@ function info($userEmail)
 
 function announcements($userEmail)
 {
+	$choir = getchoir();
 	$html = "<p class='lead'>Announcements <small>–Obviously each thing is the most important thing.</small></p>";
 	//announcement block
 	//Show only announcements less than a month old and unarchived
-	$sql = "SELECT * FROM `announcement` WHERE date_add(timePosted, INTERVAL 1 MONTH) > now()  AND `archived`=0 ORDER BY `timePosted` DESC LIMIT 0, 3";
+	$sql = "SELECT * FROM `announcement` WHERE date_add(timePosted, INTERVAL 1 MONTH) > now() and `choir` = '$choir' AND `archived`=0 ORDER BY `timePosted` DESC LIMIT 0, 3";
 	$result = mysql_query($sql);
 	while ($announcement=mysql_fetch_array($result))
 	{

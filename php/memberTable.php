@@ -12,32 +12,8 @@ span.spacer { display: inline-block; width: 20px; }
 function member_table($conditions, $type = 'normal')
 {
 	global $CUR_SEM;
-	$userEmail = getuser();
-	$officer = isOfficer($userEmail);
-	$uber = isUber($userEmail);
-	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
-	if ($officer)
-	{
-		$cols["Enrollment"] = 40;
-	}
-	if ($uber || hasPosition($userEmail, "Treasurer"))
-	{
-		$cols["Balance"] = 60;
-		$cols["Dues"] = 60;
-		$cols["Tie"] = 40;
-	}
-	if ($uber)
-	{
-		$cols["Gigs"] = 40;
-		$cols["Score"] = 60;
-	}
-	if ($type == 'print')
-	{
-		unset($cols["Contact"]);
-		unset($cols["Location"]);
-		unset($cols["Balance"]);
-	}
-
+	
+	$cols = rosterPropList($type);
 	$sql = 'select * from `member` order by `lastName` asc, `firstName` asc';
 	if ($conditions != '' && $conditions != '()') $sql = 'select * from `member` where ' . $conditions . ' order by `lastName` asc, `firstName` asc';
 	$members = mysql_query($sql);
@@ -113,12 +89,6 @@ foreach ($conds as $cond)
 		else if ($subcond == 'class') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`member` = `member`.`email`) = 'class'";
 		else if ($subcond == 'club') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`member` = `member`.`email`) = 'club'";
 		else if ($subcond == 'dues') $subcondarr[] = "(select sum(`transaction`.`amount`) from `transaction` where `transaction`.`semester` = '$CUR_SEM' and `transaction`.`type` = 'dues' and `transaction`.`memberID` = `member`.`email`) < 0";
-		//else if ($subcond == 'fail') $subcondarr[] = "`` = ''";
-		else if ($subcond == 'b2') $subcondarr[] = "`section` = '1'";
-		else if ($subcond == 'b1') $subcondarr[] = "`section` = '2'";
-		else if ($subcond == 't2') $subcondarr[] = "`section` = '3'";
-		else if ($subcond == 't1') $subcondarr[] = "`section` = '4'"; // FIXME multichoir
-		
 	}
 	$condarr[] = join(' or ', $subcondarr);
 }

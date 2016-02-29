@@ -11,7 +11,7 @@ $sender = $row['admin'];
 $recipient = $row['list'];
 
 $text = $_POST['text'];
-$sql = "INSERT INTO  `announcement` (`announcementNo`,`memberID`,`timePosted`,`announcement`) VALUES (NULL ,'$userEmail', NOW( ),'".mysql_real_escape_string($text)."');";
+$sql = "INSERT INTO  `announcement` (`announcementNo`, `choir`, `memberID`,`timePosted`,`announcement`) VALUES (NULL, '$choir', '$userEmail', NOW( ),'".mysql_real_escape_string($text)."');";
 mysql_query($sql);
 
 $sql = "select * from member where email='$userEmail'";
