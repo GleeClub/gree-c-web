@@ -22,7 +22,7 @@ function getEventType($id){
 }
 
 function getEventName($eventNo){
-	$eventSql = "SELECT name from `event` where id='$eventNo'";
+	$eventSql = "SELECT name from `event` where eventNo='$eventNo'";
 	$eventResults = mysql_fetch_array(mysql_query($eventSql));
 	return $eventResults['name'];
 }
