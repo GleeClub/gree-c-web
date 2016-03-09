@@ -2566,7 +2566,7 @@ function showRepertoire(firstid)
 					$('#song_edit_desc').attr('value', "");
 					$('#edit_song_accept').click(function() {
 						$.post('php/doEditSong.php', { action : "add", name : $('#song_edit_name').attr('value'), desc : $('#song_edit_desc').attr('value') }, function(data) {
-							if (data != "FAIL")
+							if (data == parseInt(data, 10))
 							{
 								$('#repertoire_table').prepend("<tr><td class=\"repertoire_row\" id=\"row_" + data + "\">" + $('#song_edit_name').attr('value') + "</td></tr>");
 								$('.repertoire_row').click(repertoire_row_click);

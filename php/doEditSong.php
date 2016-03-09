@@ -9,21 +9,12 @@ $note = mysql_real_escape_string($_POST['note']);
 $current = mysql_real_escape_string($_POST['current']);
 $choir = getchoir();
 if (! $choir) die("Choir is not set");
-if (! getuser() || ! isOfficer(getuser()))
-{
-	echo "UNAUTHORIZED";
-	exit(1);
-}
+if (! getuser() || ! isOfficer(getuser())) die("UNAUTHORIZED");
 if ($action == "add")
 {
-	$query = "insert into `song` (`choir`, title`, `info`) values ('$choir', '$title', '$info')";
-	if (mysql_query($query))
-	{
-		$query = "select `id` from `song` where `title` = '$title' and `info` = '$info'";
-		$result = mysql_fetch_array(mysql_query($query));
-		echo $result[0];
-	}
-	else echo "FAIL";
+	$query = "insert into `song` (`choir`, `title`, `info`) values ('$choir', '$title', '$info')";
+	if (mysql_query($query)) echo mysql_insert_id();
+	else echo mysql_error();
 }
 else if ($action == "delete")
 {
@@ -32,31 +23,31 @@ else if ($action == "delete")
 	while ($result = mysql_fetch_array($sql)) repertoire_delfile($result[0]) || die("NODEL");
 	$query = "delete from `song` where `id` = '$id'";
 	if (mysql_query($query)) echo "OK";
-	else echo "FAIL";
+	else echo mysql_error();
 }
 else if ($action == "update")
 {
 	$query = "update `song` set `title` = '$title', `info` = '$info' where `id` = '$id'";
 	if (mysql_query($query)) echo "OK";
-	else echo "FAIL";
+	else echo mysql_error();
 }
 else if ($action == "current")
 {
 	$query = "update `song` set `current` = '$current' where `id` = '$id'";
 	if (mysql_query($query)) echo "OK";
-	else echo "FAIL";
+	else echo mysql_error();
 }
 else if ($action == "key")
 {
 	$query = "update `song` set `key` = '$note' where `id` = '$id'";
 	if (mysql_query($query)) echo "OK";
-	else echo "FAIL";
+	else echo mysql_error();
 }
 else if ($action == "pitch")
 {
 	$query = "update `song` set `pitch` = '$note' where `id` = '$id'";
 	if (mysql_query($query)) echo "OK";
-	else echo "FAIL";
+	else echo mysql_error();
 }
-else echo "FAIL";
+else echo "BAD_ACTION";
 ?>
