@@ -199,7 +199,7 @@ function canEditEvents($email)
 
 function attendancePermission($email, $event)
 {
-	if (isOfficer($email)) return true;
+	if (isOfficer($email) || canEditEvents($email)) return true;
 	if (! hasPosition($email, "Section Leader")) return false;
 	$result = mysql_fetch_array(mysql_query("select `section`, `type` from `event` where `eventNo` = '$event'"));
 	if ($result['type'] != 'sectional') return false;
