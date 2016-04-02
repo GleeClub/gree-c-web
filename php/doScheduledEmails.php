@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-$sql = "SELECT `event`.`eventNo`, `event`.`name`, `event`.`callTime`, `event`.`releaseTime`, `event`.`comments`, `event`.`location`, `uniform`.`name` as `uniform`, `eventType`.`name` as `type`
+$sql = "SELECT `event`.`eventNo`, `event`.`choir`, `event`.`name`, `event`.`callTime`, `event`.`releaseTime`, `event`.`comments`, `event`.`location`, `uniform`.`name` as `uniform`, `eventType`.`name` as `type`
 	FROM `event`, `eventType`, `gig`, `uniform`
 	WHERE `event`.`type` = `eventType`.`id`
 		AND `event`.`eventNo` = `gig`.`eventNo`
@@ -12,8 +12,7 @@ $sql = "SELECT `event`.`eventNo`, `event`.`name`, `event`.`callTime`, `event`.`r
 
 $result = mysql_query($sql);
 
-$choir = getchoir();
-if (! $choir) die("Choir not set");
+$choir = $result['choir'];
 $row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$choir'"));
 $sender = $row['admin'];
 $recipient = $row['list'];
