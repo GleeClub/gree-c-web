@@ -55,8 +55,7 @@ function member_csv($conditions)
 {
 	$userEmail = getuser();
 	if (! isOfficer($userEmail)) die("Access denied");
-	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major");
-
+	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major", "hometown");
 	$sql = 'SELECT * FROM `member` ORDER BY lastName asc, firstName asc';
 	if ($conditions != '') $sql = 'SELECT * FROM `member` where ' . $conditions . ' ORDER BY lastName asc, firstName asc';
 	$members = mysql_query($sql);
