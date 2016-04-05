@@ -53,11 +53,14 @@ function member_table($conditions, $type = 'normal')
 
 function member_csv($conditions)
 {
+	# FIXME No support for conditions right now
+	global $CUR_SEM;
 	$userEmail = getuser();
+	$choir = getchoir();
 	if (! isOfficer($userEmail)) die("Access denied");
-	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major", "hometown");
-	$sql = 'SELECT * FROM `member` ORDER BY lastName asc, firstName asc';
-	if ($conditions != '') $sql = 'SELECT * FROM `member` where ' . $conditions . ' ORDER BY lastName asc, firstName asc';
+	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major", "hometown", "section");
+	if ($conditions != '()') $conditions = ' and ' . $conditions;
+	$sql = "SELECT `member`.`lastName`, `member`.`firstName`, `member`.`prefName`, `member`.`email`, `member`.`phone`, `member`.`location`, `member`.`major`, `member`.`hometown`, `sectionType`.`name` as `section` FROM `member`, `activeSemester`, `sectionType` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `sectionType`.`id` = `activeSemester`.`section`  ORDER BY `member`.`lastName` asc, `member`.`firstName` asc";
 	$members = mysql_query($sql);
 
 	$ret = '"' . join('","', $cols) . "\"<br>";
@@ -95,6 +98,7 @@ $condstr = '(' . join(") and (", $condarr) . ')';
 
 if (! isOfficer(getuser())) $condstr = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
 
+$_POST['type'] = "csv";
 if ($_POST['type'] == "print")
 {
 	$choir = choirname(getchoir());
@@ -104,7 +108,7 @@ if ($_POST['type'] == "print")
 }
 else if ($_POST['type'] == "csv")
 {
-	header("Content-type: text/csv");
+	//header("Content-type: text/csv");
 	echo member_csv($condstr);
 }
 else if ($_POST['type'] == "normal")
