@@ -98,7 +98,6 @@ $condstr = '(' . join(") and (", $condarr) . ')';
 
 if (! isOfficer(getuser())) $condstr = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
 
-$_POST['type'] = "csv";
 if ($_POST['type'] == "print")
 {
 	$choir = choirname(getchoir());
