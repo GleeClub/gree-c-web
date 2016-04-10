@@ -82,14 +82,14 @@ if ($event['comments'] != '') $html .= '<div style="padding: 10px; margin-bottom
 $html .= '<div style="text-align: center">';
 if ($should) $html .= '<div class="infoblock" style="background: #060"><div>Attending</div></div>';
 else $html .= '<div class="infoblock" style="background: #c00"><div>Not<br>attending</div></div>';
-if ($event['type'] == 3 && $event['gigcount'] == 0) $html .= '<div class="infoblock" style="background: #f90"><div>No gig<br>credit</div></div>';
+if ($event['type'] == 'volunteer' && $event['gigcount'] == 0) $html .= '<div class="infoblock" style="background: #f90"><div>No gig<br>credit</div></div>';
 if (isgig($event)) $html .= uniform($eventNo);
 $html .= '<div class="infoblock" style="background: #888"><div><span style="font-size: 32px;">' . $event['points'] . '</span><br>points</div></div>';
 $html .= '</div>';
 $html .= '<div style="clear: both; text-align: center">';
 if (strtotime($event['callTime']) > time())
 {
-	if ($event['type'] == 3 && strtotime($event['callTime']) > strtotime('+1 day'))
+	if ($event['type'] == 'volunteer' && strtotime($event['callTime']) > strtotime('+1 day'))
 	{
 		if (! $confirmed || ! $should) $html .= "<div id='attend_will' class='btn event-btn' onclick='should_attend($eventNo, \"$userEmail\", 1)'>I <span style='color: green'>WILL</span><br>Attend</div>";
 		if (! $confirmed || $should) $html .= "<div id='attend_wont' class='btn event-btn' onclick='should_attend($eventNo, \"$userEmail\", 0)'>I <span style='color: red'>WILL NOT</span><br>Attend</div>";
