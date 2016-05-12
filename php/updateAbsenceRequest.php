@@ -1,9 +1,10 @@
 <?php
 
 require_once('./functions.php');
-$userEmail = getuser();
 
-function absenceEmail($recipient, $state, $event){
+function absenceEmail($recipient, $state, $event)
+{
+	global $CHOIR;
 	$to = prefNameFromEmail($recipient)." ".lastNameFromEmail($recipient)." <".$recipient.">"; //make it format: Chris Ernst <cernst3@gatech.edu>
 	$subject = "Absence Request " . ucfirst($state);
 	$msg = prefNameFromEmail($recipient) . ",<br><br> Your absence request for " . $event . " has been " . $state . ".";
@@ -49,9 +50,8 @@ function absenceEmail($recipient, $state, $event){
 	</body>
 	</html>
 	';
-	$choir = getchoir();
-	if (! $choir) die("Choir not set");
-	$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$choir'"));
+	if (! $CHOIR) die("Choir not set");
+	$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$CHOIR'"));
 	$sender = $row['admin'];
 	$recipient = $row['list'];
 	$headers = "Content-type:text/html;\n\n" .

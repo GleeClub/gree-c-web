@@ -1,10 +1,7 @@
 <?php
 require_once('functions.php');
-global $CUR_SEM;
-$email = getuser();
-$choir = getchoir();
 $members = explode(",", $_POST['members']);
-$members[] = getuser();
+$members[] = $USER;
 $title = mysql_real_escape_string($_POST['title']);
 $msg = mysql_real_escape_string($_POST['message']);
 
@@ -12,7 +9,7 @@ $sql = "insert into convoMaster (title, modified) values ('$title', now())";
 mysql_query($sql);
 $id = mysql_insert_id(); //Get the id generated from the previous query.
 
-$email = mysql_real_escape_string(getuser());
+$email = $USER;
 $sql = "insert into convoMessages (id, message, sender) values ('$id', '$msg', '$email')";
 mysql_query($sql);
 
@@ -22,7 +19,7 @@ foreach($members as $member) {
 	else if($member == "tenor2s") $section = 3;
 	else if($member == "baritones") $section = 2;
 	else if($member == "basses") $section = 1;
-	$sql = "select `member`.`email` from `member`, `activeSemester` where `activeSemester`.`section` = '$section' and `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir'";
+	$sql = "select `member`.`email` from `member`, `activeSemester` where `activeSemester`.`section` = '$section' and `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR'";
 	$res = mysql_query($sql);
 	while($array = mysql_fetch_array($res)) $members[] = $array['email'];
 }

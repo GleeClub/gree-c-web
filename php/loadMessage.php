@@ -1,14 +1,14 @@
 <?php
 //Load a single message given a message id
 require_once('functions.php');
-$userEmail = getuser();
-if(!getuser()){
+if(! $USER)
+{
 	loginBlock();
 	return;
 }
 
 $id = mysql_real_escape_string($_GET['id']);
-$email = mysql_real_escape_string($userEmail);
+$email = $USER;
 
 //Clear new messages for this convo.
 $sql = "update convoMembers set newMessages = 0 where id='$id' and email='$email'";

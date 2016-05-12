@@ -1,6 +1,5 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 
 $types = array();
 $semesters = array();

@@ -1,10 +1,10 @@
 <?php
 require_once('functions.php');
-if (! canEditEvents(getuser())) die("Access denied");
+if (! canEditEvents($USER)) die("Access denied");
 
 function eventEmail($eventNo,$type)
 {
-	GLOBAL $BASEURL;
+	GLOBAL $BASEURL, $CHOIR;
 	$sql = "select * from `eventType` where `id` = '$type'";
 	$eventType  =  mysql_fetch_array(mysql_query($sql));
 	$typeName = $eventType['name'];
@@ -33,13 +33,12 @@ function eventEmail($eventNo,$type)
 	$redirectURL = "$BASEURL/php/fromEmail.php";
 	$eventUrl = "$BASEURL/#event:$eventNo";
 
-	$choir = getchoir();
-	if (! $choir) die("Choir not set");
-	$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$choir'"));
+	if (! $CHOIR) die("Choir not set");
+	$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$CHOIR'"));
 	$sender = $row['admin'];
 	$recipient = $row['list'];
 	//$recipient = "Matthew Schauer <awesome@gatech.edu>";
-	$choirname = choirname($choir);
+	$choirname = choirname($CHOIR);
 	$subject = "New $choirname Event";
 	$headers = "Content-type:text/html;\n" .
 		"Reply-To: $sender\n" .
@@ -65,21 +64,20 @@ function eventEmail($eventNo,$type)
 // Add to event, and everyone's attending
 function createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, $gigcount, $section)
 {
-	global $CUR_SEM;
-	$choir = getchoir();
-	if (! $choir) die("No choir currently selected");
-	if (! mysql_query("insert into event (name, choir, callTime, releaseTime, points, comments, type, location, semester, gigcount) values ('$name', '$choir', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount')")) die("Failed to create event: " . mysql_error());
+	global $SEMESTER, $CHOIR;
+	if (! $CHOIR) die("No choir currently selected");
+	if (! mysql_query("insert into event (name, choir, callTime, releaseTime, points, comments, type, location, semester, gigcount) values ('$name', '$CHOIR', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount')")) die("Failed to create event: " . mysql_error());
 	$eventNo = mysql_insert_id();
 
 	if ($section >= 0 && strtotime($call) > strtotime('now')) // -1 for nobody to attend, 0 for everyone to attend
 	{
 		$shouldAttend = 1;
 		if (strtotime($call) < strtotime('+48 hours')) $shouldAttend = 0;
-		if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select `member`, '$eventNo', '$shouldAttend' from `activeSemester` where `semester` = '$CUR_SEM' and `choir` = '$choir'")) die("Failed to insert attends relations for event: " . mysql_error()); }
+		if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select `member`, '$eventNo', '$shouldAttend' from `activeSemester` where `semester` = '$SEMESTER' and `choir` = '$CHOIR'")) die("Failed to insert attends relations for event: " . mysql_error()); }
 		else
 		{
 			if (! mysql_query("update `event` set `section` = '$section' where `eventNo` = '$eventNo'")) die("Failed to set section: " . mysql_error());
-			if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `member`, '$eventNo' from `activeSemester` where `section` = '$section' and `semester` = '$CUR_SEM' and `choir` = '$choir'")) die("Failed to create attends relation for sectional: " . mysql_error());
+			if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `member`, '$eventNo' from `activeSemester` where `section` = '$section' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'")) die("Failed to create attends relation for sectional: " . mysql_error());
 		}
 	}
 	return $eventNo;

@@ -1,10 +1,10 @@
 <?
 require_once('functions.php');
-if (! isUber(getuser())) die("DENIED");
+if (! isUber($USER)) die("DENIED");
 
 function tietable($result)
 {
-	global $CUR_SEM;
+	global $SEMESTER;
 	echo "<table class='table'><tr><th>#</th><th>Status</th><th>Comments</th><th>Actions</th></tr>";
 	while ($row = mysql_fetch_array($result))
 	{
@@ -20,7 +20,7 @@ function tietable($result)
 			else if ($row['status'] == "Lost") $stat = "Lost by";
 			else $stat = "<span style='color: red'>$row[status]</span>; held by";
 			$status = "$stat <a href='#profile:$row[borrower]'>$row[borrowerName]</a> since $row[dateOut]";
-			$active = mysql_num_rows(mysql_query("select * from `activeSemester` where `member` = '$row[borrower]' and `semester` = '$CUR_SEM'"));
+			$active = mysql_num_rows(mysql_query("select * from `activeSemester` where `member` = '$row[borrower]' and `semester` = '$SEMESTER'"));
 			if ($active) $status .= "<br><span style='color: green'>Active</span> this semester";
 			else $status .= "<br><span style='color: red'>Inactive</span> this semester";
 			$deposit = mysql_fetch_array(mysql_query("select sum(`amount`) as `total` from `transaction` where `type` = 'deposit' and `memberID` = '$row[borrower]'"));

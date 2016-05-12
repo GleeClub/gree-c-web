@@ -1,8 +1,7 @@
 <?php
 //it would seem you cannot connect to the database from outside a function and inside a function
 require_once('functions.php');
-$userEmail = getuser();
-if(!getuser())
+if(! $USER)
 {
 	loginBlock();
 	exit(1);
@@ -10,8 +9,8 @@ if(!getuser())
 
 function user_money_table($memberID)
 {
-	$choir = getchoir();
-	$sql = "select * from `transaction` where `memberID` = '$memberID' and `choir` = '$choir' and `resolved` = '0' order by time desc";
+	global $CHOIR;
+	$sql = "select * from `transaction` where `memberID` = '$memberID' and `choir` = '$CHOIR' and `resolved` = '0' order by time desc";
 	$transactions = mysql_query($sql);
 	if (mysql_num_rows($transactions) == 0) return "<span style='color: gray'>(No transactions)</span><br>";
 	$html = "<table style='width: 100%'>";
@@ -56,9 +55,9 @@ function attendanceHistory($userEmail)
 
 function gigBlock($userEmail)
 {
-	global $CUR_SEM;
+	global $SEMESTER;
 	$count = attendance($userEmail, 3);
-	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$CUR_SEM'"));
+	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$SEMESTER'"));
 	$gigreq = $result['gigreq'];
 	if ($count < $gigreq) $precentProgress = floor(100 * $count / $gigreq);
 	else $precentProgress = 100;
@@ -72,9 +71,9 @@ function gigBlock($userEmail)
 
 function info($userEmail)
 {
-	global $CUR_SEM;
+	global $SEMESTER, $CHOIR;
 	$html = "";
-	$sql = "select sum(`amount`) as `balance` from `transaction` where `memberID` = '$userEmail' and `type` = 'dues' and `semester` = '$CUR_SEM'";
+	$sql = "select sum(`amount`) as `balance` from `transaction` where `memberID` = '$userEmail' and `type` = 'dues' and `semester` = '$SEMESTER'";
 	$result = mysql_fetch_array(mysql_query($sql));
 	$dues = $result['balance'];
 	if ($dues == '') $dues = 0;
@@ -99,7 +98,7 @@ function info($userEmail)
 	}
 	$html .= "<br>";
 	$balance = balance($userEmail);
-	$choir = choirname(getchoir());
+	$choir = choirname($CHOIR);
 	if ($balance > 0) $html .= "$choir owes you <span style='font-weight: bold; color: blue'>\$$balance</span>.";
 	else if ($balance < 0) { $balance *= -1; $html .= "You owe $choir <span style='font-weight: bold; color: red'>\$$balance</span>."; }
 	else $html .= "Your $choir balance is <span style='font-weight: bold'>\$0</span>.";
@@ -109,11 +108,11 @@ function info($userEmail)
 
 function announcements($userEmail)
 {
-	$choir = getchoir();
+	global $CHOIR;
 	$html = "<p class='lead'>Announcements <small>–Obviously each thing is the most important thing.</small></p>";
 	//announcement block
 	//Show only announcements less than a month old and unarchived
-	$sql = "SELECT * FROM `announcement` WHERE date_add(timePosted, INTERVAL 1 MONTH) > now() and `choir` = '$choir' AND `archived`=0 ORDER BY `timePosted` DESC LIMIT 0, 3";
+	$sql = "SELECT * FROM `announcement` WHERE date_add(timePosted, INTERVAL 1 MONTH) > now() and `choir` = '$CHOIR' AND `archived`=0 ORDER BY `timePosted` DESC LIMIT 0, 3";
 	$result = mysql_query($sql);
 	while ($announcement=mysql_fetch_array($result))
 	{
@@ -131,13 +130,13 @@ function announcements($userEmail)
 }
 
 echo "<div class='block span5' id='attendanceHistory'>";
-echo attendanceHistory($userEmail);
+echo attendanceHistory($USER);
 echo "</div><div class='span6 block' style='float:right'>";
-echo gigBlock($userEmail);
-echo info($userEmail);
+echo gigBlock($USER);
+echo info($USER);
 echo "</div><div class='span6 block' style='float:right'>";
-echo announcements($userEmail);
+echo announcements($USER);
 echo "</div><div class='span6 block' style='float:right'>";
-echo todoBlock($userEmail, true, true);
+echo todoBlock($USER, true, true);
 echo "</div>";
 ?>

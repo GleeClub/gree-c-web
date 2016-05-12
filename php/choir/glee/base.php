@@ -6,12 +6,11 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	// 1 for officer table
 	// 2 for member table
 	// 3 for gig count
-	global $CUR_SEM;
+	global $SEMESTER, $CHOIR;
 	$WEEK = 604800;
-	if ($semester == '') $semester = $CUR_SEM;
-	$choir = getchoir();
-	if (! $choir) die("No choir selected");
-	$sql = "select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `time`, `event`.`name`, `eventType`.`name` as `typeName`, `event`.`points` from `attends`, `event`, `eventType` where `attends`.`memberID` = '$memberID' and `event`.`eventNo` = `attends`.`eventNo` and `event`.`callTime` <= current_timestamp and `event`.`type` = `eventType`.`id` and `event`.`semester` = '$semester' and `event`.`choir` = '$choir' order by `event`.`callTime` asc";
+	if ($semester == '') $semester = $SEMESTER;
+	if (! $CHOIR) die("No choir selected");
+	$sql = "select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `time`, `event`.`name`, `eventType`.`name` as `typeName`, `event`.`points` from `attends`, `event`, `eventType` where `attends`.`memberID` = '$memberID' and `event`.`eventNo` = `attends`.`eventNo` and `event`.`callTime` <= current_timestamp and `event`.`type` = `eventType`.`id` and `event`.`semester` = '$semester' and `event`.`choir` = '$CHOIR' order by `event`.`callTime` asc";
 	$attendses = mysql_query($sql);
 	if (! $attendses) die("Couldn't fetch attendance: " . mysql_error());
 
@@ -45,7 +44,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	$gigcount = 0;
 	$lastRehearsal = 0;
 	$lastAttendedRehearsal = 0;
-	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$CUR_SEM'"));
+	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$SEMESTER'"));
 	$gigreq = $result['gigreq'];
 	//make sure the member has some attends relationships
 	if(mysql_num_rows($attendses) == 0)
@@ -210,15 +209,15 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 
 function rosterPropList($type)
 {
-	$userEmail = getuser();
-	$officer = isOfficer($userEmail);
-	$uber = isUber($userEmail);
+	global $USER;
+	$officer = isOfficer($USER);
+	$uber = isUber($USER);
 	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
 	if ($officer)
 	{
 		$cols["Enrollment"] = 40;
 	}
-	if ($uber || hasPosition($userEmail, "Treasurer"))
+	if ($uber || hasPosition($USER, "Treasurer"))
 	{
 		$cols["Balance"] = 60;
 		$cols["Dues"] = 60;
@@ -240,14 +239,13 @@ function rosterPropList($type)
 
 function rosterProp($member, $prop)
 {
-	global $CUR_SEM;
-	$choir = getchoir();
-	if (! $choir) die("No choir selected");
+	global $SEMESTER, $CHOIR;
+	if (! $CHOIR) die("No choir selected");
 	$html = '';
 	switch ($prop)
 	{
 		case "Section":
-			$section = mysql_fetch_array(mysql_query("select `sectionType`.`name` from `sectionType`, `activeSemester` where `sectionType`.`id` = `activeSemester`.`section` and `activeSemester`.`choir` = '$choir' and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = '" . $member["email"] . "'"));
+			$section = mysql_fetch_array(mysql_query("select `sectionType`.`name` from `sectionType`, `activeSemester` where `sectionType`.`id` = `activeSemester`.`section` and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = '" . $member["email"] . "'"));
 			$html .= $section['name'];
 			break;
 		case "Contact":
@@ -272,7 +270,7 @@ function rosterProp($member, $prop)
 			else $html .= "<span class='moneycell'>$balance</span>";
 			break;
 		case "Dues":
-			$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `balance` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'dues' and `semester` = '$CUR_SEM'"));
+			$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `balance` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'dues' and `semester` = '$SEMESTER'"));
 			$balance = $result['balance'];
 			if ($balance == '') $balance = 0;
 			if ($balance >= 0) $html .= "<span class='duescell' style='color: green'>$balance</span>";
@@ -280,7 +278,7 @@ function rosterProp($member, $prop)
 			break;
 		case "Gigs":
 			$gigcount = attendance($member["email"], 3);
-			$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$CUR_SEM'"));
+			$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$SEMESTER'"));
 			$gigreq = $result['gigreq'];
 			if ($gigcount >= $gigreq) $html .= "<span class='gigscell' style='color: green'>";
 			else $html .= "<span class='gigscell' style='color: red'>";

@@ -1,7 +1,6 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
-if (! canEditEvents($userEmail)) die("DENIED");
+if (! canEditEvents($USER)) die("DENIED");
 
 $eventNo = mysql_real_escape_string($_POST['id']);
 $event = array();
@@ -41,7 +40,7 @@ $fields = array(
 		array('donetime', 'Release Time', 'time'),
 		array('location', 'Location', 'text'),
 		array('points', 'Points', 'number'),
-		array('semester', 'Semester', 'select', semesters(), $CUR_SEM, false),
+		array('semester', 'Semester', 'select', semesters(), $SEMESTER, false),
 		array('comments', 'Comments', 'textarea'),
 		array('repeat', 'Repeat', 'select', array('no' => 'no', 'daily' => 'daily', 'weekly' => 'weekly', 'biweekly' => 'biweekly', 'monthly' => 'monthly', 'yearly' => 'yearly'), 'no', $eventNo),
 		array('until', 'Repeat Until', 'date'),

@@ -1,6 +1,5 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 $messageText = $_POST['message'];
 $SQLmessage = mysql_real_escape_string($messageText);
 $to = $_POST["otherPerson"];
@@ -8,13 +7,13 @@ $to = $_POST["otherPerson"];
 //for debug send all emails to me:
 //$to = "cernst3@gatech.edu";
 
-$sql = "INSERT INTO message (sender, recipient, contents) VALUES ('$userEmail', '$to', '$SQLmessage');";
+$sql = "INSERT INTO message (sender, recipient, contents) VALUES ('$USER', '$to', '$SQLmessage');";
 //echo $sql;
 mysql_query($sql);
 
 //if chris or drew, send an email
 if($to == "cernst3@gatech.edu" || $to == "ameloan3@gatech.edu"){
-	$sql = "SELECT * FROM `member` WHERE email='".$userEmail."';";
+	$sql = "SELECT * FROM `member` WHERE email='".$USER."';";
 	$result = mysql_fetch_array(mysql_query($sql));
 	$from = $result["prefName"]." ".$result["lastName"];
 	
@@ -68,8 +67,8 @@ if($to == "cernst3@gatech.edu" || $to == "ameloan3@gatech.edu"){
 	
 	//reply-to isn't working, but that seems to be alright because the form field is working.
 	$headers = 'Content-type:text/html;\n
-				Reply-To: '.$from.' <'.$userEmail.'>' . "\n" .
-				'From: '.$from.' <'.$userEmail.'>' . "\n" .
+				Reply-To: '.$from.' <'.$USER.'>' . "\n" .
+				'From: '.$from.' <'.$USER.'>' . "\n" .
 				'X-Mailer: PHP/' . phpversion();
 	
 	mail($toField, $subjectField, $messageField, $headers);

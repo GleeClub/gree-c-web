@@ -28,8 +28,7 @@ function actionOptions($userEmail)
 }
 
 if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
-$choir = getchoir();
-$choirname = choirname($choir);
+$choirname = choirname($CHOIR);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -83,14 +82,14 @@ $choirname = choirname($choir);
 					<?php if ($userEmail) actionOptions($userEmail); ?>
 				</ul>
 			</li>
-			<?php } if ($choir) { ?>
+			<?php } if ($CHOIR) { ?>
 			<li class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">Documents <b class="caret"></b></a>
 				<ul class="dropdown-menu">
 					<?php if ($userEmail) { ?><li><a href="#repertoire">Repertoire</a></li><?php } ?>
 					<li><a href="#minutes">Meeting Minutes</a></li>
 					<?php
-						$query = mysql_query("select * from `gdocs` where `choir` = '$choir'");
+						$query = mysql_query("select * from `gdocs` where `choir` = '$CHOIR'");
 						while ($row = mysql_fetch_array($query)) echo "<li><a href='#doc:" . $row['name'] . "'>" . $row['name'] . "</a></li>";
 					?>
 				</ul>
@@ -112,7 +111,7 @@ $choirname = choirname($choir);
 					<li><a href="#editProfile">My Profile</a></li>
 					<li><a href="php/logOut.php">Log Out</a></li>
 					<li class="divider"><li>
-					<?php foreach (choirs() as $id => $name) echo "<li><a href='#' onclick='setChoir(\"$id\")' style='" . ($id == $choir ? "font-weight: bold" : "") . "'>$name</a></li>" ?>
+					<?php foreach (choirs() as $id => $name) echo "<li><a href='#' onclick='setChoir(\"$id\")' style='" . ($id == $CHOIR ? "font-weight: bold" : "") . "'>$name</a></li>" ?>
 				</ul>
 			</li>
 		<?php } ?>
@@ -160,8 +159,8 @@ $choirname = choirname($choir);
 			{
 				//if the user is not confirmed for the semester, prompt them to confirm
 				$arr = mysql_fetch_array(mysql_query("SELECT `location` FROM `member` WHERE `email` = '$userEmail'"));
-				if (! $choir) die("Choir is not set");
-				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$userEmail' and `semester` = '$CUR_SEM' and `choir` = '$choir'"));
+				if (! $CHOIR) die("Choir is not set");
+				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$userEmail' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'"));
 				if (! $confirmed)
 				{
 					$loc = addslashes($arr['location']);

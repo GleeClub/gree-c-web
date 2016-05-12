@@ -2,7 +2,7 @@
 
 require_once('./functions.php');
 
-if (! isUber(getuser())) die("Access denied");
+if (! isUber($USER)) die("Access denied");
 if(! isset($_POST['eventNo'])) die("Missing event number");
 
 $eventNo = mysql_real_escape_string($_POST['eventNo']);

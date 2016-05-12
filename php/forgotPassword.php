@@ -2,7 +2,6 @@
 <body>
 <?php 
 require_once('functions.php');
-$userEmail = getuser();
 echo '<div class="block span3">';
 echo '
 	Enter your email below:<br />

@@ -7,12 +7,11 @@ $title = mysql_real_escape_string($_POST['name']);
 $info = mysql_real_escape_string($_POST['desc']);
 $note = mysql_real_escape_string($_POST['note']);
 $current = mysql_real_escape_string($_POST['current']);
-$choir = getchoir();
-if (! $choir) die("Choir is not set");
-if (! getuser() || ! isOfficer(getuser())) die("UNAUTHORIZED");
+if (! $CHOIR) die("Choir is not set");
+if (! $USER || ! isOfficer($USER)) die("UNAUTHORIZED");
 if ($action == "add")
 {
-	$query = "insert into `song` (`choir`, `title`, `info`) values ('$choir', '$title', '$info')";
+	$query = "insert into `song` (`choir`, `title`, `info`) values ('$CHOIR', '$title', '$info')";
 	if (mysql_query($query)) echo mysql_insert_id();
 	else echo mysql_error();
 }

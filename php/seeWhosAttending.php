@@ -1,12 +1,11 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 $eventNo = $_POST['eventNo'];
-$choir = getchoir();
+if (! $CHOIR) die("Choir is not set");
 
 $shouldHtml='<table class="every-other" width="100%"><tr><td><h3>Should Attend</h3></td></tr>';
 $shouldntHtml='<table class="every-other" width="100%"><tr><td><h3>Shouldn\'t Attend</h3></td></tr>';
-$sql = 'SELECT prefName,firstName,lastName,memberID,`attends`.`confirmed` as confirmed,shouldAttend,section FROM `attends`,`member`,`activeSemester` WHERE eventNo='.$eventNo.' AND memberID=email and `activeSemester`.`semester` = "'.$CUR_SEM.'" and `activeSemester`.`member` = `member`.`email` and `activeSemester`.`choir` = "'.$choir.'" order by confirmed DESC,section ASC,lastName ASC,firstName ASC';
+$sql = 'SELECT prefName,firstName,lastName,memberID,`attends`.`confirmed` as confirmed,shouldAttend,section FROM `attends`,`member`,`activeSemester` WHERE eventNo='.$eventNo.' AND memberID=email and `activeSemester`.`semester` = "'.$SEMESTER.'" and `activeSemester`.`member` = `member`.`email` and `activeSemester`.`choir` = "'.$CHOIR.'" order by confirmed DESC,section ASC,lastName ASC,firstName ASC';
 $results = mysql_query($sql);
 while($row = mysql_fetch_array($results, MYSQL_ASSOC)){
 	$section = $row['section'];

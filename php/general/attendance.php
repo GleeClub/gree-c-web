@@ -15,7 +15,7 @@ function balance($member)
 **/
 function getEventAttendanceRows($eventNo)
 {
-	global $CUR_SEM;
+	global $SEMESTER, $CHOIR;
 	$eventRows = "
 	<tr class='topRow'>
 		<td class='cellwrap'>Name</td>
@@ -27,7 +27,6 @@ function getEventAttendanceRows($eventNo)
 	</tr>";
 
 	$sections = array();
-	$choir = getchoir();
 	$sect = mysql_query("select `id`, `name` from `sectionType` where `id` > '0' order by `id` asc");
 	while ($s = mysql_fetch_array($sect)) $sections[$s["id"]] = $s["name"];
 	$unassigned = mysql_num_rows(mysql_query("select * from `member` where `section` = 0"));
@@ -35,7 +34,7 @@ function getEventAttendanceRows($eventNo)
 	foreach ($sections as $num => $name)
 	{
 		$eventRows .= "<tr><td colspan=6><b>$name</b></td></tr>";
-		$members = mysql_query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`section` = '$num' order by `member`.`lastName` asc");
+		$members = mysql_query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`section` = '$num' order by `member`.`lastName` asc");
 		while ($member = mysql_fetch_array($members)) $eventRows .= '<tr id="attends_' . $member['email'] . '_' . $eventNo . '">' . getSingleEventAttendanceRow($eventNo, $member['email']) . '</tr>';
 	}
 

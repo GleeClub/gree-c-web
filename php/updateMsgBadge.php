@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
 
-$i = getNumUnreadMessages(mysql_real_escape_string(getuser()));
+$i = getNumUnreadMessages($USER);
 echo $i;
 ?>

@@ -81,7 +81,8 @@ function getConvoTitle($id) {
 }
 
 function getConvoMembers($id, $email) {
-	$sql = "select distinct member.prefName, member.lastName from convoMembers left join member on member.email=convoMembers.email where convoMembers.id='$id' and convoMembers.email<>'" . mysql_real_escape_string(getuser()) ."'";
+	global $USER;
+	$sql = "select distinct member.prefName, member.lastName from convoMembers left join member on member.email=convoMembers.email where convoMembers.id='$id' and convoMembers.email<>'$USER'";
 	return mysql_query($sql);
 }
 

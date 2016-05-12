@@ -2,9 +2,8 @@
 //it would seem you cannot connect to the database from outside a function and inside a function
 require_once('functions.php');
 
-if (! getuser()) die("Access denied");
-$choir = getchoir();
-if (! $choir) die("Choir not set");
+if (! $USER) die("Access denied");
+if (! $CHOIR) die("Choir not set");
 echo "<div class='block'>
 		<h2>Speak unto thy people!</h2>
 		<br>

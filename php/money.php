@@ -1,8 +1,7 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 
-if (! isUber($userEmail) && ! hasPosition($userEmail, "Treasurer")) die("Access denied");
+if (! isUber($USER) && ! hasPosition($USER, "Treasurer")) die("Access denied");
 
 function transacTypes()
 {

@@ -1,6 +1,5 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 
 $sql = "select * from semester where 1 order by beginning desc";
 $semesters = mysql_query($sql);

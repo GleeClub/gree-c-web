@@ -1,6 +1,5 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 $eventNo = $_POST['eventNo'];
 
 $needRides = array();
@@ -12,7 +11,7 @@ $sql = "
 			SELECT email FROM carpool, ridesin LEFT JOIN member 
 				ON email=memberID 
 			WHERE carpool.carpoolID=ridesin.carpoolID AND carpool.eventNo=$eventNo)
-		AND exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)
+		AND exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = `member`.`email`)
 		AND attends.eventNo=$eventNo
 		AND attends.memberID=email
 	ORDER BY shouldAttend DESC, lastName ASC, firstName ASC";

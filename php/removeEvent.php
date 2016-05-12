@@ -4,8 +4,6 @@ require_once('functions.php');
 
 function eventFilters()
 {
-	$userEmail = getuser();
-
 	$sql = "select * from semester where 1 order by beginning desc";
 	$semesters = mysql_query($sql);
 

@@ -1,8 +1,8 @@
 <?php
 //Load the inbox of the user
 require_once('functions.php');
-$userEmail = getuser();
-if(!getuser()){
+if(!$USER)
+{
 	loginBlock();
 	return;
 }
@@ -15,7 +15,7 @@ function mostRecentMessageTime($id){
 	//return "time";
 }
 
-$email = mysql_real_escape_string(getuser());
+$email = mysql_real_escape_string($USER);
 //Get messages in 
 $res = getInbox($email);
 //echo "<h2>Inbox</h2><br />";
@@ -50,7 +50,7 @@ echo "</table>";
 
 //don't do this yet
 /*
-$sql = 'SELECT * FROM `message` WHERE sender="'.$userEmail.'" OR recipient="'.$userEmail.'";';
+$sql = 'SELECT * FROM `message` WHERE sender="'.$USER.'" OR recipient="'.$USER.'";';
 $results = mysql_query($sql);
 while($row = mysql_fetch_array($results)){
 	
@@ -60,15 +60,15 @@ while($row = mysql_fetch_array($results)){
 
 
 $html = '<table class="table" id="messagesListTable">';
-$sql = 'SELECT * FROM `member` WHERE email<>"'.$userEmail.'" ORDER BY `lastName` ASC;';
+$sql = 'SELECT * FROM `member` WHERE email<>"'.$USER.'" ORDER BY `lastName` ASC;';
 $results = mysql_query($sql);
 while($row = mysql_fetch_array($results)){
 
 	//make a list of everyone and the most recent message, ordered by time and then alphabet?
-	$sql2 = "SELECT * FROM `message` WHERE (sender='".$userEmail."' AND recipient='".$row['email']."') OR (sender='".$row['email']."' AND recipient='".$userEmail."') ORDER BY `timeSent` DESC LIMIT 1;";
+	$sql2 = "SELECT * FROM `message` WHERE (sender='".$USER."' AND recipient='".$row['email']."') OR (sender='".$row['email']."' AND recipient='".$USER."') ORDER BY `timeSent` DESC LIMIT 1;";
 	$results2 = mysql_fetch_array(mysql_query($sql2));
 	$mostRecentMessage = '';
-	if($results2['sender'] == $userEmail){
+	if($results2['sender'] == $USER){
 		$mostRecentMessage = '<i class="icon-share-alt"></i> ';
 	}
 	$mostRecentMessage = $mostRecentMessage.$results2['contents'];

@@ -1,10 +1,9 @@
 <?php
 error_reporting(E_ALL);
 require_once('functions.php');
-$userEmail = getuser();
 $eventNo = $_POST['eventNo'];
-$isOfficer = isOfficer($userEmail);
-if(isOfficer($userEmail)){
+$isOfficer = isOfficer($USER);
+if(isOfficer($USER)){
 	$html .= '<div class="btn" id="editCarpoolsButton">edit carpools</div>';
 }
 $html .= "<div id='carpools'>";
@@ -25,7 +24,7 @@ while($row = mysql_fetch_array($result, MYSQL_ASSOC)){
 	$passengerSpots = (passengerSpots($driver) !== "0") ? "<span class='badge badge-info'>".passengerSpots($driver)."</span>" : "";
 	$livesAt = "<span class='label'>".livesAt($driver)."</span>";
 	$phoneNumber = "<a href='tel:".phoneNumber($driver)."'>".phoneNumber($driver)."</a>";
-	if(isOfficer($userEmail)){
+	if(isOfficer($USER)){
 		$html .= "<div class='driver block'><div class='person' id='".$driver."'><table>
 		<tr>
 			<td class='carpoolLives'>".$livesAt."</td>

@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! getuser() || ! isOfficer(getuser())) die("DENIED");
+if (! $USER || ! isOfficer($USER)) die("DENIED");
 $name = mysql_real_escape_string($_POST['name']);
 $sDD = $_POST['sDD'];
 $sMM = $_POST['sMM'];

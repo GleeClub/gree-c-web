@@ -1,6 +1,5 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 $eventNo = $_POST['id'];
 
 function isgig($event)
@@ -46,7 +45,7 @@ $sql = "SELECT * FROM `event` WHERE eventNo = '$eventNo'";
 $result = mysql_query($sql);
 if (mysql_num_rows($result) != 1) die("The requested event could not be found: $eventNo.");
 $event = mysql_fetch_array($result);
-$attends = mysql_query("select `shouldAttend`, `confirmed` from `attends` where `eventNo` = '$eventNo' and `memberID` = '$userEmail'");
+$attends = mysql_query("select `shouldAttend`, `confirmed` from `attends` where `eventNo` = '$eventNo' and `memberID` = '$USER'");
 if (mysql_num_rows($attends) != 1)
 {
 	$confirmed = 0;
@@ -91,15 +90,15 @@ if (strtotime($event['callTime']) > time())
 {
 	if ($event['type'] == 'volunteer' && strtotime($event['callTime']) > strtotime('+1 day'))
 	{
-		if (! $confirmed || ! $should) $html .= "<div id='attend_will' class='btn event-btn' onclick='should_attend($eventNo, \"$userEmail\", 1)'>I <span style='color: green'>WILL</span><br>Attend</div>";
-		if (! $confirmed || $should) $html .= "<div id='attend_wont' class='btn event-btn' onclick='should_attend($eventNo, \"$userEmail\", 0)'>I <span style='color: red'>WILL NOT</span><br>Attend</div>";
+		if (! $confirmed || ! $should) $html .= "<div id='attend_will' class='btn event-btn' onclick='should_attend($eventNo, \"$USER\", 1)'>I <span style='color: green'>WILL</span><br>Attend</div>";
+		if (! $confirmed || $should) $html .= "<div id='attend_wont' class='btn event-btn' onclick='should_attend($eventNo, \"$USER\", 0)'>I <span style='color: red'>WILL NOT</span><br>Attend</div>";
 	}
 	else if ($should)
 	{
-		if (! $confirmed) $html .= "<div id='attend_confirm' class='btn event-btn btn-primary' onclick='is_confirmed($eventNo, \"$userEmail\", 1)'>Confirm I<br>Will Attend</div>";
+		if (! $confirmed) $html .= "<div id='attend_confirm' class='btn event-btn btn-primary' onclick='is_confirmed($eventNo, \"$USER\", 1)'>Confirm I<br>Will Attend</div>";
 		$html .= "<div id='requestAbsenceButton' class='btn event-btn'>Request<br>Absence</div>";
 	}
-	else $html .= "<div id='attend_will' class='btn event-btn' onclick='should_attend($eventNo, \"$userEmail\", 1)'>I <span style='color: green'>WILL</span><br>Attend</div>";
+	else $html .= "<div id='attend_will' class='btn event-btn' onclick='should_attend($eventNo, \"$USER\", 1)'>I <span style='color: green'>WILL</span><br>Attend</div>";
 }
 if (isgig($event))
 {
@@ -107,10 +106,10 @@ if (isgig($event))
 	$html .= '<div id="carpoolsButton" class="btn event-btn">View<br>Carpools</div>';
 	$html .= '<div id="setlistButton" class="btn event-btn">Set<br>List</div>';
 }
-if (attendancePermission($userEmail, $eventNo)) $html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
-if (canEditEvents($userEmail)) $html .= '<div id="editButton" class="btn event-btn">Edit<br>Event</div>';
+if (attendancePermission($USER, $eventNo)) $html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
+if (canEditEvents($USER)) $html .= '<div id="editButton" class="btn event-btn">Edit<br>Event</div>';
 $html .= "</div>";
-if(isOfficer($userEmail))
+if(isOfficer($USER))
 {
 	$html .= '<hr>';
 	if (isgig($event))

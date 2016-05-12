@@ -6,9 +6,9 @@ function attendance($email, $mode, $semester = '', $media = 'normal')
 	// 1 for officer table
 	// 2 for member table
 	// 3 for gig count
-	global $CUR_SEM;
+	global $SEMESTER;
 	$WEEK = 604800;
-	if ($semester == '') $semester = $CUR_SEM;
+	if ($semester == '') $semester = $SEMESTER;
 	
 	$score = 100;
 	$gigcount = 0;
@@ -49,10 +49,10 @@ function attendance($email, $mode, $semester = '', $media = 'normal')
 
 function rosterPropList($type)
 {
-	$userEmail = getuser();
-	$uber = isUber($userEmail);
+	global $USER;
+	$uber = isUber($USER);
 	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
-	if ($uber || hasPosition($userEmail, "Treasurer"))
+	if ($uber || hasPosition($USER, "Treasurer"))
 	{
 		$cols["Balance"] = 60;
 		$cols["Dues"] = 60;
@@ -63,14 +63,13 @@ function rosterPropList($type)
 
 function rosterProp($member, $prop)
 {
-	global $CUR_SEM;
-	$choir = getchoir();
-	if (! $choir) die("No choir selected");
+	global $SEMESTER, $CHOIR;
+	if (! $CHOIR) die("No choir selected");
 	$html = '';
 	switch ($prop)
 	{
 		case "Section":
-			$section = mysql_fetch_array(mysql_query("select `sectionType`.`name` from `sectionType`, `activeSemester` where `sectionType`.`id` = `activeSemester`.`section` and `activeSemester`.`choir` = '$choir' and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = '" . $member["email"] . "'"));
+			$section = mysql_fetch_array(mysql_query("select `sectionType`.`name` from `sectionType`, `activeSemester` where `sectionType`.`id` = `activeSemester`.`section` and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = '" . $member["email"] . "'"));
 			$html .= $section['name'];
 			break;
 		case "Contact":
@@ -85,7 +84,7 @@ function rosterProp($member, $prop)
 			else $html .= "<span class='moneycell'>$balance</span>";
 			break;
 		case "Dues":
-			$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `balance` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'dues' and `semester` = '$CUR_SEM'"));
+			$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `balance` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'dues' and `semester` = '$SEMESTER'"));
 			$balance = $result['balance'];
 			if ($balance == '') $balance = 0;
 			if ($balance >= 0) $html .= "<span class='duescell' style='color: green'>$balance</span>";

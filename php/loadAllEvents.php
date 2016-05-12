@@ -1,22 +1,20 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
-if (! getuser()) die("<p>It would seem that you are logged out.</p>");
-$choir = getchoir();
-if (! $choir) die("Choir not set");
+if (! $USER) die("<p>It would seem that you are logged out.</p>");
+if (! $CHOIR) die("Choir not set");
 
 $type = mysql_real_escape_string($_POST['type']);
-$cond = "`choir` = '$choir'";
+$cond = "`choir` = '$CHOIR'";
 if ($type != "all" && $type != "past") $cond = "`type` = '$type'";
-if (! isOfficer($userEmail))
+if (! isOfficer($USER))
 {
 	if ($cond != '') $cond .= " and ";
-	$cond .= "exists(select * from `attends` where `eventNo` = `event`.`eventNo` and `memberID` = '$userEmail')";
+	$cond .= "exists(select * from `attends` where `eventNo` = `event`.`eventNo` and `memberID` = '$USER')";
 }
 if ($type != 'past')
 {
 	if ($cond != '') $cond .= " and ";
-	$cond .= "`semester` = '$CUR_SEM'";
+	$cond .= "`semester` = '$SEMESTER'";
 }
 if ($cond != '') $cond = "where $cond";
 

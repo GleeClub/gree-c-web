@@ -1,10 +1,8 @@
 <?php
 require_once('functions.php');
 
-if(getuser()){
-	$userEmail = mysql_real_escape_string(getuser());
-}
-else{
+if (! $USER)
+{
 	echo '
 	<ul class="nav">
 		<li>

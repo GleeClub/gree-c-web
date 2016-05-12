@@ -1,6 +1,5 @@
 <?php
 require_once('./functions.php');
-$userEmail = getuser();
 
 if(isset($_POST['eventNo'])){
 	$eventNo = $_POST["eventNo"];

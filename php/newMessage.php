@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
-if(!getuser()){
+if(! $USER)
+{
 	loginBlock();
 	return;
 }

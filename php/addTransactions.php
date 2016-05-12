@@ -1,6 +1,5 @@
 <?php
 require_once('./functions.php');
-$userEmail = getuser();
 
 /*function encrypt($string, $key = '')
 {
@@ -17,8 +16,7 @@ $userEmail = getuser();
 }*/
 
 $treasurerEmail = getPosition("Treasurer")[0];
-$choir = getchoir();
-if (! $choir) die("Choir is not set");
+if (! $CHOIR) die("Choir is not set");
 if(isset($_POST['emails']))
 {
 	$emailArr = json_decode($_POST['emails']);
@@ -32,7 +30,7 @@ if(isset($_POST['emails']))
 	foreach($emailArr as $email)
 	{
 		if ($email == '') continue; // Ignore transactions with nobody
-		if (! mysql_query("insert into transaction (memberID, choir, amount, description, semester, type) values ('".mysql_escape_string($email)."', '$choir', '".mysql_escape_string($amountArr[$count])."','".mysql_escape_string($descriptionArr[$count])."', '".mysql_escape_string($semArr[$count])."', '".mysql_escape_string($typeArr[$count])."')")) die(mysql_error());
+		if (! mysql_query("insert into transaction (memberID, choir, amount, description, semester, type) values ('".mysql_escape_string($email)."', '$CHOIR', '".mysql_escape_string($amountArr[$count])."','".mysql_escape_string($descriptionArr[$count])."', '".mysql_escape_string($semArr[$count])."', '".mysql_escape_string($typeArr[$count])."')")) die(mysql_error());
 		if($sendArr[$count])
 		{
 			$name = fullNameFromEmail(mysql_real_escape_string($email));
@@ -45,7 +43,7 @@ if(isset($_POST['emails']))
 			$msg .= "<br />Description: " . $descriptionArr[$count];
 			$msg .= "<br />Date: " . date('l jS \of F Y');
 			//$msg .= "<br />Hash (for Treasurer's use): " . encrypt($d);
-			$title = choirname($choir) . " Receipt";
+			$title = choirname($CHOIR) . " Receipt";
 
 			$headers  = 'MIME-Version: 1.0' . "\n";
 			$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\n";

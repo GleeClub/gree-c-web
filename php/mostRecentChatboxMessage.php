@@ -1,6 +1,5 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 
 $sql='SELECT * FROM `chatboxMessage` ORDER BY timeSent DESC LIMIT 1;';
 $results = mysql_fetch_array(mysql_query($sql));

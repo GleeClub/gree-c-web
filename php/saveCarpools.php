@@ -1,6 +1,5 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 $eventNo = $_POST['eventNo'];
 $carpools = json_decode($_POST['carpools'], true);
 //$bigSQLstring='';

@@ -1,8 +1,7 @@
 <?php
 require_once('./functions.php');
-$userEmail = getuser();
 
-if (! isUber($userEmail) && ! hasPosition($userEmail, "Treasurer")) die("DENIED");
+if (! isUber($USER) && ! hasPosition($USER, "Treasurer")) die("DENIED");
 
 $id = mysql_real_escape_string($_POST['id']);
 $action = $_POST['action'];

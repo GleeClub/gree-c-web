@@ -41,12 +41,13 @@ function labelArea($type){
 
 function buttonArea($eventNo, $typeid)
 {
+	global $USER;
 	$sql = "SELECT `callTime` FROM `event` WHERE `eventNo` = $eventNo";
 	$results = mysql_fetch_array(mysql_query($sql));
 	$soon = 0;
 	if (strtotime($results['callTime']) < time() + 86400) $soon = 1;
 	
-	$sql = mysql_query("SELECT * FROM `attends` WHERE eventNo=$eventNo AND memberID='".getuser()."';");
+	$sql = mysql_query("SELECT * FROM `attends` WHERE eventNo=$eventNo AND memberID='$USER';");
 	if (mysql_num_rows($sql) == 0) $html = "<span class='label'>Not attending</span>";
 	else
 	{
@@ -72,7 +73,7 @@ function buttonArea($eventNo, $typeid)
 }
 
 //function requestAbsenceButton($eventNo){
-	//$absenceRequest = getAbsenceRequest($eventNo, getuser());
+	//$absenceRequest = getAbsenceRequest($eventNo, $USER);
 	//if($absenceRequest['state'] == 'pending'){
 		//return '<td><span class="label label-warning">absence request '.$absenceRequest['state'].'</span></td><td><div class="btn">edit request</div></td>';
 	//}

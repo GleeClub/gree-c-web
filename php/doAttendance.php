@@ -1,7 +1,6 @@
 <?php
 require_once('./functions.php');
 
-$userEmail = getuser();
 if (! isset($_POST['eventNo'])) die("Missing event number");
 
 function ensure_attends($memberID, $eventNo)
@@ -14,9 +13,9 @@ $eventNo = mysql_real_escape_string($_POST['eventNo']);
 $memberID = mysql_real_escape_string($_POST['email']);
 $action = $_POST['action'];
 $value = mysql_real_escape_string($_POST['value']);
-if (! attendancePermission($userEmail, $eventNo))
+if (! attendancePermission($USER, $eventNo))
 {
-	if ($userEmail != $memberID) die("Access denied");
+	if ($USER != $memberID) die("Access denied");
 	$event = mysql_fetch_array(mysql_query("select * from `event` where `eventNo` = '$eventNo'"));
 	if ($action == "did") die();
 	if ($action == "should" && strtotime($event['callTime'] < strtotime('+1 day')) && $value != 1) die();

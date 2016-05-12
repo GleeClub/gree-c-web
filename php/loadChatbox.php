@@ -1,13 +1,12 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 
 $scroll = $_POST['scroll'];
 
 /**
 * $scroll tell whether you want scroll to the bottom after this call (only used on the initial call, when the page loads)
 */
-if(!getuser()){
+if(! $USER){
 	loginBlock();
 	return;
 }

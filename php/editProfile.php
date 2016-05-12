@@ -1,8 +1,7 @@
 <div class="span11 block">
 <?php
 require_once('./functions.php');
-$user = getuser();
-echo "<h2>" . ($user ? "Edit" : "Create") . " Profile</h2>";
+echo "<h2>" . ($USER ? "Edit" : "Create") . " Profile</h2>";
 ?>
 <p>Required items are marked with red asterisks.  Note that this registration is not mandatory.  If you are unwilling to provide any of the required information, let an officer know and we will work out alternate means of registration.</p>
 <form id="register" class="form-horizontal">
@@ -13,8 +12,8 @@ span.radio-option { margin-right: 30px; }
 </style>
 <?php
 $userinfo = array();
-if ($user) $userinfo = mysql_fetch_array(mysql_query("select * from `member` where `email` = '" . mysql_real_escape_string($user) . "'"));
-$query = mysql_query("select `enrollment` from `activeSemester` where `member` = '$user' and `semester` = '$CUR_SEM'");
+if ($USER) $userinfo = mysql_fetch_array(mysql_query("select * from `member` where `email` = '$USER'"));
+$query = mysql_query("select `enrollment` from `activeSemester` where `member` = '$USER' and `semester` = '$SEMESTER'");
 if (mysql_num_rows($query) == 0) $userinfo["registration"] = "inactive";
 else
 {
@@ -52,10 +51,10 @@ $form = "";
 foreach ($fields as $name => $field)
 {
 	echo "<div class='control-group'><label class='control-label wider" . ($field[2] ? " required" : "") . "' for='" . $name . "'>" . $field[0] . "</label><div class='controls'>";
-	if ($field[1] == "text" || $field[1] == "password" || $field[1] == "number" || $field[1] == "date") echo "<input type='" . $field[1] . "' name='" . $name . "'" . ($user && $field[1] != "password" ? " value='" . $userinfo[$name] . "'" : "") . ">";
-	else if ($field[1] == "bool") echo "<input type='checkbox' name='" . $name . "'" . ($user && $userinfo[$name] != 0 ? " checked" : "") . ">";
-	else if ($field[1] == "select") echo dropdown($field[3], $name, ($user ? $userinfo[$name] : ""));
-	else if ($field[1] == "radio") echo radio($field[3], $name, ($user ? $userinfo[$name] : ""));
+	if ($field[1] == "text" || $field[1] == "password" || $field[1] == "number" || $field[1] == "date") echo "<input type='" . $field[1] . "' name='" . $name . "'" . ($USER && $field[1] != "password" ? " value='" . $userinfo[$name] . "'" : "") . ">";
+	else if ($field[1] == "bool") echo "<input type='checkbox' name='" . $name . "'" . ($USER && $userinfo[$name] != 0 ? " checked" : "") . ">";
+	else if ($field[1] == "select") echo dropdown($field[3], $name, ($USER ? $userinfo[$name] : ""));
+	else if ($field[1] == "radio") echo radio($field[3], $name, ($USER ? $userinfo[$name] : ""));
 	echo "</div></div>";
 }
 echo $form;

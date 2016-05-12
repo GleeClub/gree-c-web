@@ -23,7 +23,6 @@ $BASEURL = "http://$domain/buzz";
 $SEMESTER = $variables['semester'];
 $CHOIR = getchoir();
 $USER = getuser();
-$CUR_SEM = $SEMESTER;
 
 require_once('general/utility.php');
 require_once('general/attendance.php');

@@ -1,6 +1,5 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 $id = $_POST['id'];
 $status = $_POST['status'];
 

@@ -1,8 +1,7 @@
 <?php
 require_once('functions.php');
-$choir = getchoir();
-if (! $choir) die("Choir not set");
-$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$choir'"));
+if (! $CHOIR) die("Choir not set");
+$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$CHOIR'"));
 $recipient = $row['admin'];
 $prefix = "<html><head></head><body>";
 $suffix = "</body></html>";

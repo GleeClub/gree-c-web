@@ -1,6 +1,5 @@
 <?php
 require_once('functions.php');
-$userEmail = getuser();
 $otherPerson = $_POST['person'];
 
 $html = '
@@ -9,7 +8,7 @@ $html = '
 		<td><div class="btn" id="backToMessagesList"><i class="icon-arrow-left"></i> back</div></td>
 		<td><h2>'.firstNameFromEmail($otherPerson).' '.lastNameFromEmail($otherPerson).'</h2></td>
 	</tr>';
-$sql = "SELECT * FROM `message` WHERE (sender='".$userEmail."' AND recipient='".$otherPerson."') OR (sender='".$otherPerson."' AND recipient='".$userEmail."') ORDER BY `timeSent` ASC;";
+$sql = "SELECT * FROM `message` WHERE (sender='".$USER."' AND recipient='".$otherPerson."') OR (sender='".$otherPerson."' AND recipient='".$USER."') ORDER BY `timeSent` ASC;";
 //echo $sql;
 $results = mysql_query($sql);
 $lighter = " lighter ";

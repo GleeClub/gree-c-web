@@ -1,6 +1,5 @@
 <?
 require_once('functions.php');
-$userEmail = getuser();
 
 function member_fields($email)
 {
@@ -30,9 +29,9 @@ function member_edit($email)
 
 function basic_money_table($memberID, $resolved)
 {
-	$choir = getchoir();
-	if (! $choir) die("Choir is not set");
-	$sql = "select * from transaction where memberID = '$memberID' and `choir` = '$choir' and `resolved` = '$resolved' order by time desc";
+	global $CHOIR;
+	if (! $CHOIR) die("Choir is not set");
+	$sql = "select * from transaction where memberID = '$memberID' and `choir` = '$CHOIR' and `resolved` = '$resolved' order by time desc";
 	$transactions = mysql_query($sql);
 	if (mysql_num_rows($transactions) == 0) return "<span style='color: gray'>(No transactions)</span><br>";
 	$html = "<table>";
@@ -88,7 +87,7 @@ function money_table($memberID)
 
 function tie_form($memberID)
 {
-	GLOBAL $CUR_SEM;
+	GLOBAL $SEMESTER;
 	$tie = 0;
 	$query = mysql_query("select `tie` from `tieBorrow` where `member` = '$memberID' and `dateIn` is null");
 	$result = mysql_fetch_array($query);
@@ -121,15 +120,15 @@ function tie_form($memberID)
 
 function active_semesters($memberID)
 {
-	$choir = getchoir();
-	if (! $choir) die("Choir is not set");
+	global $CHOIR;
+	if (! $CHOIR) die("Choir is not set");
 	$table = "<style>table.semesters { width: auto; } table.semesters td { padding: 2px 10px; } select.section { margin-bottom: 0px; width: 10em; }</style><table class='semesters'><tr><th>Semester</th><th>Status</th><th>Section</th><th>Score</th></tr>";
 	$query = mysql_query("select `semester` from `semester` order by `beginning` asc");
 	while ($result = mysql_fetch_array($query))
 	{
 		$activebtn = 0;
 		$semester = $result['semester'];
-		$query1 = mysql_query("select `enrollment` from `activeSemester` where `member` = '$memberID' and `semester` = '$semester' and `choir` = '$choir'");
+		$query1 = mysql_query("select `enrollment` from `activeSemester` where `member` = '$memberID' and `semester` = '$semester' and `choir` = '$CHOIR'");
 		$active = mysql_num_rows($query1);
 		if ($active)
 		{
@@ -150,8 +149,8 @@ function active_semesters($memberID)
 	return $table;
 }
 
-$officer = isOfficer($userEmail);
-$uber = isUber($userEmail);
+$officer = isOfficer($USER);
+$uber = isUber($USER);
 $denied = "You do not have access to this functionality.";
 
 switch ($_POST['tab'])
@@ -165,7 +164,7 @@ switch ($_POST['tab'])
 		echo member_edit(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'money':
-		if (! $uber && ! hasPosition($userEmail, "Treasurer")) die($denied);
+		if (! $uber && ! hasPosition($USER, "Treasurer")) die($denied);
 		echo money_table(mysql_real_escape_string($_POST['email']));
 		break;
 	case 'attendance':

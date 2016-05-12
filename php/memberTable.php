@@ -11,7 +11,7 @@ span.spacer { display: inline-block; width: 20px; }
 
 function member_table($conditions, $type = 'normal')
 {
-	global $CUR_SEM;
+	global $SEMESTER;
 	
 	$cols = rosterPropList($type);
 	$sql = 'select * from `member` order by `lastName` asc, `firstName` asc';
@@ -54,13 +54,11 @@ function member_table($conditions, $type = 'normal')
 function member_csv($conditions)
 {
 	# FIXME No support for conditions right now
-	global $CUR_SEM;
-	$userEmail = getuser();
-	$choir = getchoir();
-	if (! isOfficer($userEmail)) die("Access denied");
+	global $SEMESTER, $CHOIR, $USER;
+	if (! isOfficer($USER)) die("Access denied");
 	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major", "hometown", "section");
 	if ($conditions != '()') $conditions = ' and ' . $conditions;
-	$sql = "SELECT `member`.`lastName`, `member`.`firstName`, `member`.`prefName`, `member`.`email`, `member`.`phone`, `member`.`location`, `member`.`major`, `member`.`hometown`, `sectionType`.`name` as `section` FROM `member`, `activeSemester`, `sectionType` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `sectionType`.`id` = `activeSemester`.`section`  ORDER BY `member`.`lastName` asc, `member`.`firstName` asc";
+	$sql = "SELECT `member`.`lastName`, `member`.`firstName`, `member`.`prefName`, `member`.`email`, `member`.`phone`, `member`.`location`, `member`.`major`, `member`.`hometown`, `sectionType`.`name` as `section` FROM `member`, `activeSemester`, `sectionType` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `sectionType`.`id` = `activeSemester`.`section`  ORDER BY `member`.`lastName` asc, `member`.`firstName` asc";
 	$members = mysql_query($sql);
 
 	$ret = '"' . join('","', $cols) . "\"<br>";
@@ -73,9 +71,7 @@ function member_csv($conditions)
 	return $ret;
 }
 
-global $CUR_SEM;
-$choir = getchoir();
-if (! $choir) die("NULL choir");
+if (! $CHOIR) die("Choir not set");
 $conds = split(';', $_POST['cond']);
 $condarr = array();
 foreach ($conds as $cond)
@@ -86,22 +82,22 @@ foreach ($conds as $cond)
 	foreach ($subconds as $subcond)
 	{
 		if ($subcond == '') continue;
-		else if ($subcond == 'active') $subcondarr[] = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`member` = `member`.`email`)";
-		else if ($subcond == 'inactive') $subcondarr[] = "not exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`member` = `member`.`email`)";
-		else if ($subcond == 'class') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`member` = `member`.`email`) = 'class'";
-		else if ($subcond == 'club') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`choir` = '$choir' and `activeSemester`.`member` = `member`.`email`) = 'club'";
-		else if ($subcond == 'dues') $subcondarr[] = "(select sum(`transaction`.`amount`) from `transaction` where `transaction`.`semester` = '$CUR_SEM' and `transaction`.`type` = 'dues' and `transaction`.`memberID` = `member`.`email`) < 0";
+		else if ($subcond == 'active') $subcondarr[] = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`member` = `member`.`email`)";
+		else if ($subcond == 'inactive') $subcondarr[] = "not exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`member` = `member`.`email`)";
+		else if ($subcond == 'class') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`member` = `member`.`email`) = 'class'";
+		else if ($subcond == 'club') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`member` = `member`.`email`) = 'club'";
+		else if ($subcond == 'dues') $subcondarr[] = "(select sum(`transaction`.`amount`) from `transaction` where `transaction`.`semester` = '$SEMESTER' and `transaction`.`type` = 'dues' and `transaction`.`memberID` = `member`.`email`) < 0";
 	}
 	$condarr[] = join(' or ', $subcondarr);
 }
 $condstr = '(' . join(") and (", $condarr) . ')';
 
-if (! isOfficer(getuser())) $condstr = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$CUR_SEM' and `activeSemester`.`member` = `member`.`email`)";
+if (! isOfficer($USER)) $condstr = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = `member`.`email`)";
 
 if ($_POST['type'] == "print")
 {
-	$choir = choirname(getchoir());
-	echo "<html><head><meta charset='UTF-8'><title>$choir Roster</title></head><body>$style";
+	$choirname = choirname($CHOIR);
+	echo "<html><head><meta charset='UTF-8'><title>$choirname Roster</title></head><body>$style";
 	echo member_table($condstr, "print");
 	echo "</body></html>";
 }

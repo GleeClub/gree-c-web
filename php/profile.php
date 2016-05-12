@@ -55,10 +55,9 @@ button.action
 
 <?php
 require_once('functions.php');
-$userEmail = getuser();
-if (! $userEmail) die("You must be logged in to view member profiles.");
-$officer = isOfficer($userEmail);
-$uber = isUber($userEmail);
+if (! $USER) die("You must be logged in to view member profiles.");
+$officer = isOfficer($USER);
+$uber = isUber($USER);
 $email = mysql_real_escape_string($_GET['person']);
 $query = mysql_query("select `email` from `member` where `email` = '$email'");
 if (mysql_num_rows($query) == 0) die("No such user");
@@ -90,7 +89,7 @@ function basic_info($person)
 		$html .= "<tr><td class='key'>Active</td><td>$activeSemesters</td></tr>";
 		$html .= "</table></td><td style='width: 40%; vertical-align: top'><table>";
 		$html .= "<tr><td class='key'>Enrollment</td><td>" . rosterProp($member, "Enrollment") . "</td></tr>";
-		if ($uber || hasPosition($userEmail, "Treasurer"))
+		if ($uber || hasPosition($USER, "Treasurer"))
 		{
 			$html .= "<tr><td class='key'>Balance</td><td>" . rosterProp($member, "Balance") . "</td></tr>";
 			$html .= "<tr><td class='key'>Dues</td><td>" . rosterProp($member, "Dues") . "</td></tr>";

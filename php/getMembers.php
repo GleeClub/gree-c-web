@@ -1,7 +1,6 @@
 <?php
 	require_once('./functions.php');
-	$userEmail = getuser();
-	if (! $userEmail) die();
+	if (! $USER) die();
 	$nameType = 'prefName';
 	if(isset($_POST['nameType'])) $nameType = $_POST['nameType'];
 	$order = 'lastName';

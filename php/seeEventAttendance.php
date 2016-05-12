@@ -1,9 +1,8 @@
 <?php
 require_once('./functions.php');
-$userEmail = getuser();
 $eventNo = mysql_real_escape_string($_POST['eventNo']);
 
-if (! attendancePermission($userEmail, $eventNo)) die("Access denied");
+if (! attendancePermission($USER, $eventNo)) die("Access denied");
 if (! isset($eventNo)) die("Missing event number");
 
 $sql = "select `name`, `section` from `event` where `eventNo` = '$eventNo'";
