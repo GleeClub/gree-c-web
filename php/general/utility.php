@@ -34,20 +34,6 @@ function getCurrentSemester() {
 	return $arr['semester'];
 }
 
-function getuser()
-{
-	global $sessionkey;
-	if (! isset($_COOKIE['email'])) return false;
-	return rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $sessionkey, base64_decode($_COOKIE['email']), MCRYPT_MODE_ECB), "\0");
-}
-
-function getchoir()
-{
-	global $sessionkey;
-	if (! isset($_COOKIE['choir'])) return false;
-	return rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $sessionkey, base64_decode($_COOKIE['choir']), MCRYPT_MODE_ECB), "\0");
-}
-
 function dropdown($options, $name, $selected = '', $disabled = 0)
 {
 	$ret = "<select name='$name' class='$name'" . ($disabled ? " disabled" : "") . ">";
@@ -260,7 +246,7 @@ function sections()
 {
 	$ret = array();
 	$choir = getchoir();
-	$results = mysql_query("select * from `sectionType` where `choir` = '$choir' order by `id` desc");
+	$results = mysql_query("select * from `sectionType` where (`choir` = '$choir' or `choir` is null) order by `id` desc");
 	while ($row = mysql_fetch_array($results)) $ret[$row["id"]] = $row["name"];
 	return $ret;
 }

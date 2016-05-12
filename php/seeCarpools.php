@@ -58,8 +58,16 @@ while($row = mysql_fetch_array($result, MYSQL_ASSOC)){
 			//$isConfirmed ='';
 			//$passengerSpots=0;
 			$emails .= ', ' . prefFullNameFromEmail($passenger['memberID']) . ' <' . $passenger['memberID'] . '>';
-			$shouldAttend = (shouldAttend($passenger['memberID'], $eventNo) == true) ? '<span class="label label-info">should</span>' : '<span class="label label-important">shouldn\'t</span>';
-			$isConfirmed = (isConfirmed($passenger['memberID'], $eventNo) == true) ? '<span class="label label-info">confirmed</span>' : '<span class="label label-warning">unconfirmed</span>';
+			if (shouldAttend($passenger['memberID'], $eventNo))
+			{
+				$shouldAttend = '<span class="label label-info">should</span>';
+				$isConfirmed = (isConfirmed($passenger['memberID'], $eventNo) == true) ? '<span class="label label-info">confirmed</span>' : '<span class="label label-warning">unconfirmed</span>';
+			}
+			else
+			{
+				$shouldAttend = '<span class="label label-important">shouldn\'t</span>';
+				$isConfirmed = '<span class="label label-important">not attending</span>';
+			}
 			$passengerSpots = (passengerSpots($passenger['memberID']) !== "0") ? "<span class='badge badge-info'>".passengerSpots($passenger['memberID'])."</span>" : '';
 			$livesAt = "<span class='label'>".livesAt($passenger['memberID'])."</span>";
 			$phoneNumber = "<a href='tel:".phoneNumber($passenger['memberID'])."'>".phoneNumber($passenger['memberID'])."</a>";

@@ -13,10 +13,7 @@ $recipient = $row['list'];
 $text = $_POST['text'];
 $sql = "INSERT INTO  `announcement` (`announcementNo`, `choir`, `memberID`,`timePosted`,`announcement`) VALUES (NULL, '$choir', '$userEmail', NOW( ),'".mysql_real_escape_string($text)."');";
 mysql_query($sql);
-
-$sql = "select * from member where email='$userEmail'";
-$user = mysql_fetch_array(mysql_query($sql));
-$position = $user['position'];
+$position = positions($userEmail)[0];
 
 $subject = "Important message from your $position!";
 

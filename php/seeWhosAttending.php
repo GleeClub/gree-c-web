@@ -16,10 +16,11 @@ while($row = mysql_fetch_array($results, MYSQL_ASSOC)){
 	$confirmed = $row['confirmed'];
 	$email = $row['memberID'];
 
-	if($section=='4') $section='T1';
-	else if($section=='3') $section='T2';
-	else if($section=='2') $section='B1';
-	else if($section=='1') $section='B2';
+	if ($section == '4') $section = 'T1';
+	else if ($section == '3') $section = 'T2';
+	else if ($section == '2') $section = 'B1';
+	else if ($section == '1') $section = 'B2';
+	else if ($section == '0') $section = '--';
 
 	$current = '<tr>
 		<td><a href="#profile:' . $email . '">' . ($prefName == '' ? $firstName : $prefName) . '  ' .$lastName . '</a></td>

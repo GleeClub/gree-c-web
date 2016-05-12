@@ -63,9 +63,6 @@ $choirname = choirname($choir);
 			<li><a class="brand" href="index.php"><?php echo $choirname; ?></a></li>
 			<li class="divider-vertical"></li>
 			<?php if ($userEmail) { ?>
-			<li><a href="#chatbox">Chatbox</a></li>
-			<li><a href="#messages" >Messages <?php if ($userEmail) echo '<span class="label" id="unreadMsgs">' . getNumUnreadMessages(getuser()) . '</span>';?></span></a></li>
-			<li class="divider-vertical"></li>
 			<li class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">Events <b class="caret"></b></a>
 				<ul class="dropdown-menu">

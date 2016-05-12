@@ -256,6 +256,10 @@ function rosterProp($member, $prop)
 		case "Location":
 			$html .= $member["location"];
 			break;
+		case "Car":
+			if ($member["passengers"] == 0) $html .= "No";
+			else $html .= $member["passengers"] . " passengers";
+			break;
 		case "Enrollment":
 			$enr = enrollment($member["email"]);
 			if ($enr == "class") $html .= "<span style=\"color: blue\">class</span>";

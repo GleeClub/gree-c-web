@@ -72,49 +72,49 @@ function readableFromJSON(json) {
 var timer = null;
 function checkHash()
 {
-		h = window.location.hash.substring(1);
-		clearInterval(timer);
-		if (h == 'forgotPassword') loadForgotPassword();
-		else if (h == 'editProfile') editProfile();
-		else if (h == 'minutes') showMinutes();
-		else if (document.cookie.indexOf("email") == -1 && h.indexOf(':') <= 0) loadLogin();
-		else if (h == "messages") loadMessages();
-		else if (h.indexOf("message") == 0) loadMessage(parseInt(h.substring(h.indexOf("id=")+3), 10));
-		else if (h == "newMessage") newMessage();
-		else if (h == "stats" || h == '') loadStats();
-		else if (h == 'events') loadEvents('all');
-		else if (h == 'event') addOrRemoveEvent();
-		else if (h == 'feedback') feedbackForm();
-		else if (h == 'suggestSong') songForm();
-		else if (h == 'absenceRequest') seeAbsenceRequests();
-		else if (h == 'roster') roster();
-		else if (h == 'addAnnouncement') addAnnouncement();
-		else if (h == 'semester') loadAddSemester();
-		else if (h == 'repertoire') showRepertoire();
-		else if (h == 'announcements') loadAnnouncements();
-		else if (h == 'ties') loadTies();
-		else if (h == 'officers') loadOfficers();
-		else if (h == 'doclinks') loadLinks();
-		else if (h == 'money') loadMoney();
-		else if (h == 'chatbox')
-		{
-			loadChatbox(1);
-			timer = setInterval('updateChatbox();', 1000);
-		}
-		else if (h.indexOf(':') > 0)
-		{
-			var query = h.substring(0, h.indexOf(':'));
-			var arg = h.substring(h.indexOf(':') + 1);
-			if (query == 'minutes') showMinutes(arg);
-			else if (query == 'doc') loaddoc(arg);
-			else if (document.cookie.indexOf("email") == -1) loadLogin();
-			else if (query == 'events') loadEvents(arg);
-			else if (query == 'event') loadEvents('all', arg);
-			else if (query == 'profile') loadProfile(arg);
-			else if (query == 'song') showRepertoire(arg);
-			else $('#main').html("What's a " + query + "?");
-		}
-		else $('#main').html("I don't exist.");
+	h = window.location.hash.substring(1);
+	clearInterval(timer);
+	if (h == 'forgotPassword') loadForgotPassword();
+	else if (h == 'editProfile') editProfile();
+	else if (h == 'minutes') showMinutes();
+	else if (document.cookie.indexOf("email") == -1 && h.indexOf(':') <= 0) loadLogin();
+	//else if (h == "messages") loadMessages();
+	//else if (h.indexOf("message") == 0) loadMessage(parseInt(h.substring(h.indexOf("id=")+3), 10));
+	//else if (h == "newMessage") newMessage();
+	//else if (h == 'chatbox')
+	//{
+		//loadChatbox(1);
+		//timer = setInterval('updateChatbox();', 1000);
+	//}
+	else if (h == "stats" || h == '') loadStats();
+	else if (h == 'events') loadEvents('all');
+	else if (h == 'event') addOrRemoveEvent();
+	else if (h == 'feedback') feedbackForm();
+	else if (h == 'suggestSong') songForm();
+	else if (h == 'absenceRequest') seeAbsenceRequests();
+	else if (h == 'roster') roster();
+	else if (h == 'addAnnouncement') addAnnouncement();
+	else if (h == 'semester') loadAddSemester();
+	else if (h == 'repertoire') showRepertoire();
+	else if (h == 'announcements') loadAnnouncements();
+	else if (h == 'ties') loadTies();
+	else if (h == 'officers') loadOfficers();
+	else if (h == 'doclinks') loadLinks();
+	else if (h == 'money') loadMoney();
+	else if (h.indexOf(':') > 0)
+	{
+		var query = h.substring(0, h.indexOf(':'));
+		var arg = h.substring(h.indexOf(':') + 1);
+		if (query == 'minutes') showMinutes(arg);
+		else if (query == 'doc') loaddoc(arg);
+		else if (document.cookie.indexOf("email") == -1) loadLogin();
+		else if (query == 'events') loadEvents(arg);
+		else if (query == 'event') loadEvents('all', arg);
+		else if (query == 'profile') loadProfile(arg);
+		else if (query == 'song') showRepertoire(arg);
+		else $('#main').html("What's a " + query + "?");
+	}
+	else $('#main').html("I don't exist.");
 }
 
 function loadLogin()
@@ -995,9 +995,19 @@ function getRosterData(tab, member, target)
 			});
 		});
 		$('.semesterbutton').on('click', function() {
-			var sem = $(this).data('semester');
+			var row = $(this).parent().parent().parent();
+			var sem = row.data('semester');
 			var val = $(this).data('val');
-			$.post('php/updateConfirmed.php', { email : member, semester : sem, value : val }, function(data) {
+			$.post('php/updateConfirmed.php', { email : member, semester : sem, confirmed : val }, function(data) {
+				if (data != 'OK') alert(data);
+				else if (val == 0) row.find('select.section').prop("disabled", true);
+				else row.find('select.section').prop("disabled", false);
+			});
+		});
+		$('.section').on('change', function() {
+			var sem = $(this).parent().parent().data('semester');
+			var val = $(this).attr('value');
+			$.post('php/updateConfirmed.php', { email : member, semester : sem, section : val }, function(data) {
 				if (data != 'OK') alert(data);
 			});
 		});

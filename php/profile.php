@@ -63,11 +63,12 @@ $email = mysql_real_escape_string($_GET['person']);
 $query = mysql_query("select `email` from `member` where `email` = '$email'");
 if (mysql_num_rows($query) == 0) die("No such user");
 
-$member_fields = array('firstName', 'prefName', 'lastName', 'position', 'section', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
+$member_fields = array('firstName', 'prefName', 'lastName', 'section', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
 
 function basic_info($person)
 {
 	global $officer, $uber;
+	$member = mysql_fetch_array(mysql_query("select * from `member` where `email` = '$person'"));
 	$about = getMemberAttribute('about', $person);
 	if ($about == '') $about = "I don't have a quote";
 	$html .= "<img class='profile' src='" . profilePic($person) . "'>";
@@ -78,7 +79,7 @@ function basic_info($person)
 	$html .= "<tr><td class='key'>Email</td><td><a href='mailto:$person'>$person</a></td></tr>";
 	$html .= "<tr><td class='key'>Phone</td><td><a href='tel:" . phoneNumber($person) . "'>" . phoneNumber($person) . "</a></td></tr>";
 	$html .= "<tr><td class='key'>Section</td><td>".sectionFromEmail($person, 1)."</td></tr>";
-	//$html .= "<tr><td class='key'>Position</td><td>".getMemberAttribute('position', $person)."</td></tr>";
+	$html .= "<tr><td class='key'>Car</td><td>".rosterProp($member, "Car")."</td></tr>";
 	$html .= "<tr><td class='key'>Major</td><td>".getMemberAttribute('major', $person)."</td></tr>";
 	$html .= "<tr><td class='key'>Year at Tech</td><td>".getMemberAttribute('techYear', $person)."</td></tr>";
 	$sql = mysql_query("select `semester`.`semester` from `activeSemester`, `semester` where `activeSemester`.`member` = '$person' and `activeSemester`.`semester` = `semester`.`semester` order by `semester`.`beginning` desc");
@@ -86,7 +87,6 @@ function basic_info($person)
 	while ($row = mysql_fetch_array($sql)) $activeSemesters .= "<span class='label'>" . $row['semester'] . "</span> ";
 	if ($officer)
 	{
-		$member = mysql_fetch_array(mysql_query("select * from `member` where `email` = '$person'"));
 		$html .= "<tr><td class='key'>Active</td><td>$activeSemesters</td></tr>";
 		$html .= "</table></td><td style='width: 40%; vertical-align: top'><table>";
 		$html .= "<tr><td class='key'>Enrollment</td><td>" . rosterProp($member, "Enrollment") . "</td></tr>";

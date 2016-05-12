@@ -2,7 +2,7 @@
 
 require_once('functions.php');
 $userEmail = getuser();
-echo "<div id='roster_table'></div>";
+echo "<div id='roster_table' style='width: 100%'><img style='width: 28px; height: 28px; display: block; margin: 0px auto' src='/images/loading.gif'></div>";
 
 if (isOfficer($userEmail))
 {
