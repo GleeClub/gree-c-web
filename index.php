@@ -22,7 +22,8 @@ function actionOptions($userEmail)
 			<li><a href="#ties">Ties</a></li>
 			<li><a href="#semester">Edit Semester</a></li>
 			<li><a href="#officers">Edit Officers</a></li>
-			<li><a href="#doclinks">Edit Document Links</a></li>';
+			<li><a href="#doclinks">Edit Document Links</a></li>
+			<li><a href="#timeMachine">Past Semesters</a></li>';
 	}
 	echo $officerOptions;
 }
@@ -68,7 +69,6 @@ $choirname = choirname($CHOIR);
 					<li><a href="#events">All</a></li>
 					<?php foreach (eventTypes() as $id => $name) echo "<li><a href='#events:$id'>$name</a></li>"; ?>
 					<?php if (isOfficer($userEmail)) { ?>
-						<li><a href="#events:past">Everything Ever</a></li>
 						<li><a href="#event">Create/Delete</a></li>
 					<?php } ?>
 				</ul>
@@ -94,17 +94,15 @@ $choirname = choirname($CHOIR);
 					?>
 				</ul>
 			</li>
-			<li class="divider-vertical"></li>
+		</ul>
+		<ul class="nav pull-right">
 			<?php } if ($userEmail) { ?>
 			<li>
 				<form class="navbar-search pull-left">
 					<input type="text" class="search-query" data-provide="typeahead"  data-items="4" data-source='["Taylor","Drew","Tot"]'>
 				</form>
 			</li>
-			<?php } ?>
-		</ul>
-		<ul class="nav pull-right">
-		<?php if ($userEmail) { ?>
+			<li class="divider-vertical"></li>
 			<li class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown"> <?php echo getuser(); ?> <b class="caret"></b></a>
 				<ul class="dropdown-menu">

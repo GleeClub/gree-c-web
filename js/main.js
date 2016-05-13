@@ -101,6 +101,7 @@ function checkHash()
 	else if (h == 'officers') loadOfficers();
 	else if (h == 'doclinks') loadLinks();
 	else if (h == 'money') loadMoney();
+	else if (h == 'timeMachine') timeMachine();
 	else if (h.indexOf(':') > 0)
 	{
 		var query = h.substring(0, h.indexOf(':'));
@@ -112,6 +113,13 @@ function checkHash()
 		else if (query == 'event') loadEvents('all', arg);
 		else if (query == 'profile') loadProfile(arg);
 		else if (query == 'song') showRepertoire(arg);
+		else if (query == 'timeMachine')
+		{
+			params = arg.split(";");
+			if (params.length < 1) timemachine();
+			else if (params.length < 2) timeMachine(params[0]);
+			else timeMachine(params[0], params[1]);
+		}
 		else $('#main').html("What's a " + query + "?");
 	}
 	else $('#main').html("I don't exist.");
@@ -2620,3 +2628,11 @@ function now()
 /***************************************************************************
 ********************* End Matthew's functions ******************************
 ****************************************************************************/
+
+function timeMachine(semester, item)
+{
+	$.post('php/timeMachine/main.php', { semester : semester, item : item }, function(data) {
+		$("#main").html(data);
+	});
+}
+
