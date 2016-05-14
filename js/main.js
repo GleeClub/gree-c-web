@@ -944,11 +944,25 @@ function loadLinks()
 	$.post('php/doclinks.php', function(data) {
 		$('#main').html(data);
 		$('.urlchange').on('click', function() {
-			var name = $(this).prev('.docurl').attr('name');
-			var url = $(this).prev('.docurl').attr('value');
+			var name = $(this).parent().find('.docurl').attr('name');
+			var url = $(this).parent().find('.docurl').attr('value');
 			$.post('php/doclinks.php', { name : name, url : url }, function(data) {
 				alert(data);
 			})
+		});
+		$('.urldel').on('click', function() {
+			var row = $(this).parent().parent();
+			var name = $(this).parent().find('.docurl').attr('name');
+			$.post('php/doclinks.php', { name : name, action : "delete" }, function(data) {
+				if (data != "OK") alert(data);
+				else row.remove();
+			})
+		});
+		$('#urladd').on('click', function() {
+			$.post('php/doclinks.php', { name : $('#newname').attr('value'), url : "" }, function(data) {
+				if (data != "OK") alert(data);
+				loadLinks();
+			});
 		});
 	});
 }

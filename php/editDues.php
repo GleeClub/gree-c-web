@@ -12,6 +12,6 @@ if (isset($_POST["item"]))
 
 echo "<style>input.dues-input { width: 5em; margin-bottom: 0px; }</style><table><tr><th>Item</th><th>Amount</th></tr>";
 $query = mysql_query("select `id`, `name`, `amount` from `fee` where `choir` = '$CHOIR'");
-while ($row = mysql_fetch_array($query)) echo "<tr><td>" . $row["name"] . "</td><td><input class='dues-input' type='number' data-item='" . $row["id"] . "' value='" . $row["amount"] . "'></input><button class='dues-submit'>Go</button></td></tr>";
+while ($row = mysql_fetch_array($query)) echo "<tr><td>" . $row["name"] . "</td><td><input class='dues-input' type='number' data-item='" . $row["id"] . "' value='" . $row["amount"] . "'></input><button class='btn dues-submit'>Go</button></td></tr>";
 ?>
 

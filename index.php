@@ -89,6 +89,7 @@ $choirname = choirname($CHOIR);
 				<ul class="dropdown-menu">
 					<?php if ($userEmail) { ?><li><a href="#repertoire">Repertoire</a></li><?php } ?>
 					<li><a href="#minutes">Meeting Minutes</a></li>
+					<li class="divider"><li>
 					<?php
 						$query = mysql_query("select * from `gdocs` where `choir` = '$CHOIR'");
 						while ($row = mysql_fetch_array($query)) echo "<li><a href='#doc:" . $row['name'] . "'>" . $row['name'] . "</a></li>";
