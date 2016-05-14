@@ -5,7 +5,6 @@ $(document).ready(function() {
 	$('.dropdown-toggle').dropdown();
 	$('.nav-tabs').button()
 	//Update the unread messages badge
-	var msgsTimer = setInterval(checkMsgs, 60000);
 
 	//Since we're moving around with js, to get back and forward to work we use the url hash.
 	//To move to a new page, update window.location.hash in the event that moves the user, then 
@@ -101,6 +100,7 @@ function checkHash()
 	else if (h == 'officers') loadOfficers();
 	else if (h == 'doclinks') loadLinks();
 	else if (h == 'money') loadMoney();
+	else if (h == 'dues') editDues();
 	else if (h == 'timeMachine') timeMachine();
 	else if (h.indexOf(':') > 0)
 	{
@@ -1234,6 +1234,21 @@ function addMoneyForm()
 			$(this).parent().parent().remove();
 			ntrans--;
 			if (ntrans == 0) $('#trans_ops').remove();
+		});
+	});
+}
+
+function editDues()
+{
+	$.post('php/editDues.php', {}, function(data) {
+		$("#main").html(data);
+		$(".dues-submit").on("click", function() {
+			var input = $(this).parent().find("input");
+			var item = input.data("item");
+			var amount = input.attr("value");
+			$.post('php/editDues.php', { item : item, amount : amount }, function(data) {
+				if (data != "OK") alert(data);
+			});
 		});
 	});
 }

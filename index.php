@@ -23,6 +23,7 @@ function actionOptions($userEmail)
 			<li><a href="#semester">Edit Semester</a></li>
 			<li><a href="#officers">Edit Officers</a></li>
 			<li><a href="#doclinks">Edit Document Links</a></li>
+			<li><a href="#dues">Edit Dues</a></li>
 			<li><a href="#timeMachine">Past Semesters</a></li>';
 	}
 	echo $officerOptions;
