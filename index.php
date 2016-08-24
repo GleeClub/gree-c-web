@@ -140,6 +140,10 @@ $choirname = choirname($CHOIR);
 			<label class="control-label" style='font-weight: bold'>Location:</label>
 			<div class="controls"><input type="text" id="confirm_location"></div>
 		    </div>
+		    <div class="control-group">
+			<label class="control-label" style='font-weight: bold'>Section:</label>
+			<div class="controls"><?php echo dropdown(sections(), "section"); ?></div>
+		    </div>
 		</form></div>
 		<div class="modal-footer">
 		    <a href="#" class="btn" style="color: inherit" data-dismiss="modal">Close</a>

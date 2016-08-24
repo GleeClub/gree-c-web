@@ -134,7 +134,9 @@ function editProfile()
 {
 	$.post('php/editProfile.php', function(data) {
 		$('#main').html(data);
+		$('select.choir').on('change', function() { $.post('php/getSections.php', { choir : $(this).val() }, function(data) { $("select.section").replaceWith(data); }); });
 		$("#editProfileSubmit").click(doEditProfile);
+		$('select.choir').trigger('change');
 	});
 }
 
@@ -1330,9 +1332,10 @@ function confirm_account()
 	var reg = '';
 	if ($('#confirm_class').hasClass('active')) reg = 'class';
 	else if ($('#confirm_club').hasClass('active')) reg = 'club';
-	else { alert("You must select \"class\" or \"club\" to confirm your account."); return; }
+	else { alert("You must select \"Class\" or \"Club\" to confirm your account."); return; }
 	var loc = $('#confirm_location').prop('value');
-	$.post('php/doConfirmAccount.php', { registration : reg, location : loc }, function(data) { if (data != 'OK') alert(data); $('#confirmModal').modal('hide'); });
+	var sect = $('select.section').prop('value');
+	$.post('php/doConfirmAccount.php', { registration : reg, location : loc, section : sect }, function(data) { if (data != 'OK') alert("Error: " + data); $('#confirmModal').modal('hide'); });
 }
 
 function feedbackForm()

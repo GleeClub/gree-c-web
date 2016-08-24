@@ -9,12 +9,13 @@ if (isset($_POST["user"]))
 	$email = $_POST["user"];
 }
 
-$permitted = array("firstName", "prefName", "lastName", "section", "email", "password", "phone", "picture", "passengers", "onCampus", "location", "about", "major", "minor", "hometown", "techYear", "gChat", "twitter", "gatewayDrug", "conflicts");
+$permitted = array("firstName", "prefName", "lastName", "email", "password", "phone", "picture", "passengers", "onCampus", "location", "about", "major", "minor", "hometown", "techYear", "gChat", "twitter", "gatewayDrug", "conflicts");
 $required = array("firstName", "lastName", "email", "phone", "passengers", "onCampus", "major", "hometown");
 $restricted = array("tieNum");
+if (! $user) $required[] = "choir";
 if ($user == $email) $required[] = "registration";
-$_POST["onCampus"] = 0;
 if (isset($_POST["onCampus"])) $_POST["onCampus"] = 1;
+else $_POST["onCampus"] = 0;
 foreach ($required as $field) if (! isset($_POST[$field]) || $_POST[$field] == "") die("Missing value for property \"$field\".");
 if (! isOfficer($user)) foreach ($restricted as $field) if (isset($_POST[$field])) die("Permission denied to set property \"$field\".");
 
@@ -23,11 +24,15 @@ $validEmail = "/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._
 if (! preg_match($validEmail, $_POST["email"])) die("Invalid email");
 $oldsect = 0;
 $newsect = mysql_real_escape_string($_POST["section"]);
-$query = mysql_query("select `section` from `member` where `email` = '$newemail'");
-$count = mysql_num_rows($query);
-if ($user) $oldsect = mysql_fetch_array($query)["section"];
-else if ($count > 0) die("That email address is already in use");
-if ($user && $_POST["email"] != $email && $result > 0) die("That email address is already in use");
+if ($user)
+{
+	$query = mysql_query("select `section` from `activeSemester` where `member` = '$newemail' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'");
+	if (! $query) die("Error: " . mysql_error());
+	if ($user) $oldsect = mysql_fetch_array($query)["section"];
+}
+$count = mysql_num_rows(mysql_query("select * from `member` where `email` = '$newemail'"));
+if (! $user && $count > 0) die("That email address is already in use");
+if ($user && $_POST["email"] != $email && $count > 0) die("That email address is already in use");
 
 if (! $user && (! isset($_POST["password"]) || $_POST["password"] == "" || ! isset($_POST["password2"]) || $_POST["password2"] == "")) die("Missing value for property \"password\".");
 if ($_POST["password"] != $_POST["password2"]) die("Passwords do not match");
@@ -38,9 +43,9 @@ if (! preg_match("/[0-9]{9,14}/", $_POST["phone"])) die("Invalid phone number (p
 if (! preg_match("/[0-9]{1,2}/", $_POST["passengers"])) die("Invalid number of passengers (must be an integer, 0 if you don't have a car)");
 
 $reg = mysql_real_escape_string($_POST["registration"]);
+if (! $user) $choir = mysql_real_escape_string($_POST["choir"]);
+else $choir = $CHOIR;
 if ($reg != "class" && $reg != "club") die("Invalid registration");
-
-$choir = "glee"; # TODO
 
 $sql = "";
 if ($user)
@@ -71,8 +76,8 @@ function cancel()
 
 mysql_query("begin");
 if (! mysql_query($sql)) cancel();
-if ($user && ! mysql_query("update `activeSemester` set `enrollment` = '$reg' where `member` = '$newemail' and `semester` = '$SEMESTER'")) cancel();
-if (! $user && ! mysql_query("insert into `activeSemester` (`member`, `semester`, `choir`, `enrollment`) values ('$newemail', '$SEMESTER', '$choir', '$reg')")) cancel();
+if ($user && ! mysql_query("update `activeSemester` set `enrollment` = '$reg', `section` = '$newsect' where `member` = '$newemail' and `semester` = '$SEMESTER' and `choir` = '$choir'")) cancel();
+if (! $user && ! mysql_query("insert into `activeSemester` (`member`, `semester`, `choir`, `enrollment`, `section`) values ('$newemail', '$SEMESTER', '$choir', '$reg', '$newsect')")) cancel();
 if (! $user)
 {
 	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$SEMESTER' and `choir` = '$choir' and (`type` = 'rehearsal' or `type` = 'volunteer' or `type` = 'tutti')")) cancel();
@@ -83,7 +88,8 @@ if ($user && $newsect != $oldsect)
 	if (! mysql_query("delete from `attends` where `memberID` = '$newemail' and `eventNo` in (select `eventNo` from `event` where `type` = 'sectional' and `choir` = '$choir') and (select `callTime` from `event` where `event`.`eventNo` = `attends`.`eventNo`) > current_timestamp")) cancel();
 	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$SEMESTER' and `choir` = '$choir' and `type` = 'sectional' and `section` = '$newsect' and `callTime` > current_timestamp")) cancel();
 }
-if (! $user || $user == $email) setcookie("email", base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $newemail, MCRYPT_MODE_ECB)), time() + 60 * 60 * 24 * 120, "/", false, false);
 mysql_query("commit");
+if (! $user || $user == $email) setcookie("email", base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $newemail, MCRYPT_MODE_ECB)), time() + 60 * 60 * 24 * 120, "/", false, false);
+if (! $user) setcookie('choir', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $choir, MCRYPT_MODE_ECB)), time() + 60*60*24*120, '/', false, false);
 echo "OK";
 ?>

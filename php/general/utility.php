@@ -237,11 +237,12 @@ function semesterDropdown()
 	return dropdown(semesters(), "semester", $SEMESTER);
 }
 
-function sections()
+function sections($choir = '')
 {
 	$ret = array();
 	global $CHOIR;
-	$results = mysql_query("select * from `sectionType` where (`choir` = '$CHOIR' or `choir` is null) order by `id` desc");
+	if ($choir == '') $choir = $CHOIR;
+	$results = mysql_query("select * from `sectionType` where (`choir` = '$choir' or `choir` is null) order by `id` desc");
 	while ($row = mysql_fetch_array($results)) $ret[$row["id"]] = $row["name"];
 	return $ret;
 }
