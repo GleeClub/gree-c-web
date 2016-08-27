@@ -312,4 +312,42 @@ $html = '
 ';
 echo $html;
 }
+
+function todoBlock($userEmail, $form, $list)
+{
+	$html = '';
+	if ($form)
+	{
+		if(isOfficer($userEmail))
+		{
+			$html .= "<p>
+				Names: <input id='multiTodo'>
+				Todo: <br /><input id='todoText'>
+				<br /><button class='btn' id='multiTodoButton'>Add Todo</button>
+			</p>";
+
+		}
+		else
+		{
+			$html .= "<p>
+				<input id='newTodo'>
+				<button class='btn' id='newTodoButton'>Add Todo</button>
+			</p>";
+		}
+	}
+	if ($list)
+	{
+		$html .= "<div id='todos'>";
+		//$sql = "SELECT * FROM `todoMembers` where memberID='$userEmail' ORDER BY todoID ASC;";
+		$sql = "select todo.id, todo.text from `todo`, `todoMembers` where todo.id = todoMembers.todoID and todo.completed = '0' and todoMembers.memberID = '$userEmail' order by todo.id asc";
+		$todos = mysql_query($sql);
+		while ($row = mysql_fetch_array($todos, MYSQL_ASSOC)){
+			$id = $row['id']; //$row['todoID'];
+			$text = $row['text']; //$text['text'];
+			$html .= "<div class='block'><label class='checkbox'><input type='checkbox' id='$id'> $text</label></div>";
+		}
+		$html .= "</div>";
+	}
+	return $html;
+}
 ?>

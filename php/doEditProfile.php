@@ -11,7 +11,7 @@ if (isset($_POST["user"]))
 
 $permitted = array("firstName", "prefName", "lastName", "email", "password", "phone", "picture", "passengers", "onCampus", "location", "about", "major", "minor", "hometown", "techYear", "gChat", "twitter", "gatewayDrug", "conflicts");
 $required = array("firstName", "lastName", "email", "phone", "passengers", "onCampus", "major", "hometown");
-$restricted = array("tieNum");
+$restricted = array();
 if (! $user) $required[] = "choir";
 if ($user == $email) $required[] = "registration";
 if (isset($_POST["onCampus"])) $_POST["onCampus"] = 1;

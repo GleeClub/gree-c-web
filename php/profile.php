@@ -62,8 +62,6 @@ $email = mysql_real_escape_string($_GET['person']);
 $query = mysql_query("select `email` from `member` where `email` = '$email'");
 if (mysql_num_rows($query) == 0) die("No such user");
 
-$member_fields = array('firstName', 'prefName', 'lastName', 'section', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
-
 function basic_info($person)
 {
 	global $officer, $uber;

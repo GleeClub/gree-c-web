@@ -3,7 +3,7 @@ require_once('functions.php');
 
 function member_fields($email)
 {
-	$fieldnames = array('firstName', 'prefName', 'lastName', 'tieNum', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
+	$fieldnames = array('firstName', 'prefName', 'lastName', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
 	$ret = array();
 	$member = mysql_fetch_array(mysql_query("select * from member where email = '$email'"), MYSQL_ASSOC);
 	foreach ($fieldnames as $field) $ret[$field] = $member[$field];
