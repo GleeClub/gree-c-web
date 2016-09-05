@@ -66,29 +66,22 @@ else
 	}
 	$sql = "insert into `member` (" . implode(", ", $keys) . ") values (" . implode(", ", $vals) . ")";
 }
-
 function cancel()
 {
 	echo "Couldn't apply settings: " . mysql_error();
 	mysql_query("rollback");
 	die();
 }
-
 mysql_query("begin");
 if (! mysql_query($sql)) cancel();
 if ($user && ! mysql_query("update `activeSemester` set `enrollment` = '$reg', `section` = '$newsect' where `member` = '$newemail' and `semester` = '$SEMESTER' and `choir` = '$choir'")) cancel();
 if (! $user && ! mysql_query("insert into `activeSemester` (`member`, `semester`, `choir`, `enrollment`, `section`) values ('$newemail', '$SEMESTER', '$choir', '$reg', '$newsect')")) cancel();
-if (! $user)
-{
-	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$SEMESTER' and `choir` = '$choir' and (`type` = 'rehearsal' or `type` = 'volunteer' or `type` = 'tutti')")) cancel();
-	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$SEMESTER' and `choir` = '$choir' and `type` = 'sectional' and `section` = '$newsect'")) cancel();
-}
-if ($user && $newsect != $oldsect)
-{
-	if (! mysql_query("delete from `attends` where `memberID` = '$newemail' and `eventNo` in (select `eventNo` from `event` where `type` = 'sectional' and `choir` = '$choir') and (select `callTime` from `event` where `event`.`eventNo` = `attends`.`eventNo`) > current_timestamp")) cancel();
-	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$newemail', '1', '0', `eventNo` from `event` where `semester` = '$SEMESTER' and `choir` = '$choir' and `type` = 'sectional' and `section` = '$newsect' and `callTime` > current_timestamp")) cancel();
-}
 mysql_query("commit");
+if (! $user || $newsect != $oldsect)
+{
+	$msg = updateSection($newemail, $SEMESTER, $choir, $newsect, $user);
+	if ($msg != "") die("Couldn't set section: " . $msg);
+}
 if (! $user || $user == $email) setcookie("email", base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $newemail, MCRYPT_MODE_ECB)), time() + 60 * 60 * 24 * 120, "/", false, false);
 if (! $user) setcookie('choir', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $choir, MCRYPT_MODE_ECB)), time() + 60*60*24*120, '/', false, false);
 echo "OK";

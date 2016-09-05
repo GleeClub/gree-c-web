@@ -29,7 +29,8 @@ if (isset($_POST['section']))
 {
 	$section = mysql_real_escape_string($_POST['section']);
 	if (! $wasactive) die("Can't change section for inactive semester");
-	if (! mysql_query("update `activeSemester` set `section` = '$section' where `member` = '$member' and `semester` = '$semester' and `choir` = '$CHOIR'")) die("Error: " . mysql_error());
+	$msg = updateSection($member, $semester, $CHOIR, $section);
+	if ($msg != "") die("Error changing section: " . $msg);
 }
 echo "OK";
 ?>
