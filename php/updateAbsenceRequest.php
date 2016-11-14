@@ -5,7 +5,8 @@ require_once('./functions.php');
 function absenceEmail($recipient, $state, $event)
 {
 	global $CHOIR;
-	$to = prefNameFromEmail($recipient)." ".lastNameFromEmail($recipient)." <".$recipient.">"; //make it format: Chris Ernst <cernst3@gatech.edu>
+	//$to = prefNameFromEmail($recipient)." ".lastNameFromEmail($recipient)." <".$recipient.">"; //make it format: Chris Ernst <cernst3@gatech.edu>
+	$to = $recipient;
 	$subject = "Absence Request " . ucfirst($state);
 	$msg = prefNameFromEmail($recipient) . ",<br><br> Your absence request for " . $event . " has been " . $state . ".";
 	$message = '
