@@ -8,7 +8,7 @@ function absenceEmail($recipient, $state, $event)
 	//$to = prefNameFromEmail($recipient)." ".lastNameFromEmail($recipient)." <".$recipient.">"; //make it format: Chris Ernst <cernst3@gatech.edu>
 	$to = $recipient;
 	$subject = "Absence Request " . ucfirst($state);
-	$msg = prefNameFromEmail($recipient) . ",<br><br> Your absence request for " . $event . " has been " . $state . ".";
+	$msg = prefNameFromEmail($recipient) . ",<br><br> Your absence request for " . $event . " has been " . $state . ".<br><br>Glee Club Officers";
 	$message = '
 	<html>
 	<head>
@@ -55,11 +55,8 @@ function absenceEmail($recipient, $state, $event)
 	$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$CHOIR'"));
 	$sender = $row['admin'];
 	$recipient = $row['list'];
-	$headers = "Content-type:text/html;\n\n" .
-				"From: $sender\n" .
-				'X-Mailer: PHP/' . phpversion();
+	$headers = "Content-type: text/html\r\nX-Mailer: PHP/".phpversion()."\r\nReply-To: gleeclub_officers@lists.gatech.edu";
 	mail($to, $subject, $message, $headers);
-	//echo $toField." ".$subjectField." ".$messageField." ".$headers;
 }
 
 if (! isset($_POST['eventNo'])) die("<td align='center' colspan='7' class='data' style='font-weight:bold'>Something went wrong. :0</td>");
