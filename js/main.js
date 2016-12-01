@@ -21,21 +21,6 @@ $(document).ready(function() {
 		$(".nav li.active").removeClass("active");
 		$(this).addClass("active");
 	});
-
-	//This is code for the sidebar chat.  If we want to implement it, just add a chat div beside the main one, uncomment this code, and push the chatbox data there instead of main.
-	/*
-	$('#chat').height($(this).height() - $(".navbar").height());
-	$('#chat').css({
-		'position':'fixed',
-		'top':$(".navbar").height(),
-		'right':20,
-		'height':$(window).height()-$('.navbar').height()-20,
-		'overflow':'scroll',
-		//Force GPU accel
-		'-webkit-transform':'translateZ(0)'
-	});
-	loadChatbox(1);*/
-
 	checkHash();
 });
 
@@ -77,14 +62,6 @@ function checkHash()
 	else if (h == 'editProfile') editProfile();
 	else if (h == 'minutes') showMinutes();
 	else if (document.cookie.indexOf("email") == -1 && h.indexOf(':') <= 0) loadLogin();
-	//else if (h == "messages") loadMessages();
-	//else if (h.indexOf("message") == 0) loadMessage(parseInt(h.substring(h.indexOf("id=")+3), 10));
-	//else if (h == "newMessage") newMessage();
-	//else if (h == 'chatbox')
-	//{
-		//loadChatbox(1);
-		//timer = setInterval('updateChatbox();', 1000);
-	//}
 	else if (h == "stats" || h == '') loadStats();
 	else if (h == 'events') loadEvents('all');
 	else if (h == 'event') addOrRemoveEvent();
@@ -152,72 +129,6 @@ function doEditProfile() {
 	});
 }
 
-function checkMsgs()
-{
-	$.post('php/updateMsgBadge.php', function(data) { $("#unreadMsgs").html(data); });
-}
-
-function signIn()
-{
-	var email = $('#email').prop('value');
-	var password = $('#password').prop('value');
-	$.post("php/checkLogin.php", { email : email, password : password }, function(data) {
-		if (data != 'OK') alert(data);
-		else location.reload();
-	});
-	return false;
-}
-
-function loadMessages() {
-	$.post(
-		'php/loadMessages.php',
-		function(data){
-			$('#main').html(data);
-			$("tr").on('click',function(){
-				//console.log();
-				window.location.hash = $(this).find('a').first().attr('href');
-			});
-		}
-	);
-}
-
-function loadMessage(mid) {
-	$.get(
-		'php/loadMessage.php',
-		{id:mid},
-		function(data) {
-			$('#main').html(data);
-			$('#backToInboxButton').on('click', function(){
-				window.location.hash = 'messages';
-			});
-		}
-	);
-}
-
-function newMessage() {
-	$.post(
-		'php/newMessage.php',
-		function(data){
-			$('#main').html(data);
-			$('#backToInboxButton').on('click', function(){
-				window.location.hash = 'messages';
-			});
-			$("#members").tokenInput("php/searchMembers.php", { 
-			theme:"facebook",
-			preventDuplicates:true,
-		});
-		}
-	);
-}
-
-//Check that the new message form is filled out.
-function checkForm() {
-	if(document.getElementById("members").value == '' || document.getElementById("title").value == '' || document.getElementById("message").value == '')
-		return false;
-	$("#newMessageForm").submit();
-	return false;
-}
-
 function loadStats() {
 	//$("#main").html("stats go here!");
 	$.post(
@@ -274,163 +185,6 @@ function archiveAnnouncement(mid) {
 		function() {
 			$("#announce"+mid).hide();
 		});
-}
-
-function updateChatbox(){
-	//this needs to take into account the difference between what is displayed and what is source (images, links, html)
-	//THIS NEEDS TO BE UPDATED FOR HTML CONTENT
-	//i think the link detection in the chatbox php adds an extra space before the message.
-	var lastMessage = $(".chatboxMessage").last().html();
-	var lastMessageOnServer=' ';
-	if(lastMessage != null){
-		if($(".chatboxMessage").last().children().last().hasClass("chatboxImage")){
-			lastMessage = $(".chatboxMessage").last().children().last().attr("src");
-			lastMessageOnServer = '';
-		}
-		if($(".chatboxMessage").last().children().last().attr("href")){
-			lastMessage = $(".chatboxMessage").last().children().last().attr("href");
-			lastMessageOnServer = '';
-		}
-		$.post(
-			'php/mostRecentChatboxMessage.php',
-			function(data){
-				lastMessageOnServer += data;
-				//console.log("lastMessageOnServer:"+lastMessageOnServer);
-				//console.log("lastMessage:"+lastMessage);
-				//console.log(lastMessage == lastMessageOnServer);
-				if(lastMessage == lastMessageOnServer){
-					//console.log("all updated");
-				}
-				else{
-					//console.log("not updated");
-					/*if(window.webkitNotifications && window.webkitNotifications.checkPermission() == 0){
-						createNotification({
-							notificationType:'simple',
-							icon:'',
-							title:'New Chatbox Shout!',
-							body:lastMessageOnServer
-						});
-					}*/
-					loadChatbox(0);
-				}
-			},
-			"html"
-		);
-	}
-	
-}
-
-function submitChatboxMessage(){
-	//console.log(message);
-	var message = $("#shoutBox").val();
-	//console.log(message);
-	if(message == ""){
-		$(".control-group").toggleClass("error");
-		$("#shoutButton").addClass("btn-primary");
-	}
-	else{
-		$("#shoutButton").html("<i class='icon-refresh icon-white'></i>");
-		$.post(
-			'php/submitChatboxMessage.php',
-			{message:message},
-			function(data) {
-				$("#shoutButton").addClass("btn-primary");
-				loadChatbox(0);
-			});
-	}
-}
-
-function loadChatbox(scrollToBottom){
-	$.post(
-		'php/loadChatbox.php', {scroll:scrollToBottom},
-		function(data){
-			//if this is the initial load, fill all of the main div with new chatbox data
-			if(scrollToBottom==1){
-				$('#main').html(data);
-				$("#shoutButton").on('click', function(){
-					$("#shoutButton").removeClass("btn-primary");
-					submitChatboxMessage();
-					$("#shoutBox").val("");
-				});
-			}
-			//otherwise, leave the submit field alone and only change the messagessages div
-			else {
-				$('#chatboxMessagesTable').html(data);
-			}
-			//document.getElementsByTagName("body")[0].scrollTop = document.getElementsByClassName("span10")[0].clientHeight;
-			$("#shoutBox").keydown(function(event){
-				if(event.which ==13){
-					$("#shoutButton").removeClass("btn-primary");
-					submitChatboxMessage();
-					$("#shoutBox").val("");
-					updateChatbox();
-				}
-			});
-		}
-	);
-}
-
-function showChatboxImage(e){
-	//console.log(e.innerHTML);
-	if(e.innerHTML=="show image"){
-		e.parentElement.getElementsByClassName("chatboxImage")[0].style.display="block";
-		e.style.display="none";
-		return;
-	}
-	if(e.innerHTML=="hide"){
-		e.parentElement.getElementsByClassName("chatboxImage")[0].style.display="none";
-		e.innerHTML="show";
-		return;
-	}
-}
-
-function hideChatboxImage(e){
-	e.style.display="none";
-	e.parentElement.getElementsByClassName("btn")[0].style.display="inline-block";
-}
-
-function loadMessageThread(id){
-	//console.log(id);
-	$.post(
-			'php/loadMessageThread.php',
-			{person:id},
-			function(data){
-				$("#main").html(data);
-				$("#backToMessagesList").click(function(){
-					loadMessages();
-				});
-				$("#sendMessageButton").click(function(){
-					sendMessage();
-				});
-				$("#messageText").keydown(function(event){
-					if(event.which ==13){
-						sendMessage();
-					}
-					else{
-						$(".control-group").removeClass("error");
-					}
-				});
-			}
-		);
-}
-
-function sendMessage(){
-	var message = $("#messageText").val();
-	if(message != ''){
-		$("#sendMessageButton").removeClass("btn-primary");
-		$("#sendMessageButton").html("<i class='icon-refresh'></i>");
-		$.post(
-				'php/sendMessage.php',
-				{ message : message, otherPerson : "awesome@gatech.edu" }, // FIXME
-				function(data){
-					//console.log(data);
-					loadMessageThread(data);
-				}
-		);
-	}
-	else{
-		$(".control-group").addClass("error");
-	}
 }
 
 function loadEvents(type, id){
