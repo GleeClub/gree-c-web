@@ -27,7 +27,7 @@ if ($USER)
 }
 
 $fields = array(
-	// array(machine name, friendly name, field type, required)
+	// array(machine name, friendly name, field type, required, choices)
 	array("firstName", "First Name", "text", 1),
 	array("prefName", "Preferred Name", "text", 0),
 	array("lastName", "Last Name", "text", 1),

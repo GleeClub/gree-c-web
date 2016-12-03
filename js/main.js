@@ -124,7 +124,7 @@ function doEditProfile() {
 		else
 		{
 			alert("Information updated");
-			window.location.hash = "";
+			window.location.href = ".";
 		}
 	});
 }

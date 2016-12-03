@@ -128,7 +128,7 @@ function getPosition($position = "Member")
 
 function profilePic($email)
 {
-	$default = "http://placekitten.com/g/256/256";
+	$default = "http://lorempixel.com/g/256/256";
 	if ($email == '') return $default;
 	$sql = "SELECT picture FROM member WHERE email='$email';";
 	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
@@ -174,6 +174,8 @@ function isOfficer($email)
 
 function canEditEvents($email)
 {
+	return isOfficer($email);
+	// The above is probably okay as long as officers get along.  If we want to permit only certain officers, then delete the line above to use the logic below.
 	if (isUber($email)) return true;
 	if (hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Liaison")) return true;
 	return false;

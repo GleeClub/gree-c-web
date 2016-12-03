@@ -5,8 +5,8 @@ $email = $USER; // The user being changed
 
 if (isset($_POST["user"]))
 {
-	if (! isOfficer($user)) die("You do not have permission to change someone else's settings.");
 	$email = $_POST["user"];
+	if (! isOfficer($user) && $email != $user) die("You do not have permission to change someone else's settings.");
 }
 
 $permitted = array("firstName", "prefName", "lastName", "email", "password", "phone", "picture", "passengers", "onCampus", "location", "about", "major", "minor", "hometown", "techYear", "gChat", "twitter", "gatewayDrug", "conflicts");

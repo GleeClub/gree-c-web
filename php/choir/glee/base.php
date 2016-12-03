@@ -75,11 +75,11 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 			if ($didAttend == 1 || $shouldAttend == 0) $lastAttendedRehearsal = $time;
 		}
 		$pointChange = 0;
-		if($didAttend == '1')
+		if ($didAttend == '1')
 		{
 			$tip = "No point change for attending required event";
 			// Get back points for volunteer gigs and missed sectionals and extra sectionals
-			if(($type == "Volunteer Gig" || ($type == "Sectional" && $shouldAttend == '0')))
+			if ($type == "Volunteer Gig" || (($type == "Sectional" || $type == "Other") && $shouldAttend == '0'))
 			{
 				if ($score + $points > 100)
 				{
@@ -314,5 +314,5 @@ function rosterProp($member, $prop)
 	}
 	return $html;
 }
-
 ?>
+
