@@ -168,7 +168,7 @@ function isUber($email)
 function isOfficer($email)
 {
 	if (isUber($email)) return true;
-	if (hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Treasurer") || hasPosition($email, "Manager") || hasPosition($email, "Liaison")) return true;
+	if (hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Treasurer") || hasPosition($email, "Manager") || hasPosition($email, "Liaison") || hasPosition($email, "Ombudsman")) return true;
 	return false;
 }
 
