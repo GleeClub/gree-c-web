@@ -107,6 +107,17 @@ function loadLogin()
 	$.post('php/loadLogin.php', function(data) { $("#main").html(data); });
 }
 
+function signIn()
+{
+       var email = $('#email').prop('value');
+       var password = $('#password').prop('value');
+       $.post("php/checkLogin.php", { email : email, password : password }, function(data) {
+               if (data != 'OK') alert(data);
+               else location.reload();
+       });
+       return false;
+}
+
 function editProfile()
 {
 	$.post('php/editProfile.php', function(data) {

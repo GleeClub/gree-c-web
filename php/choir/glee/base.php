@@ -315,4 +315,3 @@ function rosterProp($member, $prop)
 	return $html;
 }
 ?>
-
