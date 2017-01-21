@@ -172,18 +172,22 @@ function isOfficer($email)
 	return false;
 }
 
-function canEditEvents($email)
+function canEditEvents($email, $type = "any")
 {
-	return isOfficer($email);
-	// The above is probably okay as long as officers get along.  If we want to permit only certain officers, then delete the line above to use the logic below.
 	if (isUber($email)) return true;
-	if (hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Liaison")) return true;
+	$permissions = array(
+		"any" => array("Ombudsman", "Liaison"),
+		"ombuds" => array("Ombudsman"),
+		"volunteer" => array("Liaison")
+	);
+	if (! array_key_exists($type, $permissions)) return false;
+	foreach (positions($email) as $pos) if (in_array($pos, $permissions[$type])) return true;
 	return false;
 }
 
 function attendancePermission($email, $event)
 {
-	if (isOfficer($email) || canEditEvents($email)) return true;
+	if (isOfficer($email)) return true;
 	if (! hasPosition($email, "Section Leader")) return false;
 	$result = mysql_fetch_array(mysql_query("select `section`, `type` from `event` where `eventNo` = '$event'"));
 	if ($result['type'] != 'sectional') return false;
@@ -271,15 +275,6 @@ function choirname($CHOIR)
 	if (! $CHOIR) return "Georgia Tech Choirs";
 	$row = mysql_fetch_array(mysql_query("select `name` from `choir` where `id` = '$CHOIR'"));
 	return $row["name"];
-}
-
-function eventTypes()
-{
-	$ret = array();
-	$result = mysql_query("select * from `eventType`");
-	while ($row = mysql_fetch_array($result)) $ret[$row["id"]] = $row["name"];
-	return $ret;
-	#if ($eventNo && $value > 2 && $row['typeNo'] <= 2) continue;
 }
 
 /**** Misc ****/

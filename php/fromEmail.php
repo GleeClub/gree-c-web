@@ -3,7 +3,7 @@ require_once('functions.php');
 
 if (! isset($USER))
 {
-	header("Location: /buzz/index.php");
+	header("Location: /");
 	exit(1);
 }
 
@@ -20,5 +20,5 @@ if((strtotime($result["callTime"]) - time()) < 86400) die("You cannot respond wi
 if($result['type'] == 'tutti' && ! $attend) die("Nice try.  Try submitting an absence request.");
 
 mysql_query("update `attends` set `shouldAttend` = '$attend', `confirmed` ='1' where `memberID` = '$USER' AND `eventNo` = '$event'");
-header("Location: /buzz/index.php#event:$event");
+header("Location: /#event:$event");
 ?>

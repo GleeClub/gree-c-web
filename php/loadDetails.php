@@ -107,7 +107,7 @@ if (isgig($event))
 	$html .= '<div id="setlistButton" class="btn event-btn">Set<br>List</div>';
 }
 if (attendancePermission($USER, $eventNo)) $html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
-if (canEditEvents($USER)) $html .= '<div id="editButton" class="btn event-btn">Edit<br>Event</div>';
+if (canEditEvents($USER, $event['type'])) $html .= '<div id="editButton" class="btn event-btn">Edit<br>Event</div>';
 $html .= "</div>";
 if(isOfficer($USER))
 {

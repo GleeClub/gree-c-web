@@ -1,11 +1,12 @@
 <?php
 require_once('functions.php');
-if (! canEditEvents($USER)) die("Access denied");
 
 foreach ($_POST as $k => $v) $_POST[$k] = mysql_real_escape_string($v);
 $id = $_POST['id'];
 $name = $_POST['name'];
 $type = $_POST['type'];
+if (! canEditEvents($USER, $type)) die("Access denied");
+
 #if ($type < 0 || $type > 4) die("Bad event type"); # TODO
 if (! valid_date($_POST['calldate'])) die("Bad call date");
 if (! valid_date($_POST['donedate'])) die("Bad done date");

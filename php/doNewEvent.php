@@ -1,8 +1,7 @@
 <?php
 require_once('functions.php');
-if (! canEditEvents($USER)) die("Access denied");
 
-function eventEmail($eventNo,$type)
+function eventEmail($eventNo, $type)
 {
 	GLOBAL $BASEURL, $CHOIR;
 	$sql = "select * from `eventType` where `id` = '$type'";
@@ -39,7 +38,7 @@ function eventEmail($eventNo,$type)
 	$recipient = $row['list'];
 	//$recipient = "Matthew Schauer <awesome@gatech.edu>";
 	$choirname = choirname($CHOIR);
-	$subject = "New $choirname Event";
+	$subject = "New $choirname Event: $eventName";
 	$headers = "Content-type:text/html;\n" .
 		"Reply-To: $sender\n" .
 		"From: $sender\n" .
@@ -109,6 +108,7 @@ foreach ($_POST as &$value) $value = mysql_real_escape_string($value);
 $eventNo = -1;
 $type = $_POST['type'];
 $repeat = $_POST['repeat'];
+if (! canEditEvents($USER, $type)) die("Access denied");
 
 if (! valid_date($_POST['calldate'])) die("Bad call date");
 if (! valid_date($_POST['donedate'])) die("Bad done date");

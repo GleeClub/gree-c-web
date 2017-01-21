@@ -1,6 +1,15 @@
 <?php
 /**** Event functions ****/
 
+function eventTypes()
+{
+	$ret = array();
+	$result = mysql_query("select * from `eventType` order by `weight`");
+	while ($row = mysql_fetch_array($result)) $ret[$row["id"]] = $row["name"];
+	return $ret;
+	#if ($eventNo && $value > 2 && $row['typeNo'] <= 2) continue;
+}
+
 function getEventDetails($eventNo){
 	$sql = "SELECT * FROM `event` WHERE eventNo=$eventNo;";
 	$result = mysql_query($sql);

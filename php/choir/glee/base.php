@@ -10,7 +10,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	$WEEK = 604800;
 	if ($semester == '') $semester = $SEMESTER;
 	if (! $CHOIR) die("No choir selected");
-	$sql = "select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `time`, `event`.`name`, `eventType`.`name` as `typeName`, `event`.`points` from `attends`, `event`, `eventType` where `attends`.`memberID` = '$memberID' and `event`.`eventNo` = `attends`.`eventNo` and `event`.`callTime` <= current_timestamp and `event`.`type` = `eventType`.`id` and `event`.`semester` = '$semester' and `event`.`choir` = '$CHOIR' order by `event`.`callTime` asc";
+	$sql = "select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `call`, UNIX_TIMESTAMP(`event`.`releaseTime`) as `release`, `event`.`name`, `event`.`type`, `eventType`.`name` as `typeName`, `event`.`points` from `attends`, `event`, `eventType` where `attends`.`memberID` = '$memberID' and `event`.`eventNo` = `attends`.`eventNo` and `event`.`callTime` <= current_timestamp and `event`.`type` = `eventType`.`id` and `event`.`semester` = '$semester' and `event`.`choir` = '$CHOIR' order by `event`.`callTime` asc";
 	$attendses = mysql_query($sql);
 	if (! $attendses) die("Couldn't fetch attendance: " . mysql_error());
 
@@ -57,29 +57,32 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	{
 		$eventNo = $attends['eventNo'];
 		$eventName = $attends['name'];
-		$type = $attends['typeName'];
+		$type = $attends['type'];
+		$typeName = $attends['typeName'];
 		$points = $attends['points'];
 		$shouldAttend = $attends['shouldAttend'];
 		$didAttend = $attends['didAttend'];
 		$minutesLate = $attends['minutesLate'];
 		$confirmed = $attends['confirmed'];
-		$time = $attends['time'];
-		$attendsID = "attends_".$memberID."_$eventNo";
+		$call = $attends['call'];
+		$release = $attends['release'];
+		$attendsID = "attends_" . $memberID . "_$eventNo";
 		$tip = "";
 		$curgig = 0;
 		$event = mysql_fetch_array(mysql_query("select * from `event` where `eventNo` = '$eventNo'"));
 
-		if ($type == "Rehearsal")
+		if ($type == "rehearsal")
 		{
-			$lastRehearsal = $time;
-			if ($didAttend == 1 || $shouldAttend == 0) $lastAttendedRehearsal = $time;
+			$lastRehearsal = $call;
+			if ($didAttend == 1 || $shouldAttend == 0) $lastAttendedRehearsal = $call;
 		}
 		$pointChange = 0;
 		if ($didAttend == '1')
 		{
 			$tip = "No point change for attending required event";
-			// Get back points for volunteer gigs and missed sectionals and extra sectionals
-			if ($type == "Volunteer Gig" || (($type == "Sectional" || $type == "Other") && $shouldAttend == '0'))
+			$bonusEvent = ($type == "volunteer" || $type == "ombuds" || (($type == "sectional" || $type == "other") && $shouldAttend == '0'));
+			// Get back points for volunteer gigs and and extra sectionals and ombuds events
+			if ($bonusEvent)
 			{
 				if ($score + $points > 100)
 				{
@@ -89,40 +92,39 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 				else
 				{
 					$pointChange += $points;
-					$tip = "Full bonus awarded for attending volunteer event";
+					$tip = "Full bonus awarded for attending volunteer or extra event";
 				}
-			}
-			// Get gig credit for volunteer gigs if they are applicable
-			if ($type == "Volunteer Gig" && $event['gigcount'] == '1')
-			{
-				$gigcount += 1;
-				$curgig = 1;
 			}
 			// Lose points equal to the percentage of the event missed, if they should have attended
 			if ($minutesLate > 0)
 			{
-				if ($shouldAttend == '1')
+				$effectiveValue = $points;
+				if ($pointChange > 0) $effectiveValue = $pointChange;
+				$duration = floatval($release - $call) / 60.0;
+				$delta = round(floatval($minutesLate) / $duration * $effectiveValue, 2);
+				$pointChange -= $delta;
+				if ($type == "ombuds") { }
+				else if ($bonusEvent)
 				{
-					if ($type == "Rehearsal") $delta = floatval($minutesLate) / 110 * 10;
-					else if ($type == "Sectional") $delta = floatval($minutesLate) / 50 * 5;
-					else
-					{
-						$sql = "select `callTime`, `releaseTime` from `event` where `eventNo` = '$eventNo'";
-						$row = mysql_fetch_array(mysql_query($sql));
-						$duration = floatval(strtotime($row['releaseTime']) - strtotime($row['callTime'])) / 60.0;
-						$delta = floatval($minutesLate) / $duration * $points;
-					}
-					$delta = round($delta, 2);
 					$pointChange -= $delta;
-					if ($type == "Volunteer Gig") $tip = "Event would grant $points-point bonus, but $delta points deducted for lateness";
-					else $tip = "$delta points deducted for lateness to required event";
+					$tip = "Event would grant $effectiveValue-point bonus, but $delta points deducted for lateness";
 				}
-				else $tip = "No points deducted for coming late to an event with excused absence";
+				else if ($shouldAttend == '1')
+				{
+					$pointChange -= $delta;
+					$tip = "$delta points deducted for lateness to required event";
+				}
+			}
+			// Get gig credit for volunteer gigs if they are applicable
+			if ($type == "volunteer" && $event['gigcount'] == '1')
+			{
+				$gigcount += 1;
+				$curgig = 1;
 			}
 			// If you haven't been to rehearsal in seven days, you can't get points or gig credit
-			if ($lastRehearsal > $time - $WEEK && $lastAttendedRehearsal < $time - $WEEK)
+			if ($lastRehearsal > $call - $WEEK && $lastAttendedRehearsal < $call - $WEEK)
 			{
-				if ($type == "Volunteer Gig")
+				if ($type == "volunteer")
 				{
 					$pointChange = 0;
 					if ($curgig)
@@ -132,7 +134,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 					}
 					$tip = "$points-point bonus denied because this week&apos;s rehearsal was missed";
 				}
-				else if ($type == "Tutti Gig")
+				else if ($type == "tutti")
 				{
 					$pointChange = -$points;
 					$tip = "Full deduction for unexcused absence from this week&apos;s rehearsal";
@@ -140,7 +142,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 			}
 		}
 		// Lose the full point value if did not attend
-		else if ($shouldAttend == '1')
+		else if ($shouldAttend == '1' && $type != "ombuds")
 		{
 			$pointChange = -$points;
 			$tip = "Full deduction for unexcused absence from event";
@@ -154,8 +156,8 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 		if ($mode == 1)
 		{
 			//name, date and type of the gig
-			$date = date("D, M j, Y",intval($time));
-			$eventRows .= "<tr id='$attendsID'><td class='data'><a href='#event:$eventNo'>$eventName</a></td><td class='data'>$date</td><td align='left' class='data'><span " . ($curgig ? "style='color: green'" : "") . ">$type</span></td>";
+			$date = date("D, M j, Y",intval($call));
+			$eventRows .= "<tr id='$attendsID'><td class='data'><a href='#event:$eventNo'>$eventName</a></td><td class='data'>$date</td><td align='left' class='data'><span " . ($curgig ? "style='color: green'" : "") . ">$typeName</span></td>";
 			
 			if ($shouldAttend) $checked = 'checked';
 			else $checked = '';

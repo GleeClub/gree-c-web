@@ -1664,6 +1664,7 @@ function editEvent(id, element, mode)
 			{
 				$('input[name="gigcount"]').prop('checked', type == 'volunteer');
 				var points = 10;
+				if (type == 'ombuds') points = 5;
 				if (type == 'other') points = 0;
 				if (type == 'sectional') points = 5;
 				else if (type == 'tutti') points = 35;

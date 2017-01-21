@@ -102,14 +102,12 @@ foreach ($fields as $category => $catfields)
 				$html .= "<select name='type' style='width: 200px'";
 				if ($eventNo && $value != 'volunteer' && $value != 'tutti') $html .= ' disabled';
 				$html .= ">";
-				$sql = "select * from `eventType`";
-				$result = mysql_query($sql);
-				while ($row = mysql_fetch_array($result))
+				foreach (eventTypes() as $id => $name)
 				{
-					if ($eventNo && ($value == 'volunteer' || $value == 'tutti') && $row['id'] != 'volunteer' && $row['id'] != 'tutti') continue;
-					$html .= "<option value='" . $row['id'] . "'";
-					if ($row['id'] == $value) $html .= ' selected';
-					$html .= ">" . $row['name'] . "</option>";
+					if ($eventNo && ($value == 'volunteer' || $value == 'tutti') && $id != 'volunteer' && $id != 'tutti') continue;
+					$html .= "<option value='" . $id . "'";
+					if ($id == $value) $html .= ' selected';
+					$html .= ">" . $name . "</option>";
 				}
 				$html .= "</select>";
 				break;
