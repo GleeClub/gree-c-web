@@ -902,7 +902,7 @@ function roster()
 
 function chgusr(user)
 {
-	$.post('php/chgusr.php', { user : user }, function(data) { location.href = '#'; location.reload();});
+	$.post('php/chgusr.php', { user : user }, function(data) { location.href = '#'; location.reload(); });
 }
 
 function setChoir(choir)
