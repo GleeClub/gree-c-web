@@ -106,8 +106,9 @@ function createRehearsal($name, $type, $call, $done, $location, $points, $sem, $
 
 foreach ($_POST as &$value) $value = mysql_real_escape_string($value);
 $eventNo = -1;
-$type = $_POST['type'];
 $repeat = $_POST['repeat'];
+$type = $_POST['type'];
+if (! in_array($type, array("volunteer", "tutti", "rehearsal", "sectional", "ombuds", "other"))) die("Bad event type \"$type\"");
 if (! canEditEvents($USER, $type)) die("Access denied");
 
 if (! valid_date($_POST['calldate'])) die("Bad call date");
@@ -121,7 +122,17 @@ $unixdone = strtotime($_POST['donetime'] . ' ' . $_POST['donedate']);
 $done = date('Y-m-d H:i:s', $unixdone);
 if ($unixdone <= $unixcall) die("Event ends before it begins");
 
-if ($type == 'other' || $type == 'rehearsal' || $type == 'sectional')
+if ($type == 'volunteer' || $type == 'tutti')
+{
+	$perftime = $_POST['perftime'];
+	if ($perftime == '') $perftime = $_POST['calltime'];
+	if (! valid_time($perftime)) die("Bad performance time");
+	$unixperform = strtotime($perftime . ' ' . $_POST['calldate']);
+	$perform = date('Y-m-d H:i:s', $unixperform);
+	if ($unixperform < $unixcall || $unixperform > $unixdone) die("Performance time not between start and end");
+	$eventNo = createGig($_POST['name'], ($type == 'tutti' ? true : false), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']), isset($_POST['public']), $_POST['summary'], $_POST['description']);
+}
+else
 {
 	if ($repeat != '' && $repeat != 'no')
 	{
@@ -140,25 +151,14 @@ if ($type == 'other' || $type == 'rehearsal' || $type == 'sectional')
 			$call = date('Y-m-d H:i:s', $cur);
 			$done = date('Y-m-d H:i:s', $cur + $dur);
 			$friendly = date('m-d', $cur);
-			if ($type == 'other') $eventNo = createEvent($_POST['name'], 'other', $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 1);
-			else $eventNo = createRehearsal($_POST['name'] . ' ' . $friendly, $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']));
+			if ($type == 'sectional' || $type == 'rehearsal') $eventNo = createRehearsal($_POST['name'] . ' ' . $friendly, $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']));
+			else $eventNo = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 1);
 			$cur = strtotime($interval, $cur);
 		}
 	}
-	else if ($type == 'other') $eventNo = createEvent($_POST['name'], 'other', $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 1);
-	else $eventNo = createRehearsal($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 'rehearsal' ? 0 : $_POST['section']));
+	else if ($type == 'sectional' || $type == 'rehearsal') $eventNo = createRehearsal($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 'rehearsal' ? 0 : $_POST['section']));
+	else $eventNo = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 1);
 }
-else if ($type == 'volunteer' || $type == 'tutti')
-{
-	$perftime = $_POST['perftime'];
-	if ($perftime == '') $perftime = $_POST['calltime'];
-	if (! valid_time($perftime)) die("Bad performance time");
-	$unixperform = strtotime($perftime . ' ' . $_POST['calldate']);
-	$perform = date('Y-m-d H:i:s', $unixperform);
-	if ($unixperform < $unixcall || $unixperform > $unixdone) die("Performance time not between start and end");
-	$eventNo = createGig($_POST['name'], ($type == 'tutti' ? true : false), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']), isset($_POST['public']), $_POST['summary'], $_POST['description']);
-}
-else die("Bad event type");
 
 if ($eventNo < 0) die("Error $eventNo");
 if (($type == 'volunteer' || $type == 'tutti') && $unixcall > strtotime('now')) eventEmail($eventNo, $type);

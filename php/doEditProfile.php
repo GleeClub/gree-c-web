@@ -14,8 +14,8 @@ $required = array("firstName", "lastName", "email", "phone", "passengers", "onCa
 $restricted = array();
 if (! $user) $required[] = "choir";
 if ($user == $email) $required[] = "registration";
-if (isset($_POST["onCampus"])) $_POST["onCampus"] = "1";
-else $_POST["onCampus"] = "0";
+if (isset($_POST["onCampus"])) $_POST["onCampus"] = 1;
+else $_POST["onCampus"] = 0;
 foreach ($required as $field) if (! isset($_POST[$field]) || $_POST[$field] == "") die("Missing value for property \"$field\".");
 if (! isOfficer($user)) foreach ($restricted as $field) if (isset($_POST[$field])) die("Permission denied to set property \"$field\".");
 
@@ -77,7 +77,7 @@ if (! mysql_query($sql)) cancel();
 if ($user && ! mysql_query("update `activeSemester` set `enrollment` = '$reg', `section` = '$newsect' where `member` = '$newemail' and `semester` = '$SEMESTER' and `choir` = '$choir'")) cancel();
 if (! $user && ! mysql_query("insert into `activeSemester` (`member`, `semester`, `choir`, `enrollment`, `section`) values ('$newemail', '$SEMESTER', '$choir', '$reg', '$newsect')")) cancel();
 mysql_query("commit");
-if ($user && $newsect != $oldsect)
+if (! $user || $newsect != $oldsect)
 {
 	$msg = updateSection($newemail, $SEMESTER, $choir, $newsect, $user);
 	if ($msg != "") die("Couldn't set section: " . $msg);
@@ -87,6 +87,6 @@ if (! $user)
 	if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select '$newemail', `eventNo`, 1 from `event` where `choir` = '$choir' and `semester` = '$SEMESTER' and (`section` = 0 or `section` = $newsect)")) die("Couldn't add new member to existing events: " . mysql_error());
 }
 if (! $user || $user == $email) setcookie("email", base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $newemail, MCRYPT_MODE_ECB)), time() + 60 * 60 * 24 * 120, "/", false, false);
-if (! $user) setcookie('choir', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $choir, MCRYPT_MODE_ECB)), time() + 60*60*24*120, '/', false, false);
+if (! $user) setcookie('choir', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $choir, MCRYPT_MODE_ECB)), time() + 60 * 60 * 24 * 120, '/', false, false);
 echo "OK";
 ?>
