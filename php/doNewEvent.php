@@ -70,7 +70,8 @@ function createEvent($name, $type, $call, $done, $location, $points, $sem, $comm
 
 	if ($section >= 0 && strtotime($call) > strtotime('now')) // -1 for nobody to attend, 0 for everyone to attend
 	{
-		$shouldAttend = 1;
+		if ($type == 'ombuds') $shouldAttend = 0;
+		else $shouldAttend = 1;
 		if (strtotime($call) < strtotime('+48 hours')) $shouldAttend = 0;
 		if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select `member`, '$eventNo', '$shouldAttend' from `activeSemester` where `semester` = '$SEMESTER' and `choir` = '$CHOIR'")) die("Failed to insert attends relations for event: " . mysql_error()); }
 		else
@@ -152,12 +153,12 @@ else
 			$done = date('Y-m-d H:i:s', $cur + $dur);
 			$friendly = date('m-d', $cur);
 			if ($type == 'sectional' || $type == 'rehearsal') $eventNo = createRehearsal($_POST['name'] . ' ' . $friendly, $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']));
-			else $eventNo = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 1);
+			else $eventNo = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0);
 			$cur = strtotime($interval, $cur);
 		}
 	}
 	else if ($type == 'sectional' || $type == 'rehearsal') $eventNo = createRehearsal($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 'rehearsal' ? 0 : $_POST['section']));
-	else $eventNo = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 1);
+	else $eventNo = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0);
 }
 
 if ($eventNo < 0) die("Error $eventNo");
