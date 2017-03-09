@@ -19,12 +19,10 @@ function actionOptions($userEmail)
 	{
 		$officerOptions .= '
 			<li><a href="#absenceRequest">Absence Requests</a></li>
-			<li><a href="#ties">Ties</a></li>
 			<li><a href="#semester">Edit Semester</a></li>
-			<li><a href="#officers">Edit Officers</a></li>
-			<li><a href="#doclinks">Edit Document Links</a></li>
-			<li><a href="#dues">Edit Dues</a></li>
-			<li><a href="#timeMachine">Past Semesters</a></li>';
+			<li><a href="#timeMachine">Past Semesters</a></li>
+			<li><a href="#settings">Site Settings</a></li>';
+			// <li><a href="#ties">Ties</a></li> // No longer necessary.  RIP.
 	}
 	echo $officerOptions;
 }
@@ -52,7 +50,7 @@ $choirname = choirname($CHOIR);
 	<link rel="stylesheet" type="text/css" href="css/token-js/styles/token-input-facebook.css" />
 	
 	<script src="js/main.js"></script>
-	<title>Gree-C-Web</title> <!-- retro -->
+	<title>Gree-C-Web</title> <!-- Retro! -->
 </head>
 <body>
 	<div class="container-fluid">

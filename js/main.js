@@ -74,10 +74,8 @@ function checkHash()
 	else if (h == 'repertoire') showRepertoire();
 	else if (h == 'announcements') loadAnnouncements();
 	else if (h == 'ties') loadTies();
-	else if (h == 'officers') loadOfficers();
-	else if (h == 'doclinks') loadLinks();
+	else if (h == 'settings') loadSettings();
 	else if (h == 'money') loadMoney();
-	else if (h == 'dues') editDues();
 	else if (h == 'timeMachine') timeMachine();
 	else if (h.indexOf(':') > 0)
 	{
@@ -689,9 +687,9 @@ function loadTies()
 	});
 }
 
-function loadOfficers()
+function loadSettings()
 {
-	$.post('php/officers.php', function(data) {
+	$.post('php/admin.php', function(data) {
 		$('#main').html(data);
 		$('select.member').change(function() {
 			var tracker = $(this).parent();
@@ -703,32 +701,33 @@ function loadOfficers()
 				else tracker.data('old', newm);
 			});
 		});
-	});
-}
-
-function loadLinks()
-{
-	$.post('php/doclinks.php', function(data) {
-		$('#main').html(data);
 		$('.urlchange').on('click', function() {
-			var name = $(this).parent().find('.docurl').attr('name');
-			var url = $(this).parent().find('.docurl').attr('value');
-			$.post('php/doclinks.php', { name : name, url : url }, function(data) {
+			var name = $(this).parent().parent().find('.docurl').attr('name');
+			var url = $(this).parent().parent().find('.docurl').attr('value');
+			$.post('php/admin.php', { type : "doclink", name : name, url : url }, function(data) {
 				alert(data);
 			})
 		});
 		$('.urldel').on('click', function() {
 			var row = $(this).parent().parent();
 			var name = $(this).parent().find('.docurl').attr('name');
-			$.post('php/doclinks.php', { name : name, action : "delete" }, function(data) {
+			$.post('php/admin.php', { type : "doclink", name : name, action : "delete" }, function(data) {
 				if (data != "OK") alert(data);
 				else row.remove();
 			})
 		});
 		$('#urladd').on('click', function() {
-			$.post('php/doclinks.php', { name : $('#newname').attr('value'), url : "" }, function(data) {
+			$.post('php/admin.php', { type : "doclink", name : $('#newname').attr('value'), url : "" }, function(data) {
 				if (data != "OK") alert(data);
 				loadLinks();
+			});
+		});
+		$(".dues-submit").on("click", function() {
+			var input = $(this).parent().find("input");
+			var item = input.data("item");
+			var amount = input.attr("value");
+			$.post('php/admin.php', { type : "dues", item : item, amount : amount }, function(data) {
+				alert(data);
 			});
 		});
 	});
@@ -1015,21 +1014,6 @@ function addMoneyForm()
 			$(this).parent().parent().remove();
 			ntrans--;
 			if (ntrans == 0) $('#trans_ops').remove();
-		});
-	});
-}
-
-function editDues()
-{
-	$.post('php/editDues.php', {}, function(data) {
-		$("#main").html(data);
-		$(".dues-submit").on("click", function() {
-			var input = $(this).parent().find("input");
-			var item = input.data("item");
-			var amount = input.attr("value");
-			$.post('php/editDues.php', { item : item, amount : amount }, function(data) {
-				if (data != "OK") alert(data);
-			});
 		});
 	});
 }

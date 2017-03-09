@@ -109,7 +109,7 @@ function info($userEmail)
 function announcements($userEmail)
 {
 	global $CHOIR;
-	$html = "<p class='lead'>Announcements <small>–Obviously each thing is the most important thing.</small></p>";
+	$html = "<p class='lead'>Announcements <small>– Obviously each thing is the most important thing.</small></p>";
 	//announcement block
 	//Show only announcements less than a month old and unarchived
 	$sql = "SELECT * FROM `announcement` WHERE date_add(timePosted, INTERVAL 1 MONTH) > now() and `choir` = '$CHOIR' AND `archived`=0 ORDER BY `timePosted` DESC LIMIT 0, 3";
@@ -122,7 +122,8 @@ function announcements($userEmail)
 		$op = $announcement['memberID'];
 		$mid = $announcement['announcementNo'];
 		$name = prefNameFromEmail($op);
-		if(isOfficer($userEmail)) $html .= "<div class='block' id='announce".$mid."'><p><b>$dayPosted $timePosted</b><i class='icon-remove archiveButton' onclick='archiveAnnouncement(".$mid.")' style='float: right'></i><br />".$announcement['announcement']."<br /><small style='color:grey'>&mdash;$name</small></p></div>";
+		$text = str_replace("\n", "<br>", htmlspecialchars($announcement["announcement"]));
+		if(isOfficer($userEmail)) $html .= "<div class='block' id='announce".$mid."'><p><b>$dayPosted $timePosted</b><i class='icon-remove archiveButton' onclick='archiveAnnouncement(".$mid.")' style='float: right'></i><br />$text<br /><small style='color:grey'>&mdash; $name</small></p></div>";
 		else $html .= "<div class='block'><p><b>$dayPosted $timePosted</b><br />".$announcement['announcement']."<br /><small style='color:grey'>&mdash;$name</small></p></div>";
 	}
 	$html .= "<button type='button' id='allAnnounceButton' class='btn' href='#annoucnements'>See All Announcements</button>";
