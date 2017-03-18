@@ -59,7 +59,7 @@ $choirname = choirname($CHOIR);
 	<div class="navbar-inner">
 	<div class="container">
 		<ul class="nav">
-			<li><a class="brand" href="index.php"><?php echo $choirname; ?></a></li>
+			<li><a class="brand" href="index.php">Jerry Ulrich</a></li>
 			<li class="divider-vertical"></li>
 			<?php if ($userEmail) { ?>
 			<li class="dropdown">
