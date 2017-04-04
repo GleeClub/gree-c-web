@@ -178,7 +178,8 @@ function canEditEvents($email, $type = "any")
 	$permissions = array(
 		"any" => array("Ombudsman", "Liaison"),
 		"ombuds" => array("Ombudsman"),
-		"volunteer" => array("Liaison")
+		"volunteer" => array("Liaison"),
+		"tutti" => array("Liaison")
 	);
 	if (! array_key_exists($type, $permissions)) return false;
 	foreach (positions($email) as $pos) if (in_array($pos, $permissions[$type])) return true;
