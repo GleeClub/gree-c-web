@@ -49,10 +49,14 @@ while ($row = mysql_fetch_array($query))
 }
 echo "</table></div>";
 
-echo "<div class='block span5'><style>input.dues-input { width: 5em; margin-bottom: 0px; }</style><h3>Dues</h3><table><tr><th>Item</th><th>Amount</th></tr>";
+echo "<div class='block span4'><style>input.dues-input { width: 5em; margin-bottom: 0px; }</style><h3>Dues</h3><table><tr><th>Item</th><th>Amount</th></tr>";
 $query = mysql_query("select `id`, `name`, `amount` from `fee` where `choir` = '$CHOIR'");
 while ($row = mysql_fetch_array($query)) echo "<tr><td>" . $row["name"] . "</td><td><input class='dues-input' type='number' data-item='" . $row["id"] . "' value='" . $row["amount"] . "'></input><button class='btn dues-submit'>Go</button></td></tr>";
 echo "</table></div>";
+
+echo "<div class='block span4'><h3>Permissions</h3>";
+
+echo "</div>";
 
 echo "<style>table.docs th { text-align: left; } .docurl { width: 400px; margin-bottom: 0px !important; }</style>";
 echo "<div class='block span11'><h3>Document Links</h3><table class='docs'><tr><th>Document</th><th>Location</th></tr>";
