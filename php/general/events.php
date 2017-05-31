@@ -119,4 +119,19 @@ function isConfirmed($email, $eventNo){
 	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 	return $result['confirmed'] == 0 ? false : true;
 }
+
+// Google Calendar stuff
+
+$calendar = "7nl6cu4fobeova68q4he7tmpuk@group.calendar.google.com";
+
+function get_gcal()
+{
+	global $application, $docroot;
+	$client = new Google_Client();
+	$client->setApplicationName($application);
+	$client->setAuthConfig("$docroot/secrets/Gree-C-Web-7ed7b150ae38.json");
+	$client->setScopes(["https://www.googleapis.com/auth/calendar"]);
+	$service = new Google_Service_Calendar($client);
+	return $service;
+}
 ?>

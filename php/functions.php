@@ -16,13 +16,16 @@ function getchoir()
 }
 
 $variables = mysql_fetch_array(mysql_query("select * from variables"));
-$docroot = "/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs";
+$webroot = "/var/www/vhosts/mensgleeclub.gatech.edu";
+$docroot = "$webroot/httpsdocs";
+$docroot_external = "$webroot/httpdocs";
 $musicdir = "/music";
 $domain = "gleeclub.gatech.edu";
 $BASEURL = "https://$domain";
 $SEMESTER = $variables['semester'];
 $CHOIR = getchoir();
 $USER = getuser();
+$application = "Gree-C-Web";
 
 require_once('general/utility.php');
 require_once('general/attendance.php');

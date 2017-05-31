@@ -14,7 +14,7 @@ function eventFilters()
 			  <fieldset>
 				<h3>Choose the Event's Semester</h3><br>";
 
-	while($row = mysql_fetch_array($semesters)){
+	while($row = mysql_fetch_array($semesters)) {
 		$semester = $row['semester'];
 		$html .= "
 				<button type='button' class='btn removeFilterBtn' name='semester' id='$semester'>$semester</button>";
@@ -25,7 +25,7 @@ function eventFilters()
 		  	<fieldset>
 				<h3>Choose the Event's Type</h3><br>";
 
-	foreach (eventTypes() as $id => $name)
+	foreach (eventTypes() as $id => $name) {
 		$typeName = $name;
 		$typeNo = $id;
 		$html .= "

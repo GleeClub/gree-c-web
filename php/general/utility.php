@@ -286,15 +286,14 @@ function repertoire_delfile($id)
 	global $docroot, $musicdir;
 	$query = "select `target`, `type` from `songLink` where `id` = '$id'";
 	$result = mysql_fetch_array(mysql_query($query));
-	$file = urldecode($result[0]);
+	$file = $result[0];
 	if ($file == '') return true;
 	$type = $result[1];
 	$query = "select `storage` from `mediaType` where `typeid` = '$type'";
 	$result = mysql_fetch_array(mysql_query($query));
-	if ($result[0] != 'local');
-	if (! preg_match('/^' . $musicdir . '/', $file) || preg_match('/\/\.\./', $file)); // FIXME
-	unlink($docroot . $file);
-	return true;
+	if ($result[0] != 'local') return true;
+	if (strpos($file, '/') !== false) return false;
+	return unlink($docroot . $musicdir . "/" . $file);
 }
 
 function loginBlock(){
