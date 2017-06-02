@@ -42,6 +42,12 @@ function dropdown($options, $name, $selected = '', $disabled = 0)
 	return $ret;
 }
 
+function typeahead($options, $name, $value = '') // TODO Make this work
+{
+	$id = $name . rand();
+	return "<input type='text' name='$name' id='$id' value='$value' data-provide='typeahead' autocomplete='off'><script>$('#$id').typeahead(source: typeaheadCallback)</script>";
+}
+
 function radio($options, $name, $selected = '', $disabled = 0)
 {
 	$ret = "";
@@ -219,6 +225,7 @@ function members($cond = "")
 function memberDropdown($member = '')
 {
 	return dropdown(members(), "member", $member);
+	//return typeahead(members(), "member", $member);
 }
 
 function semesters()

@@ -12,21 +12,7 @@ function gcalEvent($ids, $title, $location, $desc, $unixstart, $unixend, $interv
 	{
 		$event = new Google_Service_Calendar_Event();
 		$event->setId("calev" . $id);
-		$event->setSummary($title);
-		$event->setDescription($desc);
-		$event->setLocation($location);
-		$start = new Google_Service_Calendar_EventDateTime();
-		$start->setDateTime(date("Y-m-d\\TH:i:s", $unixstart));
-		$start->setTimeZone($tz);
-		$event->setStart($start);
-		$end = new Google_Service_Calendar_EventDateTime();
-		$end->setDateTime(date("Y-m-d\\TH:i:s", $unixend));
-		$end->setTimeZone($tz);
-		$event->setEnd($end);
-		$creator = new Google_Service_Calendar_EventCreator();
-		$creator->displayName = "Georgia Tech Glee Club";
-		$creator->email = "gleeclub_officers@lists.gatech.edu";
-		$event->setCreator($creator);
+		set_event_fields($event, $title, $desc, $location, $unixstart, $unixend, $tz);
 		$event->setAnyoneCanAddSelf(true);
 		$event->setGuestsCanSeeOtherGuests(true);
 		$cal->events->insert($calendar, $event);

@@ -1,5 +1,17 @@
 <?php
 require_once('functions.php');
+require_once("$docroot_external/php/lib/google-api-php-client-2.1.3/vendor/autoload.php");
+
+function gcalUpdate($id, $title, $location, $desc, $unixstart, $unixend)
+{
+	global $calendar;
+	$tz = date_default_timezone_get();
+	$cal = get_gcal();
+
+	$event = $cal->events->get($calendar, "calev" . $id);
+	set_event_fields($event, $title, $desc, $location, $unixstart, $unixend, $tz);
+	$cal->events->patch($calendar, "calev" . $id, $event);
+}
 
 foreach ($_POST as $k => $v) $_POST[$k] = mysql_real_escape_string($v);
 $id = $_POST['id'];
@@ -39,5 +51,6 @@ $description = $_POST['description'];
 
 if (! mysql_query("update `event` set `name` = '$name', `callTime` = '$call', `releaseTime` = '$done', `points` = '$points', `comments` = '$comments', `type` = '$type', `location` = '$location', `semester` = '$semester', `gigcount` = '$gigcount' where `eventNo` = '$id'")) die(mysql_error());
 if (($type == 'volunteer' || $type == 'tutti') && ! mysql_query("update `gig` set `performanceTime` = '$perf', `uniform` = '$uniform', `cname` = '$cname', `cphone` = '$cphone', `cemail` = '$cemail', `price` = '$price', `public` = '$public', `summary` = '$summary', `description` = '$description' where `eventNo` = '$id'")) die(mysql_error());
+gcalUpdate($id, $name, $location, $comments, $unixcall, $unixdone);
 echo "$id";
 ?>
