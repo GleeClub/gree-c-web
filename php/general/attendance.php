@@ -29,8 +29,8 @@ function getEventAttendanceRows($eventNo)
 	$sections = array();
 	$sect = mysql_query("select `id`, `name` from `sectionType` where `id` > '0' and `choir` = '$CHOIR' order by `id` asc");
 	while ($s = mysql_fetch_array($sect)) $sections[$s["id"]] = $s["name"];
-	$unassigned = mysql_num_rows(mysql_query("select * from `member` where `section` = 0"));
-	if ($unassigned) $sections[0] = "<span style='color: red'>Not assigned to any section</span>";
+	$unassigned = mysql_num_rows(mysql_query("select * from `activeSemester` where `semester` = '$SEMESTER' and `choir` = '$CHOIR' and `section` = 0"));
+	if ($unassigned) $sections[0] = "Not assigned to any section";
 	foreach ($sections as $num => $name)
 	{
 		$eventRows .= "<tr><td colspan=6><b>$name</b></td></tr>";
