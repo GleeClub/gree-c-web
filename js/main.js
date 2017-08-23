@@ -2232,6 +2232,7 @@ function loadSong(songid, isOfficer)
 									$('#file_upload').change(perform_upload);
 									empty = true;
 								}
+								else if (data == 'NODEL') alert("File could not be removed.");
 								else alert("Error:  " + data);
 							});
 						}
@@ -2247,8 +2248,8 @@ function loadSong(songid, isOfficer)
 						{
 							if (typeid == 'video')
 							{
-								$('#link_form').append("<b>http://www.youtube.com/watch?v=</b>");
-								oldtarget = oldtarget.replace(/^http:\/\/www.youtube.com\/watch\?v=/, '');
+								$('#link_form').append("<b>https://www.youtube.com/watch?v=</b>");
+								oldtarget = oldtarget.replace(/^https:\/\/www.youtube.com\/watch\?v=/, '');
 							}
 							$('#link_form').append("<input type=text name=\"link_target\" id=\"link_target\">");
 							$('#link_target').prop('value', oldtarget);
@@ -2271,13 +2272,13 @@ function loadSong(songid, isOfficer)
 							else if (storage == 'local')
 							{
 								if (empty) { alert("Target field cannot be empty."); return false; }
-								newtarget = 'http://mensgleeclub.gatech.edu' + $('#static_target').html();
+								newtarget = 'https://mensgleeclub.gatech.edu' + $('#static_target').html();
 							}
 							$.post('php/doEditLink.php', { id : id, action : "update", name : newname, target : newtarget }, function(data) {
 								$('#spinner').css('display', 'none');
 								if (data == 'OK')
 								{
-									link_main.html("<a href=\"" + (typeid == 'video' ? "http://www.youtube.com/watch?v=" : '') + newtarget + "\" target=\"_blank\">" + newname + "</a>");
+									link_main.html("<a href=\"" + (typeid == 'video' ? "https://www.youtube.com/watch?v=" : '') + newtarget + "\" target=\"_blank\">" + newname + "</a>");
 									$('.link_actions').css('display', 'inline');
 									$('.rep_actions').css('display', 'inline');
 								}

@@ -1,5 +1,40 @@
 <?php
 require_once('functions.php');
+require_once("$docroot_external/php/lib/google-api-php-client-2.1.3/vendor/autoload.php");
+
+function gcalEvent($ids, $title, $location, $desc, $unixstart, $unixend, $interval)
+{
+	global $calendar;
+	$tz = date_default_timezone_get();
+	$cal = get_gcal();
+
+	foreach ($ids as $id)
+	{
+		$event = new Google_Service_Calendar_Event();
+		$event->setId("calev" . $id);
+		set_event_fields($event, $title, $desc, $location, $unixstart, $unixend, $tz);
+		$event->setAnyoneCanAddSelf(true);
+		$event->setGuestsCanSeeOtherGuests(true);
+		$cal->events->insert($calendar, $event);
+		if ($interval != "")
+		{
+			$unixstart = strtotime($interval, $unixstart);
+			$unixend = strtotime($interval, $unixend);
+		}
+	}
+	/*if ($repeat != '' && $repeat != 'no')
+	{
+		$spec = "";
+		if ($repeat == "daily") $spec = "FREQ=DAILY";
+		else if ($repeat == "weekly") $spec = "FREQ=WEEKLY";
+		else if ($repeat == "biweekly") $spec = "FREQ=WEEKLY;INTERVAL=2";
+		else if ($repeat == "monthly") $spec = "FREQ=MONTHLY";
+		else if ($repeat == "yearly") $spec = "FREQ=YEARLY";
+		$times = count($ids);
+		$recur = "RRULE:$spec;COUNT=$times";
+		$event->setRecurrence(array($recur));
+	}*/
+}
 
 function eventEmail($eventNo, $type)
 {
@@ -105,8 +140,11 @@ function createRehearsal($name, $type, $call, $done, $location, $points, $sem, $
 	return createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, 0, $attend);
 }
 
+$unesc_name = $_POST["name"];
+$unesc_location = $_POST["location"];
+$unesc_comments = $_POST["comments"];
 foreach ($_POST as &$value) $value = mysql_real_escape_string($value);
-$eventNo = -1;
+$eventNo = array();
 $repeat = $_POST['repeat'];
 $type = $_POST['type'];
 if (! in_array($type, array("volunteer", "tutti", "rehearsal", "sectional", "ombuds", "other"))) die("Bad event type \"$type\"");
@@ -122,6 +160,7 @@ $call = date('Y-m-d H:i:s', $unixcall);
 $unixdone = strtotime($_POST['donetime'] . ' ' . $_POST['donedate']);
 $done = date('Y-m-d H:i:s', $unixdone);
 if ($unixdone <= $unixcall) die("Event ends before it begins");
+$interval = "";
 
 if ($type == 'volunteer' || $type == 'tutti')
 {
@@ -131,7 +170,7 @@ if ($type == 'volunteer' || $type == 'tutti')
 	$unixperform = strtotime($perftime . ' ' . $_POST['calldate']);
 	$perform = date('Y-m-d H:i:s', $unixperform);
 	if ($unixperform < $unixcall || $unixperform > $unixdone) die("Performance time not between start and end");
-	$eventNo = createGig($_POST['name'], ($type == 'tutti' ? true : false), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']), isset($_POST['public']), $_POST['summary'], $_POST['description']);
+	$eventNo[] = createGig($_POST['name'], ($type == 'tutti' ? true : false), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']), isset($_POST['public']), $_POST['summary'], $_POST['description']);
 }
 else
 {
@@ -152,16 +191,17 @@ else
 			$call = date('Y-m-d H:i:s', $cur);
 			$done = date('Y-m-d H:i:s', $cur + $dur);
 			$friendly = date('m-d', $cur);
-			if ($type == 'sectional' || $type == 'rehearsal') $eventNo = createRehearsal($_POST['name'] . ' ' . $friendly, $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']));
-			else $eventNo = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0);
+			if ($type == 'sectional' || $type == 'rehearsal') $eventNo[] = createRehearsal($_POST['name'] . ' ' . $friendly, $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']));
+			else $eventNo[] = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0);
 			$cur = strtotime($interval, $cur);
 		}
 	}
-	else if ($type == 'sectional' || $type == 'rehearsal') $eventNo = createRehearsal($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 'rehearsal' ? 0 : $_POST['section']));
-	else $eventNo = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0);
+	else if ($type == 'sectional' || $type == 'rehearsal') $eventNo[] = createRehearsal($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 'rehearsal' ? 0 : $_POST['section']));
+	else $eventNo[] = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0);
 }
 
-if ($eventNo < 0) die("Error $eventNo");
-if (($type == 'volunteer' || $type == 'tutti') && $unixcall > strtotime('now')) eventEmail($eventNo, $type);
-echo "$eventNo";
+if ($eventNo[0] < 0) die("Error " . $eventNo[0]);
+if (($type == 'volunteer' || $type == 'tutti') && $unixcall > strtotime('now')) eventEmail($eventNo[0], $type);
+gcalEvent($eventNo, $unesc_name, $unesc_location, $unesc_comments, $unixcall, $unixdone, $interval);
+echo $eventNo[0];
 ?>

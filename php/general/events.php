@@ -119,4 +119,38 @@ function isConfirmed($email, $eventNo){
 	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 	return $result['confirmed'] == 0 ? false : true;
 }
+
+// Google Calendar stuff
+
+$calendar = "7nl6cu4fobeova68q4he7tmpuk@group.calendar.google.com";
+
+function get_gcal()
+{
+	global $application, $docroot;
+	$client = new Google_Client();
+	$client->setApplicationName($application);
+	$client->setAuthConfig("$docroot/secrets/Gree-C-Web-7ed7b150ae38.json");
+	$client->setScopes(["https://www.googleapis.com/auth/calendar"]);
+	$service = new Google_Service_Calendar($client);
+	return $service;
+}
+
+function set_event_fields($event, $title, $desc, $location, $unixstart, $unixend, $tz)
+{
+	$event->setSummary($title);
+	$event->setDescription($desc);
+	$event->setLocation($location);
+	$start = new Google_Service_Calendar_EventDateTime();
+	$start->setDateTime(date("Y-m-d\\TH:i:s", $unixstart));
+	$start->setTimeZone($tz);
+	$event->setStart($start);
+	$end = new Google_Service_Calendar_EventDateTime();
+	$end->setDateTime(date("Y-m-d\\TH:i:s", $unixend));
+	$end->setTimeZone($tz);
+	$event->setEnd($end);
+	$creator = new Google_Service_Calendar_EventCreator();
+	$creator->displayName = "Georgia Tech Glee Club";
+	$creator->email = "gleeclub_officers@lists.gatech.edu";
+	$event->setCreator($creator);
+}
 ?>
