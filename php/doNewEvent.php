@@ -135,7 +135,7 @@ function createRehearsal($name, $type, $call, $done, $location, $points, $sem, $
 	if ($type == 'rehearsal' && $section != 0) die("Internal error 2 in createRehearsal; type is $type");
 
 	$attend = 0;
-	if ($type == 'sectional') $attend = -1;
+	//if ($type == 'sectional') $attend = -1;
 	if ($section) $attend = $section;
 	return createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, 0, $attend);
 }

@@ -29,8 +29,14 @@ if (isset($_POST['section']))
 {
 	$section = mysql_real_escape_string($_POST['section']);
 	if (! $wasactive) die("Can't change section for inactive semester");
+	mysql_query("begin");
 	$msg = updateSection($member, $semester, $CHOIR, $section);
-	if ($msg != "") die("Error changing section: " . $msg);
+	if ($msg != "")
+	{
+		mysql_query("rollback");
+		die("Error changing section: " . $msg);
+	}
+	mysql_query("commit");
 }
 echo "OK";
 ?>

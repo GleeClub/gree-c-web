@@ -114,7 +114,7 @@ if(isOfficer($USER))
 	$html .= '<hr>';
 	if (isgig($event))
 	{
-		if ($gig['cname'] != '' || $gig['cphone'] != '' || $gig['$cemail']) $html .= '<b>Contact</b><br>Name: ' . $gig['cname'] . '<br>Email: <a href="mailto:' . $gig['cemail'] . '">' . $gig['cemail'] . '</a><br>Phone: ' . $gig['cphone'] . '<br>Price: $' . $gig['price'] . '<br>';
+		if ($gig['cname'] != '' || $gig['cphone'] != '') $html .= '<b>Contact</b><br>Name: ' . $gig['cname'] . '<br>Email: <a href="mailto:' . $gig['cemail'] . '">' . $gig['cemail'] . '</a><br>Phone: ' . $gig['cphone'] . '<br>Price: $' . $gig['price'] . '<br>';
 	}
 }
 $html .= '</div>';
