@@ -1,4 +1,4 @@
-<?
+<?php
 require_once('functions.php');
 
 function member_fields($email)
