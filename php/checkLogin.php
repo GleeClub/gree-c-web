@@ -17,11 +17,11 @@ $count = mysql_num_rows($result);
 if ($count != 1) die("Wrong email or password");
 // Register $myusername, $mypassword and redirect to file "login_success.php"
 //session_register("myusername");
-setcookie('email', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $myusername, MCRYPT_MODE_ECB)), time() + 60*60*24*120, '/', false, false);
+setcookie('email', cookie_string($myusername), time() + 60*60*24*120, '/', false, false);
 if (! isset($_COOKIE['choir']))
 {
 	$choir = "glee"; # TODO Use stored last choir in database to set this
-	setcookie('choir', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $choir, MCRYPT_MODE_ECB)), time() + 60*60*24*120, '/', false, false);
+	setcookie('choir', $choir, time() + 60*60*24*120, '/', false, false);
 }
 echo "OK";
 ?>

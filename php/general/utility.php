@@ -11,6 +11,12 @@ function decrypt2($string)
 	return base64_decode($string) ^ "12345678900987654321qwertyuiopasdfghjklzxcvbnm,.";
 }
 
+function cookie_string($value)
+{
+	global $sessionkey;
+	return base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $value, MCRYPT_MODE_ECB));
+}
+
 function valid_date($string)
 {
 	$re_date = '/^\s*\d\d\d\d-\d\d-\d\d\s*$/';

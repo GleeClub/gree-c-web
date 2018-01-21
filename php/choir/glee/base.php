@@ -6,6 +6,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	// 1 for officer table
 	// 2 for member table
 	// 3 for gig count
+	// 4 for raw array
 	global $SEMESTER, $CHOIR;
 	$WEEK = 604800;
 	if ($semester == '') $semester = $SEMESTER;
@@ -17,6 +18,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	$eventRows = '';
 	$tableOpen = '<table>';
 	$tableClose = '</table>';
+	$retarr = [];
 	if ($mode == 1)
 	{
 		$eventRows = '<thead>
@@ -51,6 +53,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	{
 		if ($mode == 0) return $score;
 		else if ($mode == 3) return $gigcount;
+		else if ($mode == 4) return array("attendance" => $retarr, "final_score" => $score);
 		else return $tableOpen . $eventRows . $tableClose;
 	}
 	while($attends = mysql_fetch_array($attendses))
@@ -155,8 +158,8 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 
 		if ($mode == 1)
 		{
+			$date = date("D, M j, Y", (int) $call);
 			//name, date and type of the gig
-			$date = date("D, M j, Y",intval($call));
 			$eventRows .= "<tr id='$attendsID'><td class='data'><a href='#event:$eventNo'>$eventName</a></td><td class='data'>$date</td><td align='left' class='data'><span " . ($curgig ? "style='color: green'" : "") . ">$typeName</span></td>";
 			
 			if ($shouldAttend) $checked = 'checked';
@@ -196,6 +199,10 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 			$shouldAttend = ($shouldAttend == "0" ? "<i class='icon-remove'></i>" : "<i class='icon-ok'></i>");
 			$eventRows .= "<td><a href='#' class='gradetip' data-toggle='tooltip' data-placement='right' style='color: inherit; text-decoration: none' onclick='return false' title='$tip'>$pointChange</a></td></tr>";
 		}
+		else if ($mode == 4)
+		{
+			$retarr[] = array("eventNo" => $eventNo, "name" => $eventName, "date" => (int) $call, "type" => $type, "shouldAttend" => ($shouldAttend > 0), "didAttend" => ($didAttend > 0), "late" => (int) $minutesLate, "pointChange" => $pointChange, "partialScore" => $score, "explanation" => $tip);
+		}
 	}
 	if ($mode == 3) return $gigcount;
 	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
@@ -206,6 +213,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	if ($score < 0) $score = 0;
 	$score = round($score, 2);
 	if ($mode == 0) return $score;
+	if ($mode == 4) return array("attendance" => $retarr, "finalScore" => $score, "gigCount" => $gigcount, "gigReq" => $gigreq);
 	else return $tableOpen . $eventRows . $tableClose;
 }
 
