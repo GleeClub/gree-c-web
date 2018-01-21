@@ -1,7 +1,8 @@
 <style>
-.spacer { padding-right: 20px; content: '&nbsp;' }
+.spacer { padding-right: 20px; content: '&nbsp;'; }
+.form { width: 420px; padding: 20px; margin: 40px auto; }
 </style>
-<div class="span4 block">
+<div class="form block">
 	<form class='form-horizontal' onsubmit="return signIn()">
 	<div class='control-group'>
 		<label class='control-label'>Email</label>

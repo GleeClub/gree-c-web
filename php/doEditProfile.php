@@ -86,7 +86,7 @@ if (! $user)
 	if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select '$newemail', `eventNo`, 1 from `event` where `choir` = '$choir' and `semester` = '$SEMESTER' and (`section` = 0 or `section` = $newsect) and `type` != 'sectional'")) cancel("Couldn't add new member to existing events");
 }
 mysql_query("commit");
-if (! $user || $user == $email) setcookie("email", base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $newemail, MCRYPT_MODE_ECB)), time() + 60 * 60 * 24 * 120, "/", false, false);
-if (! $user) setcookie('choir', base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $choir, MCRYPT_MODE_ECB)), time() + 60 * 60 * 24 * 120, '/', false, false);
+if (! $user || $user == $email) setcookie("email", cookie_string($newemail), time() + 60 * 60 * 24 * 120, "/", false, false);
+if (! $user) setcookie("choir", $choir, time() + 60 * 60 * 24 * 120, "/", false, false);
 echo "OK";
 ?>
