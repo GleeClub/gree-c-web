@@ -46,7 +46,7 @@ $fields = array(
 		array('until', 'Repeat Until', 'date'),
 	),
 	'gig' => array(
-		array('uniform', 'Uniform', 'select', uniforms(), '', false),
+		array('uniform', 'Uniform', 'select', uniforms(), value('uniform'), false),
 		array('perftime', 'Performance Time', 'time'),
 		array('cname', 'Contact Name', 'text'),
 		array('cemail', 'Contact Email', 'text'),
@@ -58,7 +58,7 @@ $fields = array(
 		array('description', 'Public Description', 'textarea')
 	),
 	'rehearsal' => array(
-		array('section', 'Section', 'select', sections(), '', $eventNo),
+		array('section', 'Section', 'select', sections(), value('section'), $eventNo),
 	),
 );
 	
