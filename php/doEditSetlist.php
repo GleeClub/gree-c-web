@@ -1,11 +1,11 @@
 <?php
 require_once('functions.php');
 mysql_set_charset("utf8");
-if (! canEditEvents($USER)) die("DENIED");
 $action = $_POST['action'];
 $event = mysql_real_escape_string($_POST['event']);
 $song = mysql_real_escape_string($_POST['song']);
 $order = mysql_real_escape_string($_POST['order']);
+if (! hasEventPermission("edit", $event)) die("DENIED");
 if ($action == "add")
 {
 	$query = mysql_query("select max(`order`) as `num` from `gigSong` where `event` = '$event'");

@@ -26,7 +26,7 @@ $res_arr = mysql_fetch_array($results);
 $id = $res_arr['id'];
 */
 $id = mysql_insert_id();
-if (! isOfficer($USER)) // TODO handle duplicate users in the list
+if (! hasPermission("add-multi-todo")) // TODO handle duplicate users in the list
 {
 	foreach ($users as $user)
 	{

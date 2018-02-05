@@ -49,15 +49,13 @@ function attendance($email, $mode, $semester = '', $media = 'normal')
 
 function rosterPropList($type)
 {
-	global $USER;
-	$uber = isUber($USER);
 	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
-	if ($uber || hasPosition($USER, "Treasurer"))
+	if (hasPermission("view-transactions"))
 	{
 		$cols["Balance"] = 60;
 		$cols["Dues"] = 60;
 	}
-	if ($uber) $cols["Score"] = 60;
+	if (hasPermission("view-user-private-info")) $cols["Score"] = 60;
 	return $cols;
 }
 

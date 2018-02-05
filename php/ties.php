@@ -1,6 +1,6 @@
 <?
 require_once('functions.php');
-if (! isUber($USER)) die("DENIED");
+if (! hasPermission("view-ties")) die("DENIED");
 
 function tietable($result)
 {

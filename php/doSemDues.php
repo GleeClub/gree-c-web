@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! isOfficer($USER))
+if (! hasPermission("edit-transaction"))
 {
 	echo "DENIED";
 	exit(1);

@@ -4,7 +4,7 @@ $id = mysql_real_escape_string($_POST['id']);
 $newname = mysql_real_escape_string($_POST['newname']);
 $private = mysql_real_escape_string($_POST['private']);
 $public = mysql_real_escape_string($_POST['public']);
-if (! $USER || ! isOfficer($USER)) die("UNAUTHORIZED");
+if (! $USER || ! hasPermission("edit-minutes")) die("UNAUTHORIZED");
 if (! $CHOIR) die("NO_CHOIR");
 
 if ($id == '') $query = "insert into `minutes` (`choir`, `date`, `name`, `private`, `public`)  values ('$CHOIR', curdate(), '$newname', '$private', '$public')"; // New record

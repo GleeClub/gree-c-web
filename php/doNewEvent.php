@@ -148,7 +148,7 @@ $eventNo = array();
 $repeat = $_POST['repeat'];
 $type = $_POST['type'];
 if (! in_array($type, array("volunteer", "tutti", "rehearsal", "sectional", "ombuds", "other"))) die("Bad event type \"$type\"");
-if (! canEditEvents($USER, $type)) die("Access denied");
+if (! hasEventTypePermission("edit", $type)) die("Access denied");
 
 if (! valid_date($_POST['calldate'])) die("Bad call date");
 if (! valid_date($_POST['donedate'])) die("Bad done date");

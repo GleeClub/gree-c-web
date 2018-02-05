@@ -55,7 +55,7 @@ function member_csv($conditions)
 {
 	# FIXME No support for conditions right now
 	global $SEMESTER, $CHOIR, $USER;
-	if (! isOfficer($USER)) die("Access denied");
+	if (! hasPermission("view-users")) die("Access denied");
 	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major", "hometown", "section");
 	if ($conditions != '()') $conditions = ' and ' . $conditions;
 	$sql = "SELECT `member`.`lastName`, `member`.`firstName`, `member`.`prefName`, `member`.`email`, `member`.`phone`, `member`.`location`, `member`.`major`, `member`.`hometown`, `sectionType`.`name` as `section` FROM `member`, `activeSemester`, `sectionType` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `sectionType`.`id` = `activeSemester`.`section`  ORDER BY `member`.`lastName` asc, `member`.`firstName` asc";
@@ -92,7 +92,7 @@ foreach ($conds as $cond)
 }
 $condstr = '(' . join(") and (", $condarr) . ')';
 
-if (! isOfficer($USER)) $condstr = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = `member`.`email`)";
+if (! hasPermission("view-users")) $condstr = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = `member`.`email`)";
 
 if ($_POST['type'] == "print")
 {

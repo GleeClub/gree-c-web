@@ -169,22 +169,56 @@ function enrollment($email, $semester = '')
 	return $result['enrollment'];
 }
 
-function isUber($email)
+function hasPermission($perm)
 {
-	// Webmaster needs full access for debugging
-	// And as long as I make 95% of the commits, I need access too.  -- Matthew Schauer
-	if (hasPosition($email, "Instructor") || hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Webmaster") || $email == "awesome@gatech.edu") return true;
+	// FIXME Issues with mysql_real_escape-ing zero or multiple times
+	global $USER, $CHOIR;
+	$query = mysql_query("select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = '$perm' and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = '$CHOIR'");
+	if (! $query) die("Permission check failed: Failed to fetch permitted roles: " . mysql_error());
+	$allowed = [];
+	while ($row = mysql_fetch_array($query)) $allowed[] = $row["roleName"];
+	if (in_array("Any", $allowed)) return true;
+	if (! $USER) return false;
+	if (in_array("Member", $allowed)) return true;
+	$query = mysql_query("select `role`.`name` as `roleName` from `role`, `memberRole` where `memberRole`.`member` = '$USER' and `memberRole`.`role` = `role`.`id` and `role`.`choir` = '$CHOIR'"); // TODO I feel like we could combine these two queries.
+	if (! $query) die("Permission check failed: Failed to fetch member roles: " . mysql_error());
+	$held = [];
+	while ($row = mysql_fetch_array($query)) $held[] = $row["roleName"];
+	if (in_array("President", $held) || in_array("Webmaster", $held)) return true;
+	if (count(array_intersect($allowed, $held)) > 0) return true;
 	return false;
 }
 
-function isOfficer($email)
+function hasEventTypePermission($perm, $type = "any", $sect = 0)
 {
-	if (isUber($email)) return true;
-	if (hasPosition($email, "President") || hasPosition($email, "Vice President") || hasPosition($email, "Treasurer") || hasPosition($email, "Manager") || hasPosition($email, "Liaison") || hasPosition($email, "Ombudsman")) return true;
-	return false;
+	// Special types any and all
+	global $USER;
+	switch ($type) {
+		case "view":
+			break;
+		case "private":
+			break;
+		case "create":
+			break;
+		case "modify":
+			break;
+		case "attendance":
+			break;
+		default: die("Unknown event permission type $type");
+	}
 }
 
-function canEditEvents($email, $type = "any")
+function hasEventPermission($perm, $event)
+{
+	global $USER;
+	$query = mysql_query("select `section`, `type` from `event` where `eventNo` = '$event'");
+	if (! $query) die("Permission check failed: " . mysql_error());
+	if (mysql_num_rows($query) != 1) die("Permission check failed: no matching event");
+	$ev = mysql_fetch_array($query);
+	return hasEventPermission($perm, $ev["type"], $ev["section"]);
+}
+
+/*function canEditEvents($email, $type = "any")
 {
 	if (isUber($email)) return true;
 	$permissions = array(
@@ -200,7 +234,7 @@ function canEditEvents($email, $type = "any")
 
 function attendancePermission($email, $event)
 {
-	if (isOfficer($email)) return true;
+	if (isOfficer($email)) return true; # FIXME
 	if (! hasPosition($email, "Section Leader")) return false;
 	$result = mysql_fetch_array(mysql_query("select `section`, `type` from `event` where `eventNo` = '$event'"));
 	if ($result['type'] != 'sectional') return false;
@@ -208,7 +242,7 @@ function attendancePermission($email, $event)
 	if ($eventSection == 0) return true;
 	if (sectionFromEmail($email) == $eventSection) return true;
 	return false;
-}
+}*/
 
 function getMemberAttribute($attribute, $email){
         $sql = "SELECT $attribute FROM member WHERE email='$email';";

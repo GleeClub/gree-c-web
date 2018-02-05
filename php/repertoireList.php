@@ -3,7 +3,7 @@ require_once('functions.php');
 if (! $CHOIR) die("Not logged in"); # FIXME
 $results = mysql_query("select `id`, `title` from `song` where `current` = 1 and `choir` = '$CHOIR' order by `title` asc");
 if (! $results) die("Database query failed.");
-if ($USER && isOfficer($USER)) echo "<div style=\"padding-top: 5px\"><button class=btn style=\"padding: 5px; width: 100%\" id=repertoire_add>Add Song...</button></div>";
+if ($USER && hasPermission("edit-repertoire")) echo "<div style=\"padding-top: 5px\"><button class=btn style=\"padding: 5px; width: 100%\" id=repertoire_add>Add Song...</button></div>";
 echo "<style>td.repertoire_head { font-size: 12pt; font-weight: bold; }</style>";
 echo "<table class=\"table\" id=repertoire_table>";
 if (mysql_num_rows($results)) echo "<tr><td class=repertoire_head>Current Repertoire</td></tr>";

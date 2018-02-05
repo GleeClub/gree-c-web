@@ -2,7 +2,7 @@
 require_once('./functions.php');
 $eventNo = mysql_real_escape_string($_POST['eventNo']);
 
-if (! attendancePermission($USER, $eventNo)) die("Access denied");
+if (! hasPermission("edit-attendance")) die("Access denied");
 if (! isset($eventNo)) die("Missing event number");
 
 $sql = "select `name`, `section` from `event` where `eventNo` = '$eventNo'";

@@ -126,7 +126,7 @@ function semesterPage(){
 }
 
 //if they aren't the President, lock 'em out
-if(isUber($USER)) echo semesterPage();
+if(hasPermission("edit-semester")) echo semesterPage();
 else echo "<p id='title'><°o°> You're not supposed to be here, mate. <°o°></p>";
 
 ?>

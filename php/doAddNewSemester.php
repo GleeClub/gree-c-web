@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! $USER || ! isOfficer($USER)) die("DENIED");
+if (! $USER || ! hasPermission("edit-semester")) die("DENIED");
 $name = mysql_real_escape_string($_POST['name']);
 $sDD = $_POST['sDD'];
 $sMM = $_POST['sMM'];

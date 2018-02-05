@@ -8,7 +8,7 @@ $info = mysql_real_escape_string($_POST['desc']);
 $note = mysql_real_escape_string($_POST['note']);
 $current = mysql_real_escape_string($_POST['current']);
 if (! $CHOIR) die("Choir is not set");
-if (! $USER || ! isOfficer($USER)) die("UNAUTHORIZED");
+if (! $USER || ! hasPermission("edit-repertoire")) die("UNAUTHORIZED");
 if ($action == "add")
 {
 	$query = "insert into `song` (`choir`, `title`, `info`) values ('$CHOIR', '$title', '$info')";

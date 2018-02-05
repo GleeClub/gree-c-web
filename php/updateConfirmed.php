@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-if (! isOfficer($USER)) die("DENIED");
+if (! hasPermission("officer")) die("DENIED");
 
 $member = mysql_real_escape_string($_POST['email']);
 $semester = mysql_real_escape_string($_POST['semester']);

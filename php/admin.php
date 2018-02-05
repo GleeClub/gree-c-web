@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! isUber($USER)) die("Go home, earthling.");
+if (! hasPermission("uber")) die("Go home, earthling.");
 if (! $CHOIR) die("Choir is not set");
 
 if (isset($_POST["type"]))

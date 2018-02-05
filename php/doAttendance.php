@@ -13,7 +13,7 @@ $eventNo = mysql_real_escape_string($_POST['eventNo']);
 $memberID = mysql_real_escape_string($_POST['email']);
 $action = $_POST['action'];
 $value = mysql_real_escape_string($_POST['value']);
-if (! attendancePermission($USER, $eventNo))
+if (! hasPermission("edit-attendance"))
 {
 	if ($USER != $memberID) die("Access denied");
 	$event = mysql_fetch_array(mysql_query("select * from `event` where `eventNo` = '$eventNo'"));

@@ -9,7 +9,7 @@ $status = mysql_real_escape_string($_POST['status']);
 $comments = mysql_real_escape_string($_POST['comments']);
 $id = mysql_real_escape_string($_POST['id']);
 
-if (! isUber($USER)) die('DENIED');
+if (! hasPermission("edit-tie")) die('DENIED');
 if (! isset($_POST['action'])) die('MISSING_ARG');
 if ($action == 'return')
 {

@@ -2,7 +2,7 @@
 
 require_once('./functions.php');
 
-if (! isUber($USER)) die("Access denied");
+if (! hasPermission("edit-attendance")) die("Access denied");
 if(! isset($_POST['eventNo'])) die("Missing event number");
 
 $eventNo = mysql_real_escape_string($_POST['eventNo']);
