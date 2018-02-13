@@ -8,12 +8,8 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	// 3 for gig count
 	// 4 for raw array
 	global $SEMESTER, $CHOIR;
-	$WEEK = 604800;
 	if ($semester == '') $semester = $SEMESTER;
 	if (! $CHOIR) die("No choir selected");
-	$sql = "select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `call`, UNIX_TIMESTAMP(`event`.`releaseTime`) as `release`, `event`.`name`, `event`.`type`, `eventType`.`name` as `typeName`, `event`.`points` from `attends`, `event`, `eventType` where `attends`.`memberID` = '$memberID' and `event`.`eventNo` = `attends`.`eventNo` and `event`.`callTime` <= current_timestamp and `event`.`type` = `eventType`.`id` and `event`.`semester` = '$semester' and `event`.`choir` = '$CHOIR' order by `event`.`callTime` asc";
-	$attendses = mysql_query($sql);
-	if (! $attendses) die("Couldn't fetch attendance: " . mysql_error());
 
 	$eventRows = '';
 	$tableOpen = '<table>';
@@ -44,169 +40,201 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	}
 	$score = 100;
 	$gigcount = 0;
-	$lastRehearsal = 0;
-	$lastAttendedRehearsal = 0;
 	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$SEMESTER'"));
 	$gigreq = $result['gigreq'];
-	//make sure the member has some attends relationships
-	if(mysql_num_rows($attendses) == 0)
+
+	$query = mysql_query("select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `call`, UNIX_TIMESTAMP(`event`.`releaseTime`) as `release`, `event`.`name`, `event`.`type`, `eventType`.`name` as `typeName`, `event`.`points`, `event`.`gigcount` from `attends`, `event`, `eventType` where `attends`.`memberID` = '$memberID' and `event`.`eventNo` = `attends`.`eventNo` and `event`.`callTime` <= current_timestamp and `event`.`type` = `eventType`.`id` and `event`.`semester` = '$semester' and `event`.`choir` = '$CHOIR' order by `event`.`callTime` asc");
+	if (! $query) die("Couldn't fetch attendance: " . mysql_error());
+	if(mysql_num_rows($query) == 0)
 	{
 		if ($mode == 0) return $score;
-		else if ($mode == 3) return $gigcount;
-		else if ($mode == 4) return array("attendance" => $retarr, "final_score" => $score);
-		else return $tableOpen . $eventRows . $tableClose;
+		if ($mode == 3) return $gigcount;
+		if ($mode == 4) return array("attendance" => $retarr, "final_score" => $score);
+		return $tableOpen . $eventRows . $tableClose;
 	}
-	while($attends = mysql_fetch_array($attendses))
+	$allEvents = [];
+	while ($row = mysql_fetch_array($query))
 	{
-		$eventNo = $attends['eventNo'];
-		$eventName = $attends['name'];
-		$type = $attends['type'];
-		$typeName = $attends['typeName'];
-		$points = $attends['points'];
-		$shouldAttend = $attends['shouldAttend'];
-		$didAttend = $attends['didAttend'];
-		$minutesLate = $attends['minutesLate'];
-		$confirmed = $attends['confirmed'];
-		$call = $attends['call'];
-		$release = $attends['release'];
-		$attendsID = "attends_" . $memberID . "_$eventNo";
-		$tip = "";
-		$curgig = 0;
-		$event = mysql_fetch_array(mysql_query("select * from `event` where `eventNo` = '$eventNo'"));
-
-		if ($type == "rehearsal")
+		// FIXME This method will fail if a semester lasts more than a year.
+		$week = intval(date("W", $row["call"]));
+		if (! array_key_exists($week, $allEvents)) $allEvents[$week] = [];
+		$allEvents[$week][] = $row;
+	}
+	foreach ($allEvents as $week => $events)
+	{
+		$reqRehearsals = 0;
+		$attRehearsals = 0;
+		$reqSectionals = 0;
+		$attSectionals = 0;
+		foreach ($events as $event)
 		{
-			$lastRehearsal = $call;
-			if ($didAttend == 1 || $shouldAttend == 0) $lastAttendedRehearsal = $call;
-		}
-		$pointChange = 0;
-		if ($didAttend == '1')
-		{
-			$tip = "No point change for attending required event";
-			$bonusEvent = ($type == "volunteer" || $type == "ombuds" || (($type == "sectional" || $type == "other") && $shouldAttend == '0'));
-			// Get back points for volunteer gigs and and extra sectionals and ombuds events
-			if ($bonusEvent)
+			$type = $event["type"];
+			if (! $type == "rehearsal" && ! $type == "sectional") continue;
+			if ($event["shouldAttend"] == "1")
 			{
-				if ($score + $points > 100)
+				if ($type == "rehearsal") $reqRehearsals += 1;
+				if ($type == "sectional") $reqSectionals += 1;
+			}
+			if ($event["didAttend"] == "1")
+			{
+				if ($type == "rehearsal") $attRehearsals += 1;
+				if ($type == "sectional") $attSectionals += 1;
+			}
+		}
+		$sectDiff = $attSectionals - $reqSectionals;
+		foreach ($events as $event)
+		{
+			$eventNo = $event['eventNo'];
+			$eventName = $event['name'];
+			$type = $event['type'];
+			$typeName = $event['typeName'];
+			$points = $event['points'];
+			$shouldAttend = $event['shouldAttend'];
+			$didAttend = $event['didAttend'];
+			$minutesLate = $event['minutesLate'];
+			$confirmed = $event['confirmed'];
+			$call = $event['call'];
+			$release = $event['release'];
+			$eventID = "attends_" . $memberID . "_$eventNo";
+			$tip = "";
+			$curgig = 0;
+			$pointChange = 0;
+			if ($didAttend == '1')
+			{
+				$tip = "No point change for attending required event";
+				$bonusEvent = ($type == "volunteer" || $type == "ombuds" || ($type == "other" && $shouldAttend == '0') || ($type == "sectional" && $sectDiff > 0));
+				// Get back points for volunteer gigs and and extra sectionals and ombuds events
+				if ($bonusEvent)
 				{
-					$pointChange += 100 - $score;
-					$tip = "Event grants $points-point bonus, but grade is capped at 100%";
+					if ($score + $points > 100)
+					{
+						$pointChange += 100 - $score;
+						$tip = "Event grants $points-point bonus, but grade is capped at 100%";
+					}
+					else
+					{
+						$pointChange += $points;
+						$tip = "Full bonus awarded for attending volunteer or extra event";
+					}
+					if ($type == "sectional") $sectDiff -= 1;
 				}
+				// Lose points equal to the percentage of the event missed, if they should have attended
+				if ($minutesLate > 0)
+				{
+					$effectiveValue = $points;
+					if ($pointChange > 0) $effectiveValue = $pointChange;
+					$duration = floatval($release - $call) / 60.0;
+					$delta = round(floatval($minutesLate) / $duration * $effectiveValue, 2);
+					$pointChange -= $delta;
+					if ($type == "ombuds") { }
+					else if ($bonusEvent)
+					{
+						$pointChange -= $delta;
+						$tip = "Event would grant $effectiveValue-point bonus, but $delta points deducted for lateness";
+					}
+					else if ($shouldAttend == '1')
+					{
+						$pointChange -= $delta;
+						$tip = "$delta points deducted for lateness to required event";
+					}
+				}
+				// Get gig credit for volunteer gigs if they are applicable
+				if ($type == "volunteer" && $event['gigcount'] == '1')
+				{
+					$gigcount += 1;
+					$curgig = 1;
+				}
+				// If you haven't been to rehearsal this week, you can't get points or gig credit
+				if ($attRehearsals < $reqRehearsals)
+				{
+					if ($type == "volunteer")
+					{
+						$pointChange = 0;
+						if ($curgig)
+						{
+							$gigcount -= 1;
+							$curgig = 0;
+						}
+						$tip = "$points-point bonus denied because this week&apos;s rehearsal was missed";
+					}
+					else if ($type == "tutti")
+					{
+						$pointChange = -$points;
+						$tip = "Full deduction for unexcused absence from this week&apos;s rehearsal";
+					}
+				}
+			}
+			// Lose the full point value if did not attend
+			else if ($shouldAttend == '1')
+			{
+				if ($type == "ombuds") $tip = "You do not lose points for missing an ombuds event";
+				else if ($type == "sectional" && $sectDiff >= 0) $tip = "No deduction because you attended a different sectional this week";
 				else
 				{
-					$pointChange += $points;
-					$tip = "Full bonus awarded for attending volunteer or extra event";
-				}
-			}
-			// Lose points equal to the percentage of the event missed, if they should have attended
-			if ($minutesLate > 0)
-			{
-				$effectiveValue = $points;
-				if ($pointChange > 0) $effectiveValue = $pointChange;
-				$duration = floatval($release - $call) / 60.0;
-				$delta = round(floatval($minutesLate) / $duration * $effectiveValue, 2);
-				$pointChange -= $delta;
-				if ($type == "ombuds") { }
-				else if ($bonusEvent)
-				{
-					$pointChange -= $delta;
-					$tip = "Event would grant $effectiveValue-point bonus, but $delta points deducted for lateness";
-				}
-				else if ($shouldAttend == '1')
-				{
-					$pointChange -= $delta;
-					$tip = "$delta points deducted for lateness to required event";
-				}
-			}
-			// Get gig credit for volunteer gigs if they are applicable
-			if ($type == "volunteer" && $event['gigcount'] == '1')
-			{
-				$gigcount += 1;
-				$curgig = 1;
-			}
-			// If you haven't been to rehearsal in seven days, you can't get points or gig credit
-			if ($lastRehearsal > $call - $WEEK && $lastAttendedRehearsal < $call - $WEEK)
-			{
-				if ($type == "volunteer")
-				{
-					$pointChange = 0;
-					if ($curgig)
-					{
-						$gigcount -= 1;
-						$curgig = 0;
-					}
-					$tip = "$points-point bonus denied because this week&apos;s rehearsal was missed";
-				}
-				else if ($type == "tutti")
-				{
 					$pointChange = -$points;
-					$tip = "Full deduction for unexcused absence from this week&apos;s rehearsal";
+					$tip = "Full deduction for unexcused absence from event";
+					if ($type == "sectional") $sectDiff += 1;
 				}
 			}
-		}
-		// Lose the full point value if did not attend
-		else if ($shouldAttend == '1' && $type != "ombuds")
-		{
-			$pointChange = -$points;
-			$tip = "Full deduction for unexcused absence from event";
-		}
-		else $tip = "Did not attend and not expected to";
-		$score += $pointChange;
-		// Prevent the score from ever rising above 100
-		if ($score > 100) $score = 100;
-		if ($pointChange > 0) $pointChange = '+' . $pointChange;
+			else $tip = "Did not attend and not expected to";
+			$score += $pointChange;
+			// Prevent the score from ever rising above 100
+			if ($score > 100) $score = 100;
+			if ($pointChange > 0) $pointChange = '+' . $pointChange;
 
-		if ($mode == 1)
-		{
-			$date = date("D, M j, Y", (int) $call);
-			//name, date and type of the gig
-			$eventRows .= "<tr id='$attendsID'><td class='data'><a href='#event:$eventNo'>$eventName</a></td><td class='data'>$date</td><td align='left' class='data'><span " . ($curgig ? "style='color: green'" : "") . ">$typeName</span></td>";
-			
-			if ($shouldAttend) $checked = 'checked';
-			else $checked = '';
-			$newval = ($shouldAttend + 1) % 2;
-			if ($media == 'print') $eventRows .= "<td style='text-align: center' class='data'>" . ($shouldAttend ? "Y" : "N") . "</td>";
-			else $eventRows .= "<td style='text-align: center' class='data'><input type='checkbox' class='attendbutton' data-mode='should' data-event='$eventNo' data-member='$memberID' data-val='$newval' $checked></td>";
-			
-			if ($didAttend) $checked = 'checked';
-			else $checked = '';
-			$newval = ($didAttend + 1) % 2;
-			if ($media == 'print') $eventRows .= "<td style='text-align: center' class='data'>" . ($didAttend ? "Y" : "N") . "</td>";
-			else $eventRows .= "<td style='text-align: center' class='data'><input type='checkbox' class='attendbutton' data-mode='did' data-event='$eventNo' data-member='$memberID' data-val='$newval' $checked></td>";
+			if ($mode == 1)
+			{
+				$date = date("D, M j, Y", (int) $call);
+				//name, date and type of the gig
+				$eventRows .= "<tr id='$attendsID'><td class='data'><a href='#event:$eventNo'>$eventName</a></td><td class='data'>$date</td><td align='left' class='data'><span " . ($curgig ? "style='color: green'" : "") . ">$typeName</span></td>";
+				
+				if ($shouldAttend) $checked = 'checked';
+				else $checked = '';
+				$newval = ($shouldAttend + 1) % 2;
+				if ($media == 'print') $eventRows .= "<td style='text-align: center' class='data'>" . ($shouldAttend ? "Y" : "N") . "</td>";
+				else $eventRows .= "<td style='text-align: center' class='data'><input type='checkbox' class='attendbutton' data-mode='should' data-event='$eventNo' data-member='$memberID' data-val='$newval' $checked></td>";
+				
+				if ($didAttend) $checked = 'checked';
+				else $checked = '';
+				$newval = ($didAttend + 1) % 2;
+				if ($media == 'print') $eventRows .= "<td style='text-align: center' class='data'>" . ($didAttend ? "Y" : "N") . "</td>";
+				else $eventRows .= "<td style='text-align: center' class='data'><input type='checkbox' class='attendbutton' data-mode='did' data-event='$eventNo' data-member='$memberID' data-val='$newval' $checked></td>";
 
-			if ($media == 'print') $eventRows .= "<td style='text-align: center'>$minutesLate</td>";
-			else $eventRows .= "<td style='text-align: center'><input name='attendance-late' type='text' style='width:40px' value='$minutesLate'><button type='button' class='btn attendbutton' style='margin-top: -8px' data-mode='late' data-event='$eventNo' data-member='$memberID'>Go</button></td>";
+				if ($media == 'print') $eventRows .= "<td style='text-align: center'>$minutesLate</td>";
+				else $eventRows .= "<td style='text-align: center'><input name='attendance-late' type='text' style='width:40px' value='$minutesLate'><button type='button' class='btn attendbutton' style='margin-top: -8px' data-mode='late' data-event='$eventNo' data-member='$memberID'>Go</button></td>";
 
-			//make the point change red if it is negative
-			if ($pointChange > 0) $eventRows .= "<td style='text-align: center' class='data' style='color: green'>";
-			else if ($pointChange < 0) $eventRows .= "<td style='text-align: center'  class='data' style='color: red'>";
-			else $eventRows .= "<td style='text-align: center' class='data'>";
-			$eventRows .= "<a href='#' class='gradetip' data-toggle='tooltip' data-placement='right' style='color: inherit; text-decoration: none' onclick='return false' title='$tip'>$pointChange</a></td>";
+				//make the point change red if it is negative
+				if ($pointChange > 0) $eventRows .= "<td style='text-align: center' class='data' style='color: green'>";
+				else if ($pointChange < 0) $eventRows .= "<td style='text-align: center'  class='data' style='color: red'>";
+				else $eventRows .= "<td style='text-align: center' class='data'>";
+				$eventRows .= "<a href='#' class='gradetip' data-toggle='tooltip' data-placement='right' style='color: inherit; text-decoration: none' onclick='return false' title='$tip'>$pointChange</a></td>";
 
-			if ($pointChange != 0) $eventRows .= "<td style='text-align: center' class='data'>$score</td>";
-			else $eventRows .= "<td style='text-align: center' class='data'></td>";
+				if ($pointChange != 0) $eventRows .= "<td style='text-align: center' class='data'>$score</td>";
+				else $eventRows .= "<td style='text-align: center' class='data'></td>";
 
-			$eventRows .= "</tr>";
+				$eventRows .= "</tr>";
+			}
+			else if ($mode == 2)
+			{
+				$eventRows .= "<tr align='center'><td><a href='#event:$eventNo'>$eventName</a></td><td>";
+				if ($shouldAttend == "1") $eventRows .= "<i class='icon-ok'></i>";
+				else $eventRows .= "<i class='icon-remove'></i>";
+				$eventRows .= "</td><td>";
+				if ($didAttend == "1") $eventRows .= "<i class='icon-ok'></i>";
+				else $eventRows .= "<i class='icon-remove'></i>";
+				$shouldAttend = ($shouldAttend == "0" ? "<i class='icon-remove'></i>" : "<i class='icon-ok'></i>");
+				$eventRows .= "<td><a href='#' class='gradetip' data-toggle='tooltip' data-placement='right' style='color: inherit; text-decoration: none' onclick='return false' title='$tip'>$pointChange</a></td></tr>";
+			}
+			else if ($mode == 4)
+			{
+				$retarr[] = array("eventNo" => $eventNo, "name" => $eventName, "date" => (int) $call, "type" => $type, "shouldAttend" => ($shouldAttend > 0), "didAttend" => ($didAttend > 0), "late" => (int) $minutesLate, "pointChange" => $pointChange, "partialScore" => $score, "explanation" => $tip);
+			}
 		}
-		else if ($mode == 2)
-		{
-			$eventRows .= "<tr align='center'><td><a href='#event:$eventNo'>$eventName</a></td><td>";
-			if ($shouldAttend == "1") $eventRows .= "<i class='icon-ok'></i>";
-			else $eventRows .= "<i class='icon-remove'></i>";
-			$eventRows .= "</td><td>";
-			if ($didAttend == "1") $eventRows .= "<i class='icon-ok'></i>";
-			else $eventRows .= "<i class='icon-remove'></i>";
-			$shouldAttend = ($shouldAttend == "0" ? "<i class='icon-remove'></i>" : "<i class='icon-ok'></i>");
-			$eventRows .= "<td><a href='#' class='gradetip' data-toggle='tooltip' data-placement='right' style='color: inherit; text-decoration: none' onclick='return false' title='$tip'>$pointChange</a></td></tr>";
-		}
-		else if ($mode == 4)
-		{
-			$retarr[] = array("eventNo" => $eventNo, "name" => $eventName, "date" => (int) $call, "type" => $type, "shouldAttend" => ($shouldAttend > 0), "didAttend" => ($didAttend > 0), "late" => (int) $minutesLate, "pointChange" => $pointChange, "partialScore" => $score, "explanation" => $tip);
-		}
+		if ($sectDiff != 0) die("Error: sectional offset was $sectDiff");
 	}
 	if ($mode == 3) return $gigcount;
-	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
 	// Multiply the top half of the score by the fraction of volunteer gigs attended, if enabled
+	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
 	if ($result['gigCheck']) $score *= 0.5 + min(floatval($gigcount) * 0.5 / $gigreq, 0.5);
 	// Bound the final score between 0 and 100
 	if ($score > 100) $score = 100;
