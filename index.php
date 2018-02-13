@@ -1,21 +1,20 @@
 <?php
 require_once('php/functions.php');
-$userEmail = getuser();
 
-function actionOptions($userEmail)
+function actionOptions($USER)
 {
 	$officerOptions = '';
-	if (isOfficer($userEmail))
+	if (hasPermission("edit-announcements"))
 	{
 		$officerOptions .= '
 			<li><a href="#addAnnouncement">Make an Announcement</a></li>';
 	}
-	if (hasPosition($userEmail, "Treasurer") || isUber($userEmail))
+	if (hasPermission("edit-transaction"))
 	{
 		$officerOptions .= '
 			<li><a href="#money">Add Transactions</a></li>';
 	}
-	if (isUber($userEmail))
+	if (hasPermission("uber"))
 	{
 		$officerOptions .= '
 			<li><a href="#absenceRequest">Absence Requests</a></li>
@@ -61,13 +60,13 @@ $choirname = choirname($CHOIR);
 		<ul class="nav">
 			<li><a class="brand" href="index.php"><?php echo $choirname; ?></a></li>
 			<li class="divider-vertical"></li>
-			<?php if ($userEmail) { ?>
+			<?php if ($USER) { ?>
 			<li class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">Events <b class="caret"></b></a>
 				<ul class="dropdown-menu">
 					<li><a href="#events">All</a></li>
 					<?php foreach (eventTypes() as $id => $name) echo "<li><a href='#events:$id'>$name</a></li>"; ?>
-					<?php if (canEditEvents($userEmail)) { ?>
+					<?php if (hasPermission("create-event")) { ?>
 						<li><a href="#event">Create/Delete</a></li>
 					<?php } ?>
 				</ul>
@@ -78,14 +77,14 @@ $choirname = choirname($CHOIR);
 					<li><a href="#feedback">Feedback</a></li>
 					<li><a href="#suggestSong">Suggest a song</a></li>
 					<li><a href="#roster">Members</a></li>
-					<?php if ($userEmail) actionOptions($userEmail); ?>
+					<?php if ($USER) actionOptions($USER); ?>
 				</ul>
 			</li>
 			<?php } if ($CHOIR) { ?>
 			<li class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">Documents <b class="caret"></b></a>
 				<ul class="dropdown-menu">
-					<?php if ($userEmail) { ?><li><a href="#repertoire">Repertoire</a></li><?php } ?>
+					<?php if ($USER) { ?><li><a href="#repertoire">Repertoire</a></li><?php } ?>
 					<li><a href="#minutes">Meeting Minutes</a></li>
 					<li class="divider"><li>
 					<?php
@@ -96,7 +95,7 @@ $choirname = choirname($CHOIR);
 			</li>
 		</ul>
 		<ul class="nav pull-right">
-			<?php } if ($userEmail) { ?>
+			<?php } if ($USER) { ?>
 			<li>
 				<form class="navbar-search pull-left">
 					<input type="text" class="search-query" data-provide="typeahead"  data-items="4" data-source='["Taylor","Drew","Tot"]'>
@@ -150,19 +149,19 @@ $choirname = choirname($CHOIR);
 	</div>
 
 	<?php
-		if ($userEmail != '')
+		if ($USER != '')
 		{
 			$sql = "select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester";
 			$arr = mysql_fetch_array(mysql_query($sql));
 			$semesterEnd = $arr['end'];
 
-			if (hasPosition($userEmail, "President") && time() > $semesterEnd) echo newSemesterModal();
+			if (hasPermission("edit-semester")) echo newSemesterModal();
 			else
 			{
 				//if the user is not confirmed for the semester, prompt them to confirm
-				$arr = mysql_fetch_array(mysql_query("SELECT `location` FROM `member` WHERE `email` = '$userEmail'"));
+				$arr = mysql_fetch_array(mysql_query("SELECT `location` FROM `member` WHERE `email` = '$USER'"));
 				if (! $CHOIR) die("Choir is not set");
-				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$userEmail' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'"));
+				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$USER' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'"));
 				if (! $confirmed)
 				{
 					$loc = addslashes($arr['location']);

@@ -362,7 +362,7 @@ function todoBlock($userEmail, $form, $list)
 	$html = '';
 	if ($form)
 	{
-		if(isOfficer($userEmail))
+		if(hasPermission("add-multi-todo"))
 		{
 			$html .= "<p>
 				Names: <input id='multiTodo'>
