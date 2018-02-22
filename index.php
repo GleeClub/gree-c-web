@@ -41,6 +41,7 @@ $choirname = choirname($CHOIR);
 	<script src="js/jquery-ui-1.8.22.custom.min.js"></script>
 	<script src="bootstrap/js/bootstrap.js"></script>
 	<script src="js/bootstrap-datepicker.js"></script>
+	<script src="js/tinymce/tinymce.min.js"></script>
 	<link href="css/style.css" rel="stylesheet">
 	<link href="css/datepicker.css" rel="stylesheet">
 

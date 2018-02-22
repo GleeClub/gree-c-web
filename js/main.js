@@ -1940,7 +1940,7 @@ function showMinutes(loadid)
 					$.ajax({ url : 'php/isOfficer.php', async : false, success : function(data) { // Eww.
 						if (data == "1")
 						{
-							$('#minutes_main').prepend("<div class=clearfix style=\"padding-bottom: 20px\">" +
+							$('#minutes_main').prepend("<div>" +
 								"<div class=pull-right style=\"padding-left: 10px; padding-right: 10px\">" +
 									"<div class=\"btn-group\">" +
 										"<a class=\"btn dropdown-toggle\" data-toggle=\"dropdown\" href=\"#\"><i class=\"icon-cog\"></i> <span class=\"caret\"></span></a>" +
@@ -1989,28 +1989,29 @@ function showMinutes(loadid)
 						if (edit_mode == 0)
 						{
 							$('#minutes_edit').html('Done');
-							$('#minutes_view').html("<input type=text id=minutes_title><br><textarea id=minutes_text_private rows=20 style=\"width: 99%\">" + textPrivate + "</textarea><textarea id=minutes_text_public rows=20 style=\"width: 99%\">" + textPublic + "</textarea>");
+							$('#minutes_view').html("<input type=text id=minutes_title><br><div id=private_container><textarea id=minutes_text_private rows=20 style=\"width: 99%\">" + textPrivate + "</textarea></div><div id=public_container><textarea id=minutes_text_public rows=20 style=\"width: 99%\">" + textPublic + "</textarea></div>");
+							tinymce.init({ selector: "textarea", height: 500 });
 							if (view_mode == 0)
 							{
-								$('#minutes_text_public').css('display', 'none');
-								$('#minutes_text_private').css('display', 'inline');
+								$('#public_container').css('display', 'none');
+								$('#private_container').css('display', 'inline');
 							}
 							else
 							{
-								$('#minutes_text_private').css('display', 'none');
-								$('#minutes_text_public').css('display', 'inline');
+								$('#private_container').css('display', 'none');
+								$('#public_container').css('display', 'inline');
 							}
 							$('#minutes_public').off('click');
 							$('#minutes_private').off('click');
 							$('#minutes_public').click(function() {
 								view_mode = 1;
-								$('#minutes_text_private').css('display', 'none');
-								$('#minutes_text_public').css('display', 'inline');
+								$('#private_container').css('display', 'none');
+								$('#public_container').css('display', 'inline');
 							});
 							$('#minutes_private').click(function() {
 								view_mode = 0;
-								$('#minutes_text_public').css('display', 'none');
-								$('#minutes_text_private').css('display', 'inline');
+								$('#public_container').css('display', 'none');
+								$('#private_container').css('display', 'inline');
 							});
 							$('#minutes_title').attr('value', name);
 							edit_mode = 1;
@@ -2018,8 +2019,10 @@ function showMinutes(loadid)
 						else
 						{
 							$('#minutes_edit').html('Edit');
-							textPrivate = $('#minutes_text_private').attr('value');
-							textPublic = $('#minutes_text_public').attr('value');
+							edPublic = tinymce.get("minutes_text_public");
+							edPrivate = tinymce.get("minutes_text_private");
+							textPublic = edPublic.getContent();
+							textPrivate = edPrivate.getContent();
 							name = $('#minutes_title').attr('value');
 							if (view_mode == 0) $('#minutes_view').html(textPrivate);
 							else $('#minutes_view').html(textPublic);
@@ -2038,6 +2041,8 @@ function showMinutes(loadid)
 								res = data.split('\n');
 								if (res[0] != "OK") alert("Error:  " + data);
 							});
+							edPublic.destroy();
+							edPrivate.destroy();
 							edit_mode = 0;
 						}
 						return false;
@@ -2075,7 +2080,7 @@ function showMinutes(loadid)
 		$('.minutes_row').click(minutes_row_click);
 		$('#minutes_add').click(function() {
 			var curTime = now();
-			$.post('php/doEditMinutes.php', { id : '', newname : "New Minutes", private : "<pre style=\"font:  10pt sans-serif\">\n\n</pre>\n", public : "<pre style=\"font:  10pt sans-serif\">\n\n</pre>\n" }, function(data) { // Create the new minutes in the database
+			$.post('php/doEditMinutes.php', { id : '', newname : "New Minutes", private : "", public : "" }, function(data) { // Create the new minutes in the database
 				res = data.split('\n');
 				if (res[0] == 'OK')
 				{
