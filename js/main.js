@@ -1990,7 +1990,7 @@ function showMinutes(loadid)
 						{
 							$('#minutes_edit').html('Done');
 							$('#minutes_view').html("<input type=text id=minutes_title><br><div id=private_container><textarea id=minutes_text_private rows=20 style=\"width: 99%\">" + textPrivate + "</textarea></div><div id=public_container><textarea id=minutes_text_public rows=20 style=\"width: 99%\">" + textPublic + "</textarea></div>");
-							tinymce.init({ selector: "textarea", height: 500 });
+							tinymce.init({ selector: "textarea", height: 500, plugins: "lists textcolor", toolbar: "undo redo | formatselect | bold italic forecolor backcolor | alignleft aligncenter alignright alignjustify | numlist bullist indent outdent | removeformat" });
 							if (view_mode == 0)
 							{
 								$('#public_container').css('display', 'none');
