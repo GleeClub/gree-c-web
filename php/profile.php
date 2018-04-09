@@ -98,11 +98,11 @@ function basic_info($person)
 		}
 		if (hasPermission("switch-user"))
 		{
-			"<td><tr><button class='btn action' onclick='chgusr(\"$person\")'>Log in as</button></td></tr>";
+			"<tr><td><button class='btn action' onclick='chgusr(\"$person\")'>Log in as</button></td></tr>";
 		}
 		if (hasPermission("delete-user"))
 		{
-			"<td><tr><button class='btn action' style='color: red' onclick='delusr(\"$person\")'>Delete</button></td></tr>";
+			"<tr><td><button class='btn action' style='color: red' onclick='delusr(\"$person\")'>Delete</button></td></tr>";
 		}
 	}
 	$html .= "</table></td></tr></table>";

@@ -5,7 +5,7 @@ $action = $_POST['action'];
 $event = mysql_real_escape_string($_POST['event']);
 $song = mysql_real_escape_string($_POST['song']);
 $order = mysql_real_escape_string($_POST['order']);
-if (! hasEventPermission("edit", $event)) die("DENIED");
+if (! hasEventPermission("edit-setlist", $event)) die("DENIED");
 if ($action == "add")
 {
 	$query = mysql_query("select max(`order`) as `num` from `gigSong` where `event` = '$event'");

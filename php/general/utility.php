@@ -169,11 +169,11 @@ function enrollment($email, $semester = '')
 	return $result['enrollment'];
 }
 
-function hasPermission($perm)
+function hasPermission($perm, $eventType = "")
 {
 	// FIXME Issues with mysql_real_escape-ing zero or multiple times
 	global $USER, $CHOIR;
-	$query = mysql_query("select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = '$perm' and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = '$CHOIR'");
+	$query = mysql_query("select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = '$perm' and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = '$CHOIR'" . ($eventType == "" ? "" : " and `rolePermission`.`eventType` = '$eventType'"));
 	if (! $query) die("Permission check failed: Failed to fetch permitted roles: " . mysql_error());
 	$allowed = [];
 	while ($row = mysql_fetch_array($query)) $allowed[] = $row["roleName"];
@@ -191,20 +191,23 @@ function hasPermission($perm)
 
 function hasEventTypePermission($perm, $type = "any", $sect = 0)
 {
-	// Special types any and all
+	// TODO Special types any and all
 	global $USER;
-	switch ($type) {
+	switch ($perm) {
 		case "view":
-			break;
-		case "private":
-			break;
+			return true; // TODO
+		case "view-private":
+			return hasPermission("view-event-private-details", $type);
 		case "create":
-			break;
 		case "modify":
-			break;
-		case "attendance":
-			break;
-		default: die("Unknown event permission type $type");
+		case "delete":
+			return hasPermission("$perm-event", $type);
+		case "view-attendance":
+		case "edit-attendance":
+			if (hasPermission($perm)) return true;
+			if (sectionFromEmail($user) != $sect) return false;
+			return hasPermission("$perm-own-section");
+		default: die("Unknown event permission $perm");
 	}
 }
 
@@ -215,7 +218,7 @@ function hasEventPermission($perm, $event)
 	if (! $query) die("Permission check failed: " . mysql_error());
 	if (mysql_num_rows($query) != 1) die("Permission check failed: no matching event");
 	$ev = mysql_fetch_array($query);
-	return hasEventPermission($perm, $ev["type"], $ev["section"]);
+	return hasEventTypePermission($perm, $ev["type"], $ev["section"]);
 }
 
 /*function canEditEvents($email, $type = "any")

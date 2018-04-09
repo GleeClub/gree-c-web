@@ -110,8 +110,27 @@ if ($action == "auth")
 	reply("ok", array("identity" => cookie_string(postdata("user")), "choir" => "glee")); // TODO Setting choir
 }
 
-if (! $USER) err("Not logged in");
 if (! $CHOIR) err("Choir is not set");
+
+if ($action == "publicevents")
+{
+	$sem = $SEMESTER;
+	if (hasarg("semester")) $sem = arg("semester");
+	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = '$CHOIR' and `event`.`semester` = '$sem' and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1", ["id", "time"]);
+	reply("ok", array("events" => $ret));
+}
+if ($action == "publicsongs")
+{
+	$ret = [];
+	foreach (runquery("select `id`, `title` from `song`", ["id"]) as $song)
+	{
+		$song["links"] = runquery("select `id`, `name`, `target` as `ytid` from `songLink` where `song` = '" . $song["id"] . "' and `type` = 'video'", ["id"], []);
+		$ret[] = $song;
+	}
+	reply("ok", array("songs" => $ret));
+}
+
+if (! $USER) err("Not logged in");
 
 switch ($action)
 {
@@ -134,7 +153,7 @@ case "events":
 		$member = arg("member");
 	}
 	if (hasarg("semester")) $sem = arg("semester");
-	$ret = runquery("select event.eventNo as id, event.name as name, unix_timestamp(event.callTime) as `call`, unix_timestamp(gig.performanceTime) as `perform`, unix_timestamp(event.releaseTime) as `release`, event.points as points, event.comments as comments, event.type as `type`, event.location as location, sectionType.name as section, event.gigcount as gigcount, gig.uniform as uniform, gig.cemail as contact, attends.shouldAttend as shouldAttend, attends.didAttend as didAttend, attends.confirmed as confirmed, attends.minutesLate as late from event natural left join gig, attends, sectionType where event.choir = '$CHOIR' and attends.memberID = '$member' and event.semester = '$sem' and attends.eventNo = event.eventNo and event.section = sectionType.id", ["id", "call", "perform", "release", "points", "late"], ["gigcount", "shouldAttend", "didAttend", "confirmed"]);
+	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`event`.`callTime`) as `call`, unix_timestamp(`gig`.`performanceTime`) as `perform`, unix_timestamp(`event`.`releaseTime`) as `release`, `event`.`points` as `points`, `event`.`comments` as `comments`, `event`.`type` as `type`, `event`.`location` as `location`, `sectionType`.`name` as `section`, `event`.`gigcount` as `gigcount`, `gig`.`uniform` as `uniform`, `gig`.`cemail` as `contact`, `attends`.`shouldAttend` as `shouldAttend`, `attends`.`didAttend` as `didAttend`, `attends`.`confirmed` as `confirmed`, `attends`.`minutesLate` as `late` from `event` natural left join `gig`, `attends`, `sectionType` where `event`.`choir` = '$CHOIR' and `attends`.`memberID` = '$member' and `event`.`semester` = '$sem' and `attends`.`eventNo` = `event`.`eventNo` and `event`.`section` = `sectionType`.`id`", ["id", "call", "perform", "release", "points", "late"], ["gigcount", "shouldAttend", "didAttend", "confirmed"]);
 	reply("ok", array("events" => $ret));
 case "attendees":
 	priv("view-attendance");

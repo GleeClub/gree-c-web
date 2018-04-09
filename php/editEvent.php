@@ -5,7 +5,7 @@ $eventNo = mysql_real_escape_string($_POST['id']);
 $event = array();
 if ($eventNo)
 {
-	if (! hasEventPermission("modify-event", $eventNo)) die("DENIED");
+	if (! hasEventPermission("modify", $eventNo)) die("DENIED");
 	$eventquery = mysql_query("select * from `event` where `eventNo` = '$eventNo'");
 	if (mysql_num_rows($eventquery) != 1) die("Bad event number");
 	$eventresult = mysql_fetch_array($eventquery);

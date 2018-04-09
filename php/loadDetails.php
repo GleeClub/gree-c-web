@@ -106,10 +106,10 @@ if (isgig($event))
 	$html .= '<div id="carpoolsButton" class="btn event-btn">View<br>Carpools</div>';
 	$html .= '<div id="setlistButton" class="btn event-btn">Set<br>List</div>';
 }
-if (hasEventPermission("attendance", $eventNo)) $html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
-if (hasEventPermission("edit", $eventNo)) $html .= '<div id="editButton" class="btn event-btn">Edit<br>Event</div>';
+if (hasEventPermission("view-attendance", $eventNo)) $html .= '<div id="attendanceButton" class="btn event-btn" onclick="updateEventAttendance(\'' . $eventNo . '\')">Update<br>Attendance</div>';
+if (hasEventPermission("modify", $eventNo)) $html .= '<div id="editButton" class="btn event-btn">Edit<br>Event</div>';
 $html .= "</div>";
-if(hasEventPermission("private", $eventNo))
+if(hasEventPermission("view-private", $eventNo))
 {
 	$html .= '<hr>';
 	if (isgig($event))

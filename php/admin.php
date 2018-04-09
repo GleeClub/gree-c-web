@@ -1,3 +1,36 @@
+<style>
+table.docs th
+{
+	text-align: left;
+}
+.docurl
+{
+	width: 400px;
+	margin-bottom: 0px !important;
+}
+input.dues-input
+{
+	width: 5em;
+	margin-bottom: 0px;
+}
+th
+{
+	text-align: left;
+}
+td.wtbl
+{
+	padding-right: 40px;
+}
+td.vertheader
+{
+	vertical-align: top;
+	white-space: nowrap;
+}
+td.vertheader div
+{
+	writing-mode: tb-rl;
+}
+</style>
 <?php
 require_once('functions.php');
 
@@ -36,7 +69,7 @@ if (isset($_POST["type"]))
 	exit(0);
 }
 
-echo "<div class='block span6'><style>th { text-align: left; } td { padding-right: 40px; }</style><h3>Positions</h3><table><tr><th>Position</th><th>Member</th></tr>";
+echo "<div class='block span6'><h3>Positions</h3><table><tr><th>Position</th><th>Member</th></tr>";
 $query = mysql_query("select * from `role` where `rank` > 0 and `choir` = '$CHOIR' order by `rank` asc");
 while ($row = mysql_fetch_array($query))
 {
@@ -49,21 +82,36 @@ while ($row = mysql_fetch_array($query))
 }
 echo "</table></div>";
 
-echo "<div class='block span4'><style>input.dues-input { width: 5em; margin-bottom: 0px; }</style><h3>Dues</h3><table><tr><th>Item</th><th>Amount</th></tr>";
+echo "<div class='block span4'><h3>Dues</h3><table><tr><th>Item</th><th>Amount</th></tr>";
 $query = mysql_query("select `id`, `name`, `amount` from `fee` where `choir` = '$CHOIR'");
-while ($row = mysql_fetch_array($query)) echo "<tr><td>" . $row["name"] . "</td><td><input class='dues-input' type='number' data-item='" . $row["id"] . "' value='" . $row["amount"] . "'></input><button class='btn dues-submit'>Go</button></td></tr>";
+while ($row = mysql_fetch_array($query)) echo "<tr><td class=wtbl>" . $row["name"] . "</td><td><input class='dues-input' type='number' data-item='" . $row["id"] . "' value='" . $row["amount"] . "'></input><button class='btn dues-submit'>Go</button></td></tr>";
 echo "</table></div>";
 
+$query = mysql_query("select `id`, `name` from `role` where `choir` = '$CHOIR' order by `rank` asc");
+if (! $query) die("Couldn't fetch roles: " . mysql_error());
+$roles = [];
+while ($row = mysql_fetch_array($query)) $roles[$row["id"]] = $row["name"];
+$query = mysql_query("select * from `permission`");
+if (! $query) die("Couldn't fetch permissions: " . mysql_error());
+$perms = [];
+while ($row = mysql_fetch_array($query)) $perms[] = $row;
 echo "<div class='block span4'><h3>Permissions</h3>";
+echo "<table><th>";
+foreach ($roles as $id => $name) echo("<td class='vertheader'><div>$name</div></th>");
+echo "</td>";
+foreach($perms as $perm)
+{
+	echo "<tr><td style='white-space: nowrap'>" . $perm["name"] . "</td>";
+	foreach ($roles as $id => $name) echo "<td><input type='checkbox'></td>";
+	echo "</tr>";
+}
+echo "</table></div>";
 
-echo "</div>";
-
-echo "<style>table.docs th { text-align: left; } .docurl { width: 400px; margin-bottom: 0px !important; }</style>";
 echo "<div class='block span11'><h3>Document Links</h3><table class='docs'><tr><th>Document</th><th>Location</th></tr>";
 $query = mysql_query("select `name`, `url` from `gdocs`");
 while ($row = mysql_fetch_array($query))
 {
-	echo "<tr><td>$row[name]</td><td><input type='text' class='docurl' name='$row[name]' value='$row[url]'></td><td><button type='button' class='btn urlchange'>Change</button><button type='button' class='btn urldel'><i class='icon-remove'></i></td></tr>";
+	echo "<tr><td class='wtbl'>$row[name]</td><td class='wtbl'><input type='text' class='docurl' name='$row[name]' value='$row[url]'></td><td><button type='button' class='btn urlchange'>Change</button><button type='button' class='btn urldel'><i class='icon-remove'></i></td></tr>";
 }
-echo "<tr><td><input class='docurl' id='newname' type='text' style='width: 10em'></td><td><button id='urladd' type='button' class='btn'><i class='icon-plus'></i></button></td></tr></table></div>";
+echo "<tr><td class='wtbl'><input class='docurl' id='newname' type='text' style='width: 10em'></td><td><button id='urladd' type='button' class='btn'><i class='icon-plus'></i></button></td></tr></table></div>";
 ?>
