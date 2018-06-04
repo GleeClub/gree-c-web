@@ -1,36 +1,3 @@
-<style>
-table.docs th
-{
-	text-align: left;
-}
-.docurl
-{
-	width: 400px;
-	margin-bottom: 0px !important;
-}
-input.dues-input
-{
-	width: 5em;
-	margin-bottom: 0px;
-}
-th
-{
-	text-align: left;
-}
-td.wtbl
-{
-	padding-right: 40px;
-}
-td.vertheader
-{
-	vertical-align: top;
-	white-space: nowrap;
-}
-td.vertheader div
-{
-	writing-mode: tb-rl;
-}
-</style>
 <?php
 require_once('functions.php');
 
@@ -66,9 +33,61 @@ if (isset($_POST["type"]))
 		if (! mysql_query("update `fee` set `amount` = '$amount' where `id` = '$item' and `choir` = '$CHOIR'")) die("Error: " . mysql_error());
 		echo "OK";
 	}
+	else if ($_POST["type"] == "perm")
+	{
+		$role = mysql_real_escape_string($_POST["role"]);
+		$perm = mysql_real_escape_string($_POST["perm"]);
+		$value = $_POST["enable"] == "true" ? true : false;
+		$query = mysql_query("select * from `rolePermission` where `role` = '$role' and `permission` = '$perm'");
+		if (! $query) die("Error: " . mysql_error());
+		$current = mysql_num_rows($query) > 0 ? 1 : 0;
+		if (! $query) die("Error: " . mysql_error());
+		if ($value && ! $current)
+		{
+			if (! mysql_query("insert into `rolePermission` (`role`, `permission`) values ('$role', '$perm')")) die("Error: " . mysql_error());
+		}
+		else if (! $value && $current)
+		{
+			if (! mysql_query("delete from `rolePermission` where `role` = '$role' and `permission` = '$perm'")) die("Error: " . mysql_error());
+		}
+		echo "OK";
+	}
 	exit(0);
+} ?>
+<style>
+table.docs th
+{
+	text-align: left;
 }
-
+.docurl
+{
+	width: 400px;
+	margin-bottom: 0px !important;
+}
+input.dues-input
+{
+	width: 5em;
+	margin-bottom: 0px;
+}
+th
+{
+	text-align: left;
+}
+td.wtbl
+{
+	padding-right: 40px;
+}
+td.vertheader
+{
+	vertical-align: top;
+	white-space: nowrap;
+}
+td.vertheader div
+{
+	writing-mode: tb-rl;
+}
+</style>
+<?php
 echo "<div class='block span6'><h3>Positions</h3><table><tr><th>Position</th><th>Member</th></tr>";
 $query = mysql_query("select * from `role` where `rank` > 0 and `choir` = '$CHOIR' order by `rank` asc");
 while ($row = mysql_fetch_array($query))
@@ -87,22 +106,37 @@ $query = mysql_query("select `id`, `name`, `amount` from `fee` where `choir` = '
 while ($row = mysql_fetch_array($query)) echo "<tr><td class=wtbl>" . $row["name"] . "</td><td><input class='dues-input' type='number' data-item='" . $row["id"] . "' value='" . $row["amount"] . "'></input><button class='btn dues-submit'>Go</button></td></tr>";
 echo "</table></div>";
 
-$query = mysql_query("select `id`, `name` from `role` where `choir` = '$CHOIR' order by `rank` asc");
+$query = mysql_query("select `id`, `name` from `role` where `choir` = '$CHOIR' and `rank` > 0 order by `rank` asc");
 if (! $query) die("Couldn't fetch roles: " . mysql_error());
 $roles = [];
-while ($row = mysql_fetch_array($query)) $roles[$row["id"]] = $row["name"];
+$roleorder = [];
+while ($row = mysql_fetch_array($query))
+{
+	$roles[$row["id"]] = $row["name"];
+	$roleorder[] = $row["id"];
+}
 $query = mysql_query("select * from `permission`");
 if (! $query) die("Couldn't fetch permissions: " . mysql_error());
 $perms = [];
 while ($row = mysql_fetch_array($query)) $perms[] = $row;
-echo "<div class='block span4'><h3>Permissions</h3>";
+$query = mysql_query("select * from `rolePermission`");
+if (! $query) die("Couldn't fetch role permissions: " . mysql_error());
+$roleperms = [];
+foreach ($roles as $id => $name) $roleperms[$id] = [];
+while ($row = mysql_fetch_array($query)) $roleperms[$row["role"]][] = $row["permission"];
+echo "<div class='block span8'><h3>Permissions</h3>";
 echo "<table><th>";
-foreach ($roles as $id => $name) echo("<td class='vertheader'><div>$name</div></th>");
+foreach ($roleorder as $id) echo("<td class='vertheader'><div>" . $roles[$id] . "</div></th>");
 echo "</td>";
-foreach($perms as $perm)
+foreach ($perms as $perm)
 {
 	echo "<tr><td style='white-space: nowrap'>" . $perm["name"] . "</td>";
-	foreach ($roles as $id => $name) echo "<td><input type='checkbox'></td>";
+	foreach ($roleorder as $id)
+	{
+		$name = $roles[$id];
+		$hasperm = in_array($perm["name"], $roleperms[$id]);
+		echo "<td><input type='checkbox' data-role='$id' data-perm='" . $perm["name"] . "' onclick='updateRolePerm($(this))'" . ($hasperm ? " checked" : "") . "></td>";
+	}
 	echo "</tr>";
 }
 echo "</table></div>";

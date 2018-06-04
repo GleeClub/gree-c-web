@@ -173,7 +173,7 @@ function hasPermission($perm, $eventType = "")
 {
 	// FIXME Issues with mysql_real_escape-ing zero or multiple times
 	global $USER, $CHOIR;
-	$query = mysql_query("select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = '$perm' and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = '$CHOIR'" . ($eventType == "" ? "" : " and `rolePermission`.`eventType` = '$eventType'"));
+	$query = mysql_query("select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = '$perm' and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = '$CHOIR'" . ($eventType == "any" ? "" : " and `rolePermission`.`eventType` = '$eventType'"));
 	if (! $query) die("Permission check failed: Failed to fetch permitted roles: " . mysql_error());
 	$allowed = [];
 	while ($row = mysql_fetch_array($query)) $allowed[] = $row["roleName"];
@@ -220,32 +220,6 @@ function hasEventPermission($perm, $event)
 	$ev = mysql_fetch_array($query);
 	return hasEventTypePermission($perm, $ev["type"], $ev["section"]);
 }
-
-/*function canEditEvents($email, $type = "any")
-{
-	if (isUber($email)) return true;
-	$permissions = array(
-		"any" => array("Ombudsman", "Liaison"),
-		"ombuds" => array("Ombudsman"),
-		"volunteer" => array("Liaison"),
-		"tutti" => array("Liaison")
-	);
-	if (! array_key_exists($type, $permissions)) return false;
-	foreach (positions($email) as $pos) if (in_array($pos, $permissions[$type])) return true;
-	return false;
-}
-
-function attendancePermission($email, $event)
-{
-	if (isOfficer($email)) return true; # FIXME
-	if (! hasPosition($email, "Section Leader")) return false;
-	$result = mysql_fetch_array(mysql_query("select `section`, `type` from `event` where `eventNo` = '$event'"));
-	if ($result['type'] != 'sectional') return false;
-	$eventSection = $result['section'];
-	if ($eventSection == 0) return true;
-	if (sectionFromEmail($email) == $eventSection) return true;
-	return false;
-}*/
 
 function getMemberAttribute($attribute, $email){
         $sql = "SELECT $attribute FROM member WHERE email='$email';";

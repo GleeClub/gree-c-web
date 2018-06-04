@@ -88,9 +88,14 @@ function arg($var, $ensure = false, $escape = true)
 	return $_GET[$var];
 }
 
-function postdata($var)
+function postdata($var, $ensure = true, $escape = true)
 {
-	if (! isset($_POST[$var])) err("Missing POST parameter \"$var\"");
+	if (! isset($_POST[$var]))
+	{
+		if ($ensure) err("Missing argument \"$var\"");
+		return null;
+	}
+	if ($escape) return mysql_real_escape_string($_POST[$var]);
 	return $_POST[$var];
 }
 
@@ -104,23 +109,22 @@ $action = arg("action", true, false);
 
 if ($action == "auth")
 {
-	$user = mysql_real_escape_string(postdata("user"));
-	$pass = mysql_real_escape_string(postdata("pass"));
+	$user = postdata("user");
+	$pass = postdata("pass");
 	if (mysql_num_rows(mysql_query("select * from `member` where email = '$user' and password = md5('$pass')")) != 1) err("Wrong login information");
-	reply("ok", array("identity" => cookie_string(postdata("user")), "choir" => "glee")); // TODO Setting choir
+	reply("ok", array("identity" => cookie_string(postdata("user", true, false)), "choir" => "glee")); // TODO Setting choir
 }
 
 if (! $CHOIR) err("Choir is not set");
 
-if ($action == "publicevents")
+switch ($action)
 {
+case "publicevents":
 	$sem = $SEMESTER;
 	if (hasarg("semester")) $sem = arg("semester");
 	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = '$CHOIR' and `event`.`semester` = '$sem' and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1", ["id", "time"]);
 	reply("ok", array("events" => $ret));
-}
-if ($action == "publicsongs")
-{
+case "publicsongs":
 	$ret = [];
 	foreach (runquery("select `id`, `title` from `song`", ["id"]) as $song)
 	{
@@ -128,6 +132,11 @@ if ($action == "publicsongs")
 		$ret[] = $song;
 	}
 	reply("ok", array("songs" => $ret));
+case "gigreq":
+	$starttime = date("Y-m-d H:i:s", strtotime(postdata("bookingDateOfEvent", true, false) . " " . postdata("bookingTimeOfEvent", true, false)));
+	echo("insert into `gigreq` (`name`, `org`, `cname`, `cphone`, `cemail`, `startTime`, `location`, `comments`) values ('" . postdata("bookingNameOfEvent") . "', '" . postdata("bookingOrg") . "', '" . postdata("bookingContactName") . "', '" . postdata("bookingContactPhoneNumber") . "', '" . postdata("bookingContactEmail") . "', $starttime, '" . postdata("bookingLocationOfEvent") . "', '" . postdata("bookingComments") . "')");
+	if (! mysql_query("insert into `gigreq` (`name`, `org`, `cname`, `cphone`, `cemail`, `startTime`, `location`, `comments`) values ('" . postdata("bookingNameOfEvent") . "', '" . postdata("bookingOrg") . "', '" . postdata("bookingContactName") . "', '" . postdata("bookingContactPhoneNumber") . "', '" . postdata("bookingContactEmail") . "', '$starttime', '" . postdata("bookingLocationOfEvent") . "', '" . postdata("bookingComments") . "')")) err("Error creating gig request: " . mysql_error());
+	reply("ok");
 }
 
 if (! $USER) err("Not logged in");
