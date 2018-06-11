@@ -169,11 +169,11 @@ function enrollment($email, $semester = '')
 	return $result['enrollment'];
 }
 
-function hasPermission($perm, $eventType = "")
+function hasPermission($perm, $eventType = "any")
 {
 	// FIXME Issues with mysql_real_escape-ing zero or multiple times
 	global $USER, $CHOIR;
-	$query = mysql_query("select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = '$perm' and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = '$CHOIR'" . ($eventType == "any" ? "" : " and `rolePermission`.`eventType` = '$eventType'"));
+	$query = mysql_query("select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = '$perm' and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = '$CHOIR'" . ($eventType == "any" ? "" : " and (`rolePermission`.`eventType` = '$eventType' or `rolePermission`.`eventType` is null)"));
 	if (! $query) die("Permission check failed: Failed to fetch permitted roles: " . mysql_error());
 	$allowed = [];
 	while ($row = mysql_fetch_array($query)) $allowed[] = $row["roleName"];
@@ -184,6 +184,7 @@ function hasPermission($perm, $eventType = "")
 	if (! $query) die("Permission check failed: Failed to fetch member roles: " . mysql_error());
 	$held = [];
 	while ($row = mysql_fetch_array($query)) $held[] = $row["roleName"];
+	//echo("Permission: $perm for $eventType<br>Allowed roles: "); print_r($allowed); echo("<br>Held roles: "); print_r($held); echo("<br>");
 	if (in_array("President", $held) || in_array("Webmaster", $held)) return true;
 	if (count(array_intersect($allowed, $held)) > 0) return true;
 	return false;
@@ -204,9 +205,9 @@ function hasEventTypePermission($perm, $type = "any", $sect = 0)
 			return hasPermission("$perm-event", $type);
 		case "view-attendance":
 		case "edit-attendance":
-			if (hasPermission($perm)) return true;
-			if (sectionFromEmail($user) != $sect) return false;
-			return hasPermission("$perm-own-section");
+			if (hasPermission($perm, $type)) return true;
+			if (sectionFromEmail($USER) != $sect) return false;
+			return hasPermission("$perm-own-section", $type);
 		default: die("Unknown event permission $perm");
 	}
 }

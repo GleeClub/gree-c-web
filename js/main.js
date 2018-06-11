@@ -736,7 +736,7 @@ function loadSettings()
 function updateRolePerm(input)
 {
 	var enable = input.attr("checked") == "checked" ? "true" : "false";
-	$.post("php/admin.php", { type : "perm", role : input.data("role"), perm : input.data("perm"), enable : enable }, function(data) {
+	$.post("php/admin.php", { type : "perm", role : input.data("role"), perm : input.data("perm"), evtype : input.data("evtype"), enable : enable }, function(data) {
 		if (data != "OK") alert("Update failed: " + data);
 	});
 }

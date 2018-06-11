@@ -37,18 +37,20 @@ if (isset($_POST["type"]))
 	{
 		$role = mysql_real_escape_string($_POST["role"]);
 		$perm = mysql_real_escape_string($_POST["perm"]);
+		$evtype = false;
+		if (isset($_POST["evtype"])) $evtype = mysql_real_escape_string($_POST["evtype"]);
 		$value = $_POST["enable"] == "true" ? true : false;
-		$query = mysql_query("select * from `rolePermission` where `role` = '$role' and `permission` = '$perm'");
+		$query = mysql_query("select * from `rolePermission` where `role` = '$role' and `permission` = '$perm' and `eventType` " . ($evtype ? "= '$evtype'" : "is null"));
 		if (! $query) die("Error: " . mysql_error());
 		$current = mysql_num_rows($query) > 0 ? 1 : 0;
 		if (! $query) die("Error: " . mysql_error());
 		if ($value && ! $current)
 		{
-			if (! mysql_query("insert into `rolePermission` (`role`, `permission`) values ('$role', '$perm')")) die("Error: " . mysql_error());
+			if (! mysql_query("insert into `rolePermission` set `role` = '$role', `permission` = '$perm'" . ($evtype ? ", `eventType` = '$evtype'" : ""))) die("Error: " . mysql_error());
 		}
 		else if (! $value && $current)
 		{
-			if (! mysql_query("delete from `rolePermission` where `role` = '$role' and `permission` = '$perm'")) die("Error: " . mysql_error());
+			if (! mysql_query("delete from `rolePermission` where `role` = '$role' and `permission` = '$perm'" . ($evtype ? " and `eventType` = '$evtype'" : " and `eventType` is null"))) die("Error: " . mysql_error());
 		}
 		echo "OK";
 	}
@@ -115,27 +117,39 @@ while ($row = mysql_fetch_array($query))
 	$roles[$row["id"]] = $row["name"];
 	$roleorder[] = $row["id"];
 }
+$evtypes = [];
+$query = mysql_query("select `id` from `eventType` order by `weight` asc");
+if (! $query) die("Couldn't fetch event types: " . mysql_error());
+while ($row = mysql_fetch_array($query)) $evtypes[] = $row["id"];
 $query = mysql_query("select * from `permission`");
 if (! $query) die("Couldn't fetch permissions: " . mysql_error());
 $perms = [];
-while ($row = mysql_fetch_array($query)) $perms[] = $row;
+while ($row = mysql_fetch_array($query))
+{
+	if ($row["type"] == "event")
+	{
+		$perms[] = array($row["name"], false);
+		foreach ($evtypes as $type) $perms[] = array($row["name"], $type);
+	}
+	else $perms[] = array($row["name"], false);
+}
 $query = mysql_query("select * from `rolePermission`");
 if (! $query) die("Couldn't fetch role permissions: " . mysql_error());
 $roleperms = [];
 foreach ($roles as $id => $name) $roleperms[$id] = [];
-while ($row = mysql_fetch_array($query)) $roleperms[$row["role"]][] = $row["permission"];
+while ($row = mysql_fetch_array($query)) $roleperms[$row["role"]][] = array($row["permission"], $row["eventType"]);
 echo "<div class='block span8'><h3>Permissions</h3>";
 echo "<table><th>";
 foreach ($roleorder as $id) echo("<td class='vertheader'><div>" . $roles[$id] . "</div></th>");
 echo "</td>";
 foreach ($perms as $perm)
 {
-	echo "<tr><td style='white-space: nowrap'>" . $perm["name"] . "</td>";
+	echo "<tr><td style='white-space: nowrap'>" . $perm[0] . ($perm[1] ? ":" . $perm[1] : "") . "</td>";
 	foreach ($roleorder as $id)
 	{
 		$name = $roles[$id];
-		$hasperm = in_array($perm["name"], $roleperms[$id]);
-		echo "<td><input type='checkbox' data-role='$id' data-perm='" . $perm["name"] . "' onclick='updateRolePerm($(this))'" . ($hasperm ? " checked" : "") . "></td>";
+		$hasperm = in_array($perm, $roleperms[$id]);
+		echo "<td><input type='checkbox' data-role='$id' data-perm='" . $perm[0] . "'" . ($perm[1] ? " data-evtype='" . $perm[1] : "") . "' onclick='updateRolePerm($(this))'" . ($hasperm ? " checked" : "") . "></td>";
 	}
 	echo "</tr>";
 }
