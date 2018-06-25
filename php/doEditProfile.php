@@ -6,7 +6,7 @@ $email = $USER; // The user being changed
 if (isset($_POST["user"]))
 {
 	$email = $_POST["user"];
-	if (! isOfficer($user) && $email != $user) die("You do not have permission to change someone else's settings.");
+	if (! hasPermission("edit-user") && $email != $user) die("You do not have permission to change someone else's settings.");
 }
 
 $permitted = array("firstName", "prefName", "lastName", "email", "password", "phone", "picture", "passengers", "onCampus", "location", "about", "major", "minor", "hometown", "techYear", "gChat", "twitter", "gatewayDrug", "conflicts");
@@ -17,7 +17,7 @@ if ($user == $email) $required[] = "registration";
 if (isset($_POST["onCampus"])) $_POST["onCampus"] = "1";
 else $_POST["onCampus"] = "0";
 foreach ($required as $field) if (! isset($_POST[$field]) || $_POST[$field] == "") die("Missing value for property \"$field\".");
-if (! isOfficer($user)) foreach ($restricted as $field) if (isset($_POST[$field])) die("Permission denied to set property \"$field\".");
+if (! hasPermission("edit-user")) foreach ($restricted as $field) if (isset($_POST[$field])) die("Permission denied to set property \"$field\".");
 
 $newemail = mysql_real_escape_string($_POST["email"]);
 $validEmail = "/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._-]+)+$/";

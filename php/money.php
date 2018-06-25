@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! isUber($USER) && ! hasPosition($USER, "Treasurer")) die("Access denied");
+if (! hasPermission("view-transactions")) die("Access denied");
 
 function transacTypes()
 {
@@ -18,13 +18,11 @@ function transacTypes()
 }
 
 if (! isset($_POST['action']) || $_POST['action'] == "none")
-{ ?>
-<style>
-button { margin-left: 10px; }
-</style>
-<table id='transac' class='table'></table>
-<div id='roster_ops' class='pull-right'><button type='button' class='btn' onclick='addMoneyForm()'>Add Transaction</button></div>
-<?php exit(0); }
+{
+	echo "<style>button { margin-left: 10px; }</style><table id='transac' class='table'></table>";
+	if (hasPermission("edit-transaction")) echo "<div id='roster_ops' class='pull-right'><button type='button' class='btn' onclick='addMoneyForm()'>Add Transaction</button></div>";
+	exit(0);
+}
 
 switch ($_POST['action'])
 {

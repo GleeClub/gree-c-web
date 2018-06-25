@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! isset($USER) || ! isOfficer($USER)) die("ACCESS_DENIED");
+if (! isset($USER) || ! hasPermission("edit-grading")) die("ACCESS_DENIED");
 
 $action = $_POST['action'];
 if ($action == 'gigcheck')

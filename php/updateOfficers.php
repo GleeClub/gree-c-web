@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-if (! isUber($USER)) die("DENIED");
+if (! hasPermission("edit-officers")) die("DENIED");
 
 $position = mysql_real_escape_string($_POST['position']);
 $old = mysql_real_escape_string($_POST['old']);

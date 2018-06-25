@@ -18,7 +18,7 @@ $query = "select count(`public`) as `n` from `minutes` where `id` = '$id'";
 $result = mysql_fetch_array(mysql_query($query));
 if ($result['n'] == 0) die("The minutes you requested do not exist.");
 else if ($result['n'] > 1) die("Ambiguous request.");
-if (isOfficer($USER) && ! isset($_POST['public'])) $query = "select `private` from `minutes` where `id` = '$id'";
+if (hasPermission("view-complete-minutes") && ! isset($_POST['public'])) $query = "select `private` from `minutes` where `id` = '$id'";
 else  $query = "select `public` from `minutes` where `id` = '$id'";
 $result = mysql_fetch_array(mysql_query($query));
 echo $result[0];

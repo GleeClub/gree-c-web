@@ -1,7 +1,7 @@
 <?php
 require_once('./functions.php');
 
-if (! isUber($USER) && ! hasPosition($USER, "Treasurer")) die("DENIED");
+if (! hasPermission("edit-transaction")) die("DENIED");
 
 $id = mysql_real_escape_string($_POST['id']);
 $action = $_POST['action'];

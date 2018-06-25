@@ -6,7 +6,7 @@ if (! $CHOIR) die("Choir not set");
 $type = mysql_real_escape_string($_POST['type']);
 $cond = "`choir` = '$CHOIR'";
 if ($type != "all" && $type != "past") $cond = "`type` = '$type'";
-if (! isOfficer($USER))
+if (! hasPermission("view-all-events"))
 {
 	if ($cond != '') $cond .= " and ";
 	$cond .= "exists(select * from `attends` where `eventNo` = `event`.`eventNo` and `memberID` = '$USER')";

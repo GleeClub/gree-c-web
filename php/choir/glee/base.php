@@ -248,20 +248,18 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 function rosterPropList($type)
 {
 	global $USER;
-	$officer = isOfficer($USER);
-	$uber = isUber($USER);
 	$cols = array("#" => 10, "Name" => 260, "Section" => 80, "Contact" => 180, "Location" => 200);
-	if ($officer)
+	if (hasPermission("view-user-private-details"))
 	{
 		$cols["Enrollment"] = 40;
 	}
-	if ($uber || hasPosition($USER, "Treasurer"))
+	if (hasPermission("view-transactions"))
 	{
 		$cols["Balance"] = 60;
 		$cols["Dues"] = 60;
 		$cols["Tie"] = 40;
 	}
-	if ($uber)
+	if (hasPermission("view-user-private-details"))
 	{
 		$cols["Gigs"] = 40;
 		$cols["Score"] = 60;

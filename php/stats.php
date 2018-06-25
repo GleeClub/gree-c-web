@@ -14,8 +14,6 @@ function user_money_table($memberID)
 	$transactions = mysql_query($sql);
 	if (mysql_num_rows($transactions) == 0) return "<span style='color: gray'>(No transactions)</span><br>";
 	$html = "<table style='width: 100%'>";
-	$count = 0;
-	while($transaction = mysql_fetch_array($transactions))
 	{
 		$time = $transaction['time'];
 		$amount = $transaction['amount'];
@@ -123,7 +121,7 @@ function announcements($userEmail)
 		$mid = $announcement['announcementNo'];
 		$name = prefNameFromEmail($op);
 		$text = nl2br(htmlspecialchars($announcement["announcement"]));
-		if(isOfficer($userEmail)) $html .= "<div class='block' id='announce".$mid."'><p><b>$dayPosted $timePosted</b><i class='icon-remove archiveButton' onclick='archiveAnnouncement(".$mid.")' style='float: right'></i><br />$text<br /><small style='color:grey'>&mdash; $name</small></p></div>";
+		if(hasPermission("edit-announcements")) $html .= "<div class='block' id='announce".$mid."'><p><b>$dayPosted $timePosted</b><i class='icon-remove archiveButton' onclick='archiveAnnouncement(".$mid.")' style='float: right'></i><br />$text<br /><small style='color:grey'>&mdash; $name</small></p></div>";
 		else $html .= "<div class='block'><p><b>$dayPosted $timePosted</b><br />".$announcement['announcement']."<br /><small style='color:grey'>&mdash;$name</small></p></div>";
 	}
 	$html .= "<button type='button' id='allAnnounceButton' class='btn' href='#annoucnements'>See All Announcements</button>";
