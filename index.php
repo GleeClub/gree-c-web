@@ -66,7 +66,7 @@ $choirname = choirname($CHOIR);
 				<ul class="dropdown-menu">
 					<li><a href="#events">All</a></li>
 					<?php foreach (eventTypes() as $id => $name) echo "<li><a href='#events:$id'>$name</a></li>"; ?>
-					<?php if (hasPermission("create-event")) { ?>
+					<?php if (hasPermission("create-event") || hasPermission("delete-event")) { ?>
 						<li><a href="#event">Create/Delete</a></li>
 					<?php } ?>
 				</ul>
