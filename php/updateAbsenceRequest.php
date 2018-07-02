@@ -59,6 +59,7 @@ function absenceEmail($recipient, $state, $event)
 	mail($to, $subject, $message, $headers);
 }
 
+if (! hasPermission("process-absence-requests") die("<td align='center' colspan='7' class='data'>You don't have permission to do this.</td>");
 if (! isset($_POST['eventNo'])) die("<td align='center' colspan='7' class='data' style='font-weight:bold'>Something went wrong. :0</td>");
 
 $eventNo = mysql_real_escape_string($_POST["eventNo"]);

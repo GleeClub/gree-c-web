@@ -43,7 +43,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$SEMESTER'"));
 	$gigreq = $result['gigreq'];
 
-	$query = mysql_query("select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `call`, UNIX_TIMESTAMP(`event`.`releaseTime`) as `release`, `event`.`name`, `event`.`type`, `eventType`.`name` as `typeName`, `event`.`points`, `event`.`gigcount` from `attends`, `event`, `eventType` where `attends`.`memberID` = '$memberID' and `event`.`eventNo` = `attends`.`eventNo` and `event`.`callTime` <= current_timestamp and `event`.`type` = `eventType`.`id` and `event`.`semester` = '$semester' and `event`.`choir` = '$CHOIR' order by `event`.`callTime` asc");
+	$query = mysql_query("select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `call`, UNIX_TIMESTAMP(`event`.`releaseTime`) as `release`, `event`.`name`, `event`.`type`, `eventType`.`name` as `typeName`, `event`.`points`, `event`.`gigcount` from `attends`, `event`, `eventType` where `attends`.`memberID` = '$memberID' and `event`.`eventNo` = `attends`.`eventNo` and `event`.`releaseTime` <= (current_timestamp - interval 1 day) and `event`.`type` = `eventType`.`id` and `event`.`semester` = '$semester' and `event`.`choir` = '$CHOIR' order by `event`.`callTime` asc");
 	if (! $query) die("Couldn't fetch attendance: " . mysql_error());
 	if(mysql_num_rows($query) == 0)
 	{

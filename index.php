@@ -4,25 +4,11 @@ require_once('php/functions.php');
 function actionOptions($USER)
 {
 	$officerOptions = '';
-	if (hasPermission("edit-announcements"))
-	{
-		$officerOptions .= '
-			<li><a href="#addAnnouncement">Make an Announcement</a></li>';
-	}
-	if (hasPermission("edit-transaction"))
-	{
-		$officerOptions .= '
-			<li><a href="#money">Add Transactions</a></li>';
-	}
-	if (hasPermission("uber"))
-	{
-		$officerOptions .= '
-			<li><a href="#absenceRequest">Absence Requests</a></li>
-			<li><a href="#semester">Edit Semester</a></li>
-			<li><a href="#timeMachine">Past Semesters</a></li>
-			<li><a href="#settings">Site Settings</a></li>';
-			// <li><a href="#ties">Ties</a></li> // No longer necessary.  RIP.
-	}
+	if (hasPermission("edit-announcements")) $officerOptions .= '<li><a href="#addAnnouncement">Make an Announcement</a></li>';
+	if (hasPermission("edit-transaction")) $officerOptions .= '<li><a href="#money">Add Transactions</a></li>';
+	if (hasPermission("process-absence-requests")) $officerOptions .= '<li><a href="#absenceRequest">Absence Requests</a></li>';
+	if (hasPermission("edit-semester")) $officerOptions .= '<li><a href="#semester">Edit Semester</a></li><li><a href="#timeMachine">Past Semesters</a></li>';
+	if (hasPosition($USER, "President") || hasPosition($USER, "Webmaster")) $officerOptions .= '<li><a href="#settings">Site Settings</a></li>';
 	echo $officerOptions;
 }
 

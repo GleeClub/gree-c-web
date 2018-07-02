@@ -687,6 +687,42 @@ function loadTies()
 	});
 }
 
+function loadUniformActions()
+{
+	$(".uniform-change").on("click", function() {
+		var id = $(this).parent().data("uniform");
+		var name = $(this).parent().parent().find(".uniform-name").attr("value");
+		var desc = $(this).parent().parent().find(".uniform-desc").val();
+		$.post("php/admin.php", { type : "uniform", action : "edit", id : id, name : name, desc : desc }, function(data) {
+			if (data != "OK") alert(data);
+			else alert("Uniform updated.");
+		});
+	});
+	$(".uniform-delete").on("click", function() {
+		var id = $(this).parent().data("uniform");
+		var row = $(this).parent().parent();
+		$.post("php/admin.php", { type : "uniform", action : "delete", id : id }, function(data) {
+			if (data != "OK") alert(data);
+			else row.remove();
+		});
+	});
+	$(".uniform-add").on("click", function() {
+		var id = $("#new-uniform-id").attr("value");
+		var name = $("#new-uniform-name").attr("value");
+		var desc = $("#new-uniform-desc").val();
+		var row = $(this).parent().parent();
+		$.post("php/admin.php", { type : "uniform", action : "add", id : id, name : name, desc : desc }, function(data) {
+			var res = data.split("\n");
+			if (res[0] != "OK") alert(res[1]);
+			else
+			{
+				row.replaceWith(res[1]);
+				loadUniformActions();
+			}
+		});
+	});
+}
+
 function loadSettings()
 {
 	$.post('php/admin.php', function(data) {
@@ -730,6 +766,7 @@ function loadSettings()
 				alert(data);
 			});
 		});
+		loadUniformActions();
 	});
 }
 

@@ -1,8 +1,13 @@
 <?php
 require_once('functions.php');
 
-if (! hasPermission("uber")) die("Go home, earthling.");
-if (! $CHOIR) die("Choir is not set");
+if (! hasPosition($USER, "President") && ! hasPosition($USER, "Webmaster")) die("You do not have permission to access this page");
+if (! $CHOIR) die("Choir is not set")
+
+function uniformRow($id, $name, $desc)
+{
+	return "<tr><td>$id</td><td><input name='name' class='uniform-name' type='text' style='width: 10em' value='$name'></td><td><textarea name='desc' class='uniform-desc' style='width: 30em; height: 4em'>$desc</textarea></td><td data-uniform='$id'><button type='button' class='btn uniform-change'>Change</button><button tpye='button' class='btn uniform-delete'><i class='icon-remove'></i></button></td></tr>";
+}
 
 if (isset($_POST["type"]))
 {
@@ -33,6 +38,7 @@ if (isset($_POST["type"]))
 	}
 	else if ($_POST["type"] == "perm")
 	{
+		#if (! hasPermission("edit-permissions")) die("Error: You cannot edit permissions");
 		$role = mysql_real_escape_string($_POST["role"]);
 		$perm = mysql_real_escape_string($_POST["perm"]);
 		$evtype = false;
@@ -53,16 +59,19 @@ if (isset($_POST["type"]))
 	}
 	else if ($_POST["type"] == "uniform")
 	{
+		#if (! hasPermission("edit-uniforms")) die("Error: You cannot edit uniforms");
 		$action = $_POST["action"];
 		if (! isset($_POST["id"])) die("Missing event ID");
 		$id = mysql_real_escape_string($_POST["id"]);
 		$name = mysql_real_escape_string($_POST["name"]);
 		$desc = mysql_real_escape_string($_POST["desc"]);
-		if ($action == "new")
+		if ($action == "add")
 		{
 			if (! isset($_POST["name"])) die("Missing name parameter");
 			if (! isset($_POST["desc"])) die("Missing desc parameter");
-			if (! mysql_query("insert into `uniform` (`id`, `choir`, `name`, `description`) values ('$id', '$CHOIR', '$name', '$desc')")) die("Uniform creation failed: " . mysql_error());
+			if (! mysql_query("insert into `uniform` (`id`, `choir`, `name`, `description`) values ('$id', '$CHOIR', '$name', '$desc')")) die("ERR\nUniform creation failed: " . mysql_error());
+			echo "OK\n" . uniformRow($id, $name, $desc);
+			exit(0);
 		}
 		else if ($action == "delete")
 		{
@@ -182,10 +191,8 @@ echo "</table></div>";
 echo "<div class='block span6'><h3>Uniforms</h3><table style='width: 100%'><tr><th>ID</th><th>Name</th><th>Description</th><th></th></tr>";
 $query = mysql_query("select * from `uniform` where `choir` = '$CHOIR'");
 if (! $query) die("Couldn't fetch uniforms: " . mysql_error());
-while ($row = mysql_fetch_array($query))
-{
-	echo "<tr><td>" . $row["id"] . "</td><td><input name='name' type='text' style='width: 10em' value='" . $row["name"] . "'></td><td><textarea name='desc' style='width: 30em; height: 4em'>" . $row["description"] . "</textarea></td><td><button type='button' class='btn'>Change</button><button tpye='button' class='btn'><i class='icon-remove'></i></button></td></tr>";
-}
+while ($row = mysql_fetch_array($query)) echo uniformRow($row["id"], $row["name"], $row["description"]);
+echo "<tr><td><input name='id' id='new-uniform-id' type='text' style='width: 6em'></td><td><input name='name' id='new-uniform-name' type='text' style='width: 10em'></td><td><textarea name='desc' id='new-uniform-desc' style='width: 30em; height: 4em'></textarea></td><td><button type='button' class='btn uniform-add'><i class='icon-plus'></i></button></td></tr>";
 echo "</table></div>";
 
 echo "<div class='block span7'><h3>Document Links</h3><table class='docs'><tr><th>Document</th><th>Location</th></tr>";
