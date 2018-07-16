@@ -13,6 +13,27 @@ if ($eventNo)
 	$event = (array) $eventresult + (array) $gigresult;
 }
 else if (! hasEventTypePermission("create")) die("DENIED");
+else if (isset($_POST["gigreq"]))
+{
+	$gigReqNo = mysql_real_escape_string($_POST["gigreq"]);
+	$query = mysql_query("select * from `gigreq` where `id` = '$gigReqNo'");
+	if (! $query) die("Failed to fetch gig request: " . mysql_error());
+	if (mysql_num_rows($query) != 1) die("No matching gig request");
+	$event = mysql_fetch_array($query);
+	$event["callTime"] = date("Y-m-d H:i:s", strtotime($row["startTime"]) - 30 * 60);
+	$event["releaseTime"] = date("Y-m-d H:i:s", strtotime($row["startTime"]) + 60 * 60);;
+	$event["performanceTime"] = $row["startTime"];
+	$event["points"] = "10";
+	$event["type"] = "volunteer";
+	$event["semester"] = $SEMESTER;
+	$event["gigcount"] = 1;
+	$event["section"] = 0;
+	$event["uniform"] = "jeans";
+	$event["price"] = 0;
+	$event["public"] = 0;
+	$event["summary"] = "";
+	$event["description"] = "";
+}
 
 function value($field)
 {
@@ -71,7 +92,7 @@ foreach ($fields as $category => $catfields)
 	{
 		$html .= "<tr id='event_row_" . $field[0] . "'><td>" . $field[1] . "</td><td style='text-align: right'>";
 		$value = '';
-		if ($eventNo) $value = htmlspecialchars(value($field[0]), ENT_QUOTES);
+		if ($eventNo || $gigReqNo) $value = htmlspecialchars(value($field[0]), ENT_QUOTES);
 		switch ($field[2])
 		{
 			case 'text':

@@ -4,6 +4,7 @@ require_once('php/functions.php');
 function actionOptions($USER)
 {
 	$officerOptions = '';
+	if (hasPermission("process-gig-requests")) $officerOptions .= '<li><a href="#gigreqs">Gig Requests</a></li>';
 	if (hasPermission("edit-announcements")) $officerOptions .= '<li><a href="#addAnnouncement">Make an Announcement</a></li>';
 	if (hasPermission("edit-transaction")) $officerOptions .= '<li><a href="#money">Add Transactions</a></li>';
 	if (hasPermission("process-absence-requests")) $officerOptions .= '<li><a href="#absenceRequest">Absence Requests</a></li>';

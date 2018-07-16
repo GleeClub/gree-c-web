@@ -2,11 +2,11 @@
 require_once('functions.php');
 
 if (! hasPosition($USER, "President") && ! hasPosition($USER, "Webmaster")) die("You do not have permission to access this page");
-if (! $CHOIR) die("Choir is not set")
+if (! $CHOIR) die("Choir is not set");
 
 function uniformRow($id, $name, $desc)
 {
-	return "<tr><td>$id</td><td><input name='name' class='uniform-name' type='text' style='width: 10em' value='$name'></td><td><textarea name='desc' class='uniform-desc' style='width: 30em; height: 4em'>$desc</textarea></td><td data-uniform='$id'><button type='button' class='btn uniform-change'>Change</button><button tpye='button' class='btn uniform-delete'><i class='icon-remove'></i></button></td></tr>";
+	return "<tr><td>$id</td><td><input name='name' class='uniform-name' type='text' style='width: 10em' value='$name'></td><td><textarea name='desc' class='uniform-desc' style='width: 30em; height: 4em'>$desc</textarea></td><td data-uniform='$id'><button type='button' class='btn uniform-change'>Change</button><button type='button' class='btn uniform-delete'><i class='icon-remove'></i></button></td></tr>";
 }
 
 if (isset($_POST["type"]))

@@ -77,6 +77,7 @@ function checkHash()
 	else if (h == 'settings') loadSettings();
 	else if (h == 'money') loadMoney();
 	else if (h == 'timeMachine') timeMachine();
+	else if (h == 'gigreqs') gigreqs();
 	else if (h.indexOf(':') > 0)
 	{
 		var query = h.substring(0, h.indexOf(':'));
@@ -571,7 +572,7 @@ function jQueryToJSON(array){
 }
 
 function editDetails(eventNo){
-	editEvent(eventNo, "#eventDetails", "Edit");
+	editEvent(eventNo, "#eventDetails", function(eventNo) { loadDetails(eventNo); }, [{ name : "Back to<br>Event", onclick : "loadDetails(" + eventNo + ")" }]);
 	smoothScrollTo("eventDetails");
 }
 
@@ -1668,18 +1669,19 @@ function removeSemester(){
 ********************* Add/Remove Event Functions ***************************
 ****************************************************************************/
 
-function editEvent(id, element, mode)
+function editEvent(id, element, callback = function() { alert("Success"); }, extraButtons = [])
 {
-	if (mode != "Add" && mode != "Edit") return;
-	$.post('php/editEvent.php', { id : id }, function(data) {
-		var content = '';
-		if (mode == "Edit") content += '<div style="float: right"><button class="btn" id="event_back">Back to<br>Event</div></div>';
-		content += '<h3>' + mode + ' Event</h3><div id="event-data">' + data + '</div><div class="pull-right">';
-		if (mode == "Edit") content += '<button type="button" class="btn" id="event_delete">Delete Event</button><span class="spacer" style="padding: 0 5px"></span>';
+	var params = id > 0 ? { id : id } : { gigreq : -id };
+	$.post('php/editEvent.php', params, function(data) {
+		var content = '<div style="float: right">';
+		for (var i = 0; i < extraButtons.length; i++) content += '<button type="button" class="btn" onclick="' + JSON.stringify(extraButtons[i].onclick).slice(1, -1) + '">' + extraButtons[i].name + '</button>';
+		content += '</div>';
+		content += '<h3>' + (id == 0 ? "Add" : "Edit") + ' Event</h3><div id="event-data">' + data + '</div><div class="pull-right">';
+		if (id > 0) content += '<button type="button" class="btn" id="event_delete">Delete Event</button><span class="spacer" style="padding: 0 5px"></span>';
 		content += '<button type="button" class="btn" id="event_submit">Submit</button></div>';
 		$(element).html(content);
 		$('#event_general').show();
-		if (mode == "Edit") $('select[name="type"]').attr('disabled', 'true');
+		if (id > 0) $('select[name="type"]').attr('disabled', 'true');
 		$('select[name="type"]').on('change', function() {
 			$('#event_gig').hide();
 			$('#event_rehearsal').hide();
@@ -1689,7 +1691,7 @@ function editEvent(id, element, mode)
 			$('input[name="gigcount"]').prop('checked', type == 'volunteer');
 			if (type == 'sectional') $('#event_row_section').show();
 			else $('#event_row_section').hide();
-			if (! id)
+			if (id <= 0)
 			{
 				$('input[name="gigcount"]').prop('checked', type == 'volunteer');
 				var points = 10;
@@ -1731,8 +1733,8 @@ function editEvent(id, element, mode)
 			details = details.concat($('#event-data').find('select').serializeArray());
 			disabled.attr('disabled', 'disabled');
 			var submit = '';
-			if (mode == 'Add') submit = 'php/doNewEvent.php';
-			else if (mode == 'Edit')
+			if (id <= 0) submit = 'php/doNewEvent.php';
+			else
 			{
 				submit = 'php/doEditDetails.php';
 				details.push({ name : 'id', value : id });
@@ -1740,8 +1742,7 @@ function editEvent(id, element, mode)
 			$.post(submit, details, function(data) {
 				if (data.match(/^\d+$/))
 				{
-					if (mode == "Edit") loadDetails(id);
-					else alert("Event added successfully");
+					if (callback) callback(data);
 				}
 				else alert("Error: " + data);
 			});
@@ -1749,7 +1750,6 @@ function editEvent(id, element, mode)
 		$('#event_delete').on('click', function() {
 			if (confirm("Really delete this event?")) $.post('php/doRemoveEvent.php', { eventNo: id }, function(data) { $(element).html("Event deleted."); });
 		});
-		$('#event_back').on('click', function() { loadDetails(id); });
 		$('select[name="type"]').trigger('change');
 		//$('select[name="repeat"]').trigger('change');
 		$('input[name="public"]').trigger('change');
@@ -1759,7 +1759,7 @@ function editEvent(id, element, mode)
 function addOrRemoveEvent()
 {
 	$("#main").html('<div class="span5 block" id="add_event">');
-	editEvent(0, "#add_event", "Add");
+	editEvent(0, "#add_event", function(id) { window.location.hash = "event:" + id; });
 	$("#main").append('</div>');
 	removeEventDiv();
 }
@@ -2469,3 +2469,32 @@ function timeMachine(semester, item)
 	});
 }
 
+function gigreqs()
+{
+	$.post("php/gigreqs.php", function(data) {
+		$("#main").html(data);
+		$(".event-create").on("click", function() {
+			var id = $(this).parent().data("id");
+			editEvent(-id, "#main", function(eventNo) {
+				$.post("php/gigreqs.php", { action : "accept", id : id, event: eventNo }, function(data) {
+					if (data != "OK") alert(data);
+				});
+				window.location.hash = "event:" + eventNo;
+			}, [{ name : "Go<br>Back", onclick : "gigreqs()" }]);
+		});
+		$(".event-dismiss").on("click", function() {
+			var id = $(this).parent().data("id");
+			$.post("php/gigreqs.php", { action : "dismiss", id : id }, function(data) {
+				if (data != "OK") alert(data);
+				else gigreqs(); // This is so lazy but I'm tired of writing the same JavaScript over and over
+			});
+		});
+		$(".event-restore").on("click", function() {
+			var id = $(this).parent().data("id");
+			$.post("php/gigreqs.php", { action : "restore", id : id }, function(data) {
+				if (data != "OK") alert(data);
+				else gigreqs();
+			});
+		});
+	});
+}

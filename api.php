@@ -90,6 +90,8 @@ function arg($var, $ensure = false, $escape = true)
 
 function postdata($var, $ensure = true, $escape = true)
 {
+	$rest_json = file_get_contents("php://input");
+	$_POST = json_decode($rest_json, true);
 	if (! isset($_POST[$var]))
 	{
 		if ($ensure) err("Missing argument \"$var\"");
@@ -133,9 +135,10 @@ case "publicsongs":
 	}
 	reply("ok", array("songs" => $ret));
 case "gigreq":
-	$starttime = date("Y-m-d H:i:s", strtotime(postdata("bookingDateOfEvent", true, false) . " " . postdata("bookingTimeOfEvent", true, false)));
-	echo("insert into `gigreq` (`name`, `org`, `cname`, `cphone`, `cemail`, `startTime`, `location`, `comments`) values ('" . postdata("bookingNameOfEvent") . "', '" . postdata("bookingOrg") . "', '" . postdata("bookingContactName") . "', '" . postdata("bookingContactPhoneNumber") . "', '" . postdata("bookingContactEmail") . "', $starttime, '" . postdata("bookingLocationOfEvent") . "', '" . postdata("bookingComments") . "')");
-	if (! mysql_query("insert into `gigreq` (`name`, `org`, `cname`, `cphone`, `cemail`, `startTime`, `location`, `comments`) values ('" . postdata("bookingNameOfEvent") . "', '" . postdata("bookingOrg") . "', '" . postdata("bookingContactName") . "', '" . postdata("bookingContactPhoneNumber") . "', '" . postdata("bookingContactEmail") . "', '$starttime', '" . postdata("bookingLocationOfEvent") . "', '" . postdata("bookingComments") . "')")) err("Error creating gig request: " . mysql_error());
+	$starttime = date("Y-m-d H:i:s", postdata("bookingDateOfEventUnix", true, false));
+	if (! mysql_query("insert into `gigreq` (`name`, `org`, `cname`, `cphone`, `cemail`, `startTime`, `location`, `comments`, `semester`) values ('" . postdata("bookingNameOfEvent") . "', '" . postdata("bookingOrg") . "', '" . postdata("bookingContactName") . "', '" . postdata("bookingContactPhoneNumber") . "', '" . postdata("bookingContactEmail") . "', '$starttime', '" . postdata("bookingLocationOfEvent") . "', '" . postdata("bookingComments") . "', '$SEMESTER')")) err("Error creating gig request: " . mysql_error());
+	$message = "Event: " . postdata("bookingNameOfEvent") . "\n\nAt:\n$starttime\n" . postdata("bookingLocationOfEvent") . "\n\nRequester:\n" . postdata("bookingOrg") . "\n" . postdata("bookingContactName") . "\n" . postdata("bookingContactPhoneNumber") . "\n" . postdata("bookingContactEmail") . "\n\nNotes:\n" . postdata("bookingComments") . "\n\nView gig requests at $BASEURL#gigreqs.\n";
+	if (! mail("awesome@gatech.edu", "New Gig Request", $message)) err("Error sending notification mail");
 	reply("ok");
 }
 
