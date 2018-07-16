@@ -1,6 +1,10 @@
 <?php
 require_once('php/functions.php');
 
+// https://stackoverflow.com/questions/1282909/php-post-array-empty-upon-form-submission
+$rest_json = file_get_contents("php://input");
+$_POST = json_decode($rest_json, true);
+
 function json_error($err)
 {
 	echo "{ \"status\": \"internal_error\", \"message\": \"JSON encoding error: $err\"}";
