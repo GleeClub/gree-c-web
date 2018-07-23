@@ -1982,7 +1982,7 @@ function showMinutes(loadid)
 				$.post('php/getMinutes.php', { id : id, type : 'name' }, function(name) {
 					$('#minutes_main').html("<div id=minutes_view style='clear: both'></div>");
 					var edit_mode = 0; // 0 = view, 1 = edit
-					$.ajax({ url : 'php/isOfficer.php', async : false, success : function(data) { // Eww.
+					$.ajax({ url : 'php/hasPermission.php', data : { permission : "view-complete-minutes" }, async : false, success : function(data) { // Eww.
 						if (data == "1")
 						{
 							$('#minutes_main').prepend("<div>" +
@@ -2140,13 +2140,13 @@ function showMinutes(loadid)
 	});
 }
 
-function loadSong(songid, isOfficer)
+function loadSong(songid, canEdit)
 {
 	$.post('php/getSong.php', { id : songid }, function(data)
 	{
 		smoothScrollTo('repertoire_main');
 		$('#repertoire_main').html(data);
-		if (isOfficer)
+		if (canEdit)
 		{
 			var edit = 0;
 			$('#repertoire_main').prepend("<div class=pull-right style=\"padding-left: 10px; padding-right: 10px\"><img id=\"spinner\" src=\"/images/loading.gif\" style=\"width: 28px; height:28px; margin-right: 10px; display:none;\"><button class=btn id=repertoire_edit>Edit</button></div>");
@@ -2405,11 +2405,11 @@ function showRepertoire(firstid)
 	$.post('php/repertoireList.php', function(data) {
 		$('#main').html(data);
 		var name = "";
-		var isOfficer = false;
-		$.ajax({ url : 'php/isOfficer.php', async : false, success : function(data) {
-			if (data == "1") isOfficer = true;
-			else isOfficer = false;
-			if (isOfficer)
+		var canEdit = false;
+		$.ajax({ url : 'php/hasPermission.php', data : { permission : "edit-repertoire" }, async : false, success : function(data) {
+			if (data == "1") canEdit = true;
+			else canEdit = false;
+			if (canEdit)
 			{
 				$('#repertoire_add').click(function() {
 					// Add song
@@ -2436,10 +2436,10 @@ function showRepertoire(firstid)
 				var songid = $(this).attr('id').replace("row_", "");
 				$('.repertoire_row').parent().removeClass('lighter');
 				$(this).parent().addClass('lighter');
-				loadSong(songid, isOfficer);
+				loadSong(songid, canEdit);
 			}
 			$('.repertoire_row').click(repertoire_row_click);
-			if (typeof firstid != 'undefined') loadSong(firstid, isOfficer);
+			if (typeof firstid != 'undefined') loadSong(firstid, canEdit);
 		}});
 	});
 }

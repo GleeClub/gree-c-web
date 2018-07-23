@@ -6,7 +6,6 @@ function absenceEmail($recipient, $state, $event)
 {
 	global $CHOIR;
 	//$to = prefNameFromEmail($recipient)." ".lastNameFromEmail($recipient)." <".$recipient.">"; //make it format: Chris Ernst <cernst3@gatech.edu>
-	$to = $recipient;
 	$subject = "Absence Request " . ucfirst($state);
 	$msg = prefNameFromEmail($recipient) . ",<br><br> Your absence request for " . $event . " has been " . $state . ".<br><br>Glee Club Officers";
 	$message = '
@@ -54,9 +53,8 @@ function absenceEmail($recipient, $state, $event)
 	if (! $CHOIR) die("Choir not set");
 	$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$CHOIR'"));
 	$sender = $row['admin'];
-	$recipient = $row['list'];
-	$headers = "Content-type: text/html\r\nX-Mailer: PHP/".phpversion()."\r\nReply-To: gleeclub_officers@lists.gatech.edu";
-	mail($to, $subject, $message, $headers);
+	$headers = "Content-type: text/html\r\nX-Mailer: PHP/".phpversion()."\r\nReply-To: $sender";
+	mail($recipient, $subject, $message, $headers);
 }
 
 if (! hasPermission("process-absence-requests") die("<td align='center' colspan='7' class='data'>You don't have permission to do this.</td>");
