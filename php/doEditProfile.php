@@ -83,7 +83,7 @@ if (! $user || $newsect != $oldsect)
 }
 if (! $user)
 {
-	if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select '$newemail', `eventNo`, 1 from `event` where `choir` = '$choir' and `semester` = '$SEMESTER' and (`section` = 0 or `section` = $newsect) and `type` != 'sectional'")) cancel("Couldn't add new member to existing events");
+	if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select '$newemail', `eventNo`, `defaultAttend` from `event` where `choir` = '$choir' and `semester` = '$SEMESTER' and (`section` = 0 or `section` = $newsect) and `type` != 'sectional'")) cancel("Couldn't add new member to existing events");
 }
 mysql_query("commit");
 if (! $user || $user == $email) setcookie("email", cookie_string($newemail), time() + 60 * 60 * 24 * 120, "/", false, false);

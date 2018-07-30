@@ -1,5 +1,5 @@
 <?php
-require_once('/var/www/vhosts/mensgleeclub.gatech.edu/httpdocs/db_connect.php');
+require_once('/var/www/vhosts/mensgleeclub.gatech.edu/httpsdocs/db_connect.php');
 
 function getuser()
 {
@@ -24,11 +24,11 @@ function getchoir()
 
 $variables = mysql_fetch_array(mysql_query("select * from variables"));
 $webroot = "/var/www/vhosts/mensgleeclub.gatech.edu";
-$docroot = "$webroot/httpsdocs";
+$docroot = "$webroot/httpsdocs/buzz";
 $docroot_external = "$webroot/httpdocs";
 $musicdir = "/music";
 $domain = "gleeclub.gatech.edu";
-$BASEURL = "https://$domain";
+$BASEURL = "https://$domain/buzz";
 $SEMESTER = $variables['semester'];
 $CHOIR = getchoir();
 $USER = getuser();

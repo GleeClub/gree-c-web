@@ -48,8 +48,9 @@ $price = $_POST['price'];
 $public = isset($_POST['public']) ? 1 : 0;
 $summary = $_POST['summary'];
 $description = $_POST['description'];
+$defaultAttend = isset($_POST['defaultAttend']) ? "true" : "false";
 
-if (! mysql_query("update `event` set `name` = '$name', `callTime` = '$call', `releaseTime` = '$done', `points` = '$points', `comments` = '$comments', `type` = '$type', `location` = '$location', `semester` = '$semester', `gigcount` = '$gigcount' where `eventNo` = '$id'")) die(mysql_error());
+if (! mysql_query("update `event` set `name` = '$name', `callTime` = '$call', `releaseTime` = '$done', `points` = '$points', `comments` = '$comments', `type` = '$type', `location` = '$location', `semester` = '$semester', `gigcount` = '$gigcount', `defaultAttend` = $defaultAttend where `eventNo` = '$id'")) die(mysql_error());
 if (($type == 'volunteer' || $type == 'tutti') && ! mysql_query("update `gig` set `performanceTime` = '$perf', `uniform` = '$uniform', `cname` = '$cname', `cphone` = '$cphone', `cemail` = '$cemail', `price` = '$price', `public` = '$public', `summary` = '$summary', `description` = '$description' where `eventNo` = '$id'")) die(mysql_error());
 gcalUpdate($id, $name, $location, $comments, $unixcall, $unixdone);
 echo "$id";

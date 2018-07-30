@@ -96,17 +96,16 @@ function eventEmail($eventNo, $type)
 }
 
 // Add to event, and everyone's attending
-function createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, $gigcount, $section)
+function createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, $gigcount, $section, $defattend)
 {
 	global $SEMESTER, $CHOIR;
 	if (! $CHOIR) die("No choir currently selected");
-	if (! mysql_query("insert into event (name, choir, callTime, releaseTime, points, comments, type, location, semester, gigcount) values ('$name', '$CHOIR', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount')")) die("Failed to create event: " . mysql_error());
+	if (! mysql_query("insert into event (name, choir, callTime, releaseTime, points, comments, type, location, semester, gigcount, defaultAttend) values ('$name', '$CHOIR', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount', $defattend)")) die("Failed to create event: " . mysql_error());
 	$eventNo = mysql_insert_id();
 
-	if ($section >= 0 && strtotime($call) > strtotime('now')) // -1 for nobody to attend, 0 for everyone to attend
+	if ($defattend && strtotime($call) > strtotime('now'))
 	{
-		if ($type == 'ombuds') $shouldAttend = 0;
-		else $shouldAttend = 1;
+		$shouldAttend = $defattend;
 		if (strtotime($call) < strtotime('+48 hours')) $shouldAttend = 0;
 		if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select `member`, '$eventNo', '$shouldAttend' from `activeSemester` where `semester` = '$SEMESTER' and `choir` = '$CHOIR'")) die("Failed to insert attends relations for event: " . mysql_error()); }
 		else
@@ -119,9 +118,9 @@ function createEvent($name, $type, $call, $done, $location, $points, $sem, $comm
 }
 
 // Add to event and gig, and everyone's attending
-function createGig($name, $tutti, $call, $perform, $done, $location, $points, $sem, $comments, $uniform, $cname, $cemail, $cphone, $price, $gigcount, $public, $summary, $description)
+function createGig($name, $tutti, $call, $perform, $done, $location, $points, $sem, $comments, $uniform, $cname, $cemail, $cphone, $price, $gigcount, $public, $summary, $description, $defattend)
 {
-	$eventNo = createEvent($name, ($tutti ? 'tutti' : 'volunteer'), $call, $done, $location, $points, $sem, $comments, $gigcount, 0);
+	$eventNo = createEvent($name, ($tutti ? 'tutti' : 'volunteer'), $call, $done, $location, $points, $sem, $comments, $gigcount, 0, $defattend);
 
 	$publicval = $public ? 1 : 0;
 	if (! mysql_query("insert into `gig` (eventNo, performanceTime, uniform, cname, cemail, cphone, price, public, summary, description) values ('$eventNo', '$perform', '$uniform', '$cname', '$cemail', '$cphone', '$price', '$publicval', '$summary', '$description')")) die("Failed to create gig: " . mysql_error());
@@ -129,15 +128,14 @@ function createGig($name, $tutti, $call, $perform, $done, $location, $points, $s
 }
 
 // Add to event, and only one section is attending if defined by $section
-function createRehearsal($name, $type, $call, $done, $location, $points, $sem, $comments, $section)
+function createRehearsal($name, $type, $call, $done, $location, $points, $sem, $comments, $section, $defattend)
 {
 	if ($type != 'rehearsal' && $type != 'sectional') die("Internal error 1 in createRehearsal; type is $type");
 	if ($type == 'rehearsal' && $section != 0) die("Internal error 2 in createRehearsal; type is $type");
 
 	$attend = 0;
-	//if ($type == 'sectional') $attend = -1;
 	if ($section) $attend = $section;
-	return createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, 0, $attend);
+	return createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, 0, $attend, $defattend);
 }
 
 $unesc_name = $_POST["name"];
@@ -147,6 +145,7 @@ foreach ($_POST as &$value) $value = mysql_real_escape_string($value);
 $eventNo = array();
 $repeat = $_POST['repeat'];
 $type = $_POST['type'];
+$defattend = isset($_POST['defaultAttend']) ? 1 : 0;
 if (! in_array($type, array("volunteer", "tutti", "rehearsal", "sectional", "ombuds", "other"))) die("Bad event type \"$type\"");
 if (! hasEventTypePermission("create", $type)) die("Access denied");
 
@@ -170,7 +169,7 @@ if ($type == 'volunteer' || $type == 'tutti')
 	$unixperform = strtotime($perftime . ' ' . $_POST['calldate']);
 	$perform = date('Y-m-d H:i:s', $unixperform);
 	if ($unixperform < $unixcall || $unixperform > $unixdone) die("Performance time not between start and end");
-	$eventNo[] = createGig($_POST['name'], ($type == 'tutti' ? true : false), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']), isset($_POST['public']), $_POST['summary'], $_POST['description']);
+	$eventNo[] = createGig($_POST['name'], ($type == 'tutti' ? true : false), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']), isset($_POST['public']), $_POST['summary'], $_POST['description'], $defattend);
 }
 else
 {
@@ -191,13 +190,13 @@ else
 			$call = date('Y-m-d H:i:s', $cur);
 			$done = date('Y-m-d H:i:s', $cur + $dur);
 			$friendly = date('m-d', $cur);
-			if ($type == 'sectional' || $type == 'rehearsal') $eventNo[] = createRehearsal($_POST['name'] . ' ' . $friendly, $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']));
-			else $eventNo[] = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0);
+			if ($type == 'sectional' || $type == 'rehearsal') $eventNo[] = createRehearsal($_POST['name'] . ' ' . $friendly, $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 1 ? 0 : $_POST['section']), $defattend);
+			else $eventNo[] = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0, $defattend);
 			$cur = strtotime($interval, $cur);
 		}
 	}
-	else if ($type == 'sectional' || $type == 'rehearsal') $eventNo[] = createRehearsal($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 'rehearsal' ? 0 : $_POST['section']));
-	else $eventNo[] = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0);
+	else if ($type == 'sectional' || $type == 'rehearsal') $eventNo[] = createRehearsal($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], ($type == 'rehearsal' ? 0 : $_POST['section']), $defattend);
+	else $eventNo[] = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0, $defattend);
 }
 
 if ($eventNo[0] < 0) die("Error " . $eventNo[0]);

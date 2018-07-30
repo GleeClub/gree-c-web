@@ -3,9 +3,11 @@ require_once('functions.php');
 
 $eventNo = mysql_real_escape_string($_POST['id']);
 $event = array();
+$hasValue = false;
 if ($eventNo)
 {
 	if (! hasEventPermission("modify", $eventNo)) die("DENIED");
+	$hasValue = true;
 	$eventquery = mysql_query("select * from `event` where `eventNo` = '$eventNo'");
 	if (mysql_num_rows($eventquery) != 1) die("Bad event number");
 	$eventresult = mysql_fetch_array($eventquery);
@@ -15,6 +17,7 @@ if ($eventNo)
 else if (! hasEventTypePermission("create")) die("DENIED");
 else if (isset($_POST["gigreq"]))
 {
+	$hasValue = true;
 	$gigReqNo = mysql_real_escape_string($_POST["gigreq"]);
 	$query = mysql_query("select * from `gigreq` where `id` = '$gigReqNo'");
 	if (! $query) die("Failed to fetch gig request: " . mysql_error());
@@ -38,7 +41,7 @@ else if (isset($_POST["gigreq"]))
 function value($field)
 {
 	GLOBAL $event;
-	if ($field == 'name' || $field == 'type' || $field == 'location' || $field == 'semester' || $field == 'comments' || $field == 'points' || $field == 'uniform' || $field == 'price' || $field == 'public' || $field == 'summary' || $field == 'description' || $field == 'cname' || $field == 'cphone' || $field == 'cemail' || $field == 'gigcount') return $event[$field];
+	if ($field == 'name' || $field == 'type' || $field == 'location' || $field == 'semester' || $field == 'comments' || $field == 'points' || $field == 'uniform' || $field == 'price' || $field == 'public' || $field == 'summary' || $field == 'description' || $field == 'cname' || $field == 'cphone' || $field == 'cemail' || $field == 'gigcount' || $field == 'defaultAttend') return $event[$field];
 	if ($field == 'repeat' || $field == 'until') return '';
 	$call = strtotime($event['callTime']);
 	$done = strtotime($event['releaseTime']);
@@ -48,7 +51,7 @@ function value($field)
 	if ($field == 'donedate') return date("Y-m-d", $done);
 	if ($field == 'donetime') return date("h:i A", $done);
 	if ($field == 'perftime') return date("h:i A", $perf);
-	return '????';
+	return '???';
 }
 
 // Fear my wrath, for I am lord of the data structures.
@@ -66,6 +69,7 @@ $fields = array(
 		array('comments', 'Comments', 'textarea'),
 		array('repeat', 'Repeat', 'select', array('no' => 'no', 'daily' => 'daily', 'weekly' => 'weekly', 'biweekly' => 'biweekly', 'monthly' => 'monthly', 'yearly' => 'yearly'), 'no', $eventNo),
 		array('until', 'Repeat Until', 'date'),
+		array('defaultAttend', 'Require members to attend by default', 'bool', true),
 	),
 	'gig' => array(
 		array('uniform', 'Uniform', 'select', uniforms(), value('uniform'), false),
@@ -77,7 +81,7 @@ $fields = array(
 		array('gigcount', 'Count Toward Volunteer Gig Requirement', 'bool'),
 		array('public', 'Public Event', 'bool'),
 		array('summary', 'Public Summary', 'textarea'),
-		array('description', 'Public Description', 'textarea')
+		array('description', 'Public Description', 'textarea'),
 	),
 	'rehearsal' => array(
 		array('section', 'Section', 'select', sections(), value('section'), $eventNo),
@@ -92,7 +96,7 @@ foreach ($fields as $category => $catfields)
 	{
 		$html .= "<tr id='event_row_" . $field[0] . "'><td>" . $field[1] . "</td><td style='text-align: right'>";
 		$value = '';
-		if ($eventNo || $gigReqNo) $value = htmlspecialchars(value($field[0]), ENT_QUOTES);
+		if ($hasValue) $value = htmlspecialchars(value($field[0]), ENT_QUOTES);
 		switch ($field[2])
 		{
 			case 'text':
@@ -106,7 +110,7 @@ foreach ($fields as $category => $catfields)
 				break;
 			case 'bool':
 				$html .= "<input type='checkbox' name='$field[0]'";
-				if ($value) $html .= ' checked';
+				if ($hasValue ? $value : $field[3]) $html .= ' checked';
 				$html .= ">";
 				break;
 			case 'date':

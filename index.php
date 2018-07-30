@@ -139,25 +139,23 @@ $choirname = choirname($CHOIR);
 	<?php
 		if ($USER != '')
 		{
-			$sql = "select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester";
-			$arr = mysql_fetch_array(mysql_query($sql));
-			$semesterEnd = $arr['end'];
-
-			if (hasPermission("edit-semester")) echo newSemesterModal();
-			else
+			$arr = mysql_fetch_array(mysql_query("SELECT `location` FROM `member` WHERE `email` = '$USER'"));
+			$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$USER' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'"));
+			if (! $CHOIR) die("Choir is not set");
+			if (! $confirmed)
 			{
-				//if the user is not confirmed for the semester, prompt them to confirm
-				$arr = mysql_fetch_array(mysql_query("SELECT `location` FROM `member` WHERE `email` = '$USER'"));
-				if (! $CHOIR) die("Choir is not set");
-				$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$USER' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'"));
-				if (! $confirmed)
-				{
-					$loc = addslashes($arr['location']);
-					echo '<script>
-						$("#confirm_location").prop("value", "' . $loc . '");
-						$("#confirmModal").modal();
-					</script>';
-				}
+				$loc = addslashes($arr['location']);
+				echo '<script>
+					$("#confirm_location").prop("value", "' . $loc . '");
+					$("#confirmModal").modal();
+				</script>';
+			}
+			else if (hasPermission("edit-semester"))
+			{
+				$sql = "select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester";
+				$arr = mysql_fetch_array(mysql_query($sql));
+				$semesterEnd = $arr['end'];
+				// FIXME newSemesterModal();
 			}
 		}
 	?>

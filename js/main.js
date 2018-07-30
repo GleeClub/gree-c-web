@@ -572,7 +572,7 @@ function jQueryToJSON(array){
 }
 
 function editDetails(eventNo){
-	editEvent(eventNo, "#eventDetails", function(eventNo) { loadDetails(eventNo); }, [{ name : "Back to<br>Event", onclick : "loadDetails(" + eventNo + ")" }]);
+	editEvent(eventNo, "#eventDetails", function(eventNo) { loadDetails(eventNo); }, function() { $("#eventDetails").html("Event deleted"); $("tr.lighter").remove(); }, [{ name : "Back to<br>Event", onclick : "loadDetails(" + eventNo + ")" }]);
 	smoothScrollTo("eventDetails");
 }
 
@@ -756,7 +756,7 @@ function loadSettings()
 		$('#urladd').on('click', function() {
 			$.post('php/admin.php', { type : "doclink", name : $('#newname').attr('value'), url : "" }, function(data) {
 				if (data != "OK") alert(data);
-				loadLinks();
+				loadSettings(); // FIXME
 			});
 		});
 		$(".dues-submit").on("click", function() {
@@ -1447,12 +1447,8 @@ function loaddoc(name)
 	{
 		var content = data.split('\n');
 		if (content[0] != 'OK') alert(data);
-		else $('#main').html("<iframe id=\"docwin\" src=\"" + content[1] + "\" style=\"border: none; width: 100%; height: 600em\"></iframe>");
-		// FIXME Find a way to resize the iframe to its content, or load the HTML directly (as below) and find a way to corral the CSS
-		//else $('#main').load(content[1], function() {
-			//var ss = document.styleSheets[document.styleSheets.length-2];
-			//for (var j = 0; j < ss.rules.length; j++) ss.rules[j].selectorText = "#main " + ss.rules[j].selectorText;
-		//});
+		else $('#main').html("<iframe id=\"docwin\" src=\"" + content[1] + "\" style=\"border: none; width: 100%; height: 60em\"></iframe>");
+		// There's no easy way to make this iframe fit its content because the request is cross-origin....
 	});
 }
 
@@ -1669,9 +1665,11 @@ function removeSemester(){
 ********************* Add/Remove Event Functions ***************************
 ****************************************************************************/
 
-function editEvent(id, element, callback = function() { alert("Success"); }, extraButtons = [])
+function editEvent(id, element, callback = function() { alert("Success"); }, deleteCallback = function() { alert("Event deleted."); }, extraButtons = [])
 {
-	var params = id > 0 ? { id : id } : { gigreq : -id };
+	if (id > 0) var params = { id : id };
+	else if (id < 0) var params = { gigreq: -id };
+	else var params = {};
 	$.post('php/editEvent.php', params, function(data) {
 		var content = '<div style="float: right">';
 		for (var i = 0; i < extraButtons.length; i++) content += '<button type="button" class="btn" onclick="' + JSON.stringify(extraButtons[i].onclick).slice(1, -1) + '">' + extraButtons[i].name + '</button>';
@@ -1689,6 +1687,7 @@ function editEvent(id, element, callback = function() { alert("Success"); }, ext
 			if (type == 'rehearsal' || type == 'sectional') $('#event_rehearsal').show();
 			else if (type == 'volunteer' || type == 'tutti') $('#event_gig').show();
 			$('input[name="gigcount"]').prop('checked', type == 'volunteer');
+			if (id <= 0) $('input[name="defaultAttend"]').prop('checked', type != 'ombuds' && type != 'other');
 			if (type == 'sectional') $('#event_row_section').show();
 			else $('#event_row_section').hide();
 			if (id <= 0)
@@ -1748,7 +1747,7 @@ function editEvent(id, element, callback = function() { alert("Success"); }, ext
 			});
 		});
 		$('#event_delete').on('click', function() {
-			if (confirm("Really delete this event?")) $.post('php/doRemoveEvent.php', { eventNo: id }, function(data) { $(element).html("Event deleted."); });
+			if (confirm("Really delete this event?")) $.post('php/doRemoveEvent.php', { eventNo: id }, function(data) { if (deleteCallback) deleteCallback(data); });
 		});
 		$('select[name="type"]').trigger('change');
 		//$('select[name="repeat"]').trigger('change');
