@@ -61,17 +61,18 @@ function member_csv($conditions)
 	$sql = "SELECT `member`.`lastName`, `member`.`firstName`, `member`.`prefName`, `member`.`email`, `member`.`phone`, `member`.`location`, `member`.`major`, `member`.`hometown`, `sectionType`.`name` as `section` FROM `member`, `activeSemester`, `sectionType` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `sectionType`.`id` = `activeSemester`.`section`  ORDER BY `member`.`lastName` asc, `member`.`firstName` asc";
 	$members = mysql_query($sql);
 
-	$ret = '"' . join('","', $cols) . "\"<br>";
+	$ret = '"' . join('","', $cols) . "\"\r\n";
 	while ($row = mysql_fetch_array($members))
 	{
 		$vals = array();
 		foreach ($cols as $col) array_push($vals, addslashes($row[$col]));
-		$ret .= '"' . join('","', $vals) . "\"<br>";
+		$ret .= '"' . join('","', $vals) . "\"\r\n";
 	}
 	return $ret;
 }
 
 if (! $CHOIR) die("Choir not set");
+$type = $_GET['type'];
 $conds = split(';', $_POST['cond']);
 $condarr = array();
 foreach ($conds as $cond)
@@ -94,19 +95,20 @@ $condstr = '(' . join(") and (", $condarr) . ')';
 
 if (! hasPermission("view-users")) $condstr = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = `member`.`email`)";
 
-if ($_POST['type'] == "print")
+if ($type == "print")
 {
 	$choirname = choirname($CHOIR);
 	echo "<html><head><meta charset='UTF-8'><title>$choirname Roster</title></head><body>$style";
 	echo member_table($condstr, "print");
 	echo "</body></html>";
 }
-else if ($_POST['type'] == "csv")
+else if ($type == "csv")
 {
-	//header("Content-type: text/csv");
+	header("Content-Type: text/csv");
+	header("Content-Disposition: attachment; filename=\"members.csv\"");
 	echo member_csv($condstr);
 }
-else if ($_POST['type'] == "normal")
+else if ($type == "normal" || ! isset($_GET['type']))
 {
 	echo $style;
 	echo member_table($condstr, "normal");

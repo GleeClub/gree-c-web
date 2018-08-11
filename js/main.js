@@ -928,7 +928,7 @@ function roster()
 				$('#roster_table').html(data);
 			});
 		}
-		function formatted_table(type)
+		function formatted_table(type) // FIXME This is no longer being used because it doesn't handle response headers, so the CSV is being displayed as HTML
 		{
 			var cond = '';
 			$('#roster_filters').children('.btn-group').each(function() {
@@ -1980,11 +1980,12 @@ function showMinutes(loadid)
 				var textPublic = "";
 				$.post('php/getMinutes.php', { id : id, type : 'name' }, function(name) {
 					$('#minutes_main').html("<div id=minutes_view style='clear: both'></div>");
+					$('#minutes_main').prepend("<div class=pull-right style=\"padding-left: 10px; padding-right: 10px\" id=\"minutes_tools\"></div>");
 					var edit_mode = 0; // 0 = view, 1 = edit
-					$.ajax({ url : 'php/hasPermission.php', data : { permission : "view-complete-minutes" }, async : false, success : function(data) { // Eww.
+					$.ajax({ url : 'php/hasPermission.php', data : { permission : "edit-minutes" }, async : false, success : function(data) {
 						if (data == "1")
 						{
-							$('#minutes_main').prepend("<div>" +
+							$('#minutes_tools').append(
 								"<div class=pull-right style=\"padding-left: 10px; padding-right: 10px\">" +
 									"<div class=\"btn-group\">" +
 										"<a class=\"btn dropdown-toggle\" data-toggle=\"dropdown\" href=\"#\"><i class=\"icon-cog\"></i> <span class=\"caret\"></span></a>" +
@@ -1996,12 +1997,100 @@ function showMinutes(loadid)
 								"</div>" +
 								"<div class=pull-right style=\"padding-left: 10px; padding-right: 10px\">" +
 									"<button class=\"btn\"id=minutes_edit>Edit</button>" +
-								"</div>" +
+								"</div>"
+							)
+							$('#minutes_edit').click(function()
+							{
+								if (edit_mode == 0)
+								{
+									$('#minutes_edit').html('Done');
+									$('#minutes_view').html("<input type=text id=minutes_title><br><div id=private_container><textarea id=minutes_text_private rows=20 style=\"width: 99%\">" + textPrivate + "</textarea></div><div id=public_container><textarea id=minutes_text_public rows=20 style=\"width: 99%\">" + textPublic + "</textarea></div>");
+									tinymce.init({ selector: "textarea", height: 500, plugins: "lists textcolor", toolbar: "undo redo | formatselect | bold italic forecolor backcolor | alignleft aligncenter alignright alignjustify | numlist bullist indent outdent | removeformat" });
+									if (view_mode == 0)
+									{
+										$('#public_container').css('display', 'none');
+										$('#private_container').css('display', 'inline');
+									}
+									else
+									{
+										$('#private_container').css('display', 'none');
+										$('#public_container').css('display', 'inline');
+									}
+									$('#minutes_public').off('click');
+									$('#minutes_private').off('click');
+									$('#minutes_public').click(function() {
+										view_mode = 1;
+										$('#private_container').css('display', 'none');
+										$('#public_container').css('display', 'inline');
+									});
+									$('#minutes_private').click(function() {
+										view_mode = 0;
+										$('#public_container').css('display', 'none');
+										$('#private_container').css('display', 'inline');
+									});
+									$('#minutes_title').attr('value', name);
+									edit_mode = 1;
+								}
+								else
+								{
+									$('#minutes_edit').html('Edit');
+									edPublic = tinymce.get("minutes_text_public");
+									edPrivate = tinymce.get("minutes_text_private");
+									textPublic = edPublic.getContent();
+									textPrivate = edPrivate.getContent();
+									name = $('#minutes_title').attr('value');
+									if (view_mode == 0) $('#minutes_view').html(textPrivate);
+									else $('#minutes_view').html(textPublic);
+									$('#minutes_public').off('click');
+									$('#minutes_private').off('click');
+									$('#minutes_public').click(function() {
+										view_mode = 1;
+										$('#minutes_view').html(textPublic);
+									});
+									$('#minutes_private').click(function() {
+										view_mode = 0;
+										$('#minutes_view').html(textPrivate);
+									});
+									$('td#minutes' + id).html(name);
+									$.post('php/doEditMinutes.php', { id : id, newname : name, private : textPrivate, public : textPublic }, function(data) {
+										res = data.split('\n');
+										if (res[0] != "OK") alert("Error:  " + data);
+									});
+									edPublic.destroy();
+									edPrivate.destroy();
+									edit_mode = 0;
+								}
+								return false;
+							});
+							$('#minutes_delete').click(function() {
+								if (confirm("Delete \"" + name + "\"?")) $.post('php/doEditMinutes.php', { id : id, newname : ".DELETE", private : "", public : "" }, function(data) {
+									res = data.split('\n');
+									if (res[0] == 'OK')
+									{
+										$('td#minutes' + id).remove();
+										$('#minutes_main').html("Select a meeting to the left.");
+									}
+									else alert("Error:  " + res[0]);
+								});
+								return false;
+							});
+							$('#minutes_send').click(function() {
+								$.post('php/doSendMinutes.php', { id : id }, function(data) {
+									if (data == "OK") alert("Email successfully sent");
+									else alert("Error: " + data);
+								});
+								return false;
+							});
+						};
+					}});
+					$.ajax({ url : 'php/hasPermission.php', data : { permission : "view-complete-minutes" }, async : false, success : function(data) {
+						if (data == "1")
+						{
+							$('#minutes_tools').append(
 								"<div class=\"btn-group pull-right\" style=\"padding-left: 10px; padding-right: 10px\" data-toggle=\"buttons-radio\">" +
 									"<button class=btn id=minutes_public>Redacted</button>" +
 									"<button class=btn id=minutes_private>Complete</button>" +
-								"</div>" +
-							"</div>");
+								"</div>");
 							if (view_mode == 0) $('#minutes_private').button('toggle');
 							else $('#minutes_public').button('toggle');
 							$.ajax({ url : 'php/getMinutes.php', type : "POST", data : { id : id, public : 1 }, async : false, success : function(data) {
@@ -2028,88 +2117,6 @@ function showMinutes(loadid)
 						}
 						else $('#minutes_view').html(textPrivate);
 					}});
-					$('#minutes_edit').click(function()
-					{
-						if (edit_mode == 0)
-						{
-							$('#minutes_edit').html('Done');
-							$('#minutes_view').html("<input type=text id=minutes_title><br><div id=private_container><textarea id=minutes_text_private rows=20 style=\"width: 99%\">" + textPrivate + "</textarea></div><div id=public_container><textarea id=minutes_text_public rows=20 style=\"width: 99%\">" + textPublic + "</textarea></div>");
-							tinymce.init({ selector: "textarea", height: 500, plugins: "lists textcolor", toolbar: "undo redo | formatselect | bold italic forecolor backcolor | alignleft aligncenter alignright alignjustify | numlist bullist indent outdent | removeformat" });
-							if (view_mode == 0)
-							{
-								$('#public_container').css('display', 'none');
-								$('#private_container').css('display', 'inline');
-							}
-							else
-							{
-								$('#private_container').css('display', 'none');
-								$('#public_container').css('display', 'inline');
-							}
-							$('#minutes_public').off('click');
-							$('#minutes_private').off('click');
-							$('#minutes_public').click(function() {
-								view_mode = 1;
-								$('#private_container').css('display', 'none');
-								$('#public_container').css('display', 'inline');
-							});
-							$('#minutes_private').click(function() {
-								view_mode = 0;
-								$('#public_container').css('display', 'none');
-								$('#private_container').css('display', 'inline');
-							});
-							$('#minutes_title').attr('value', name);
-							edit_mode = 1;
-						}
-						else
-						{
-							$('#minutes_edit').html('Edit');
-							edPublic = tinymce.get("minutes_text_public");
-							edPrivate = tinymce.get("minutes_text_private");
-							textPublic = edPublic.getContent();
-							textPrivate = edPrivate.getContent();
-							name = $('#minutes_title').attr('value');
-							if (view_mode == 0) $('#minutes_view').html(textPrivate);
-							else $('#minutes_view').html(textPublic);
-							$('#minutes_public').off('click');
-							$('#minutes_private').off('click');
-							$('#minutes_public').click(function() {
-								view_mode = 1;
-								$('#minutes_view').html(textPublic);
-							});
-							$('#minutes_private').click(function() {
-								view_mode = 0;
-								$('#minutes_view').html(textPrivate);
-							});
-							$('td#minutes' + id).html(name);
-							$.post('php/doEditMinutes.php', { id : id, newname : name, private : textPrivate, public : textPublic }, function(data) {
-								res = data.split('\n');
-								if (res[0] != "OK") alert("Error:  " + data);
-							});
-							edPublic.destroy();
-							edPrivate.destroy();
-							edit_mode = 0;
-						}
-						return false;
-					});
-					$('#minutes_delete').click(function() {
-						if (confirm("Delete \"" + name + "\"?")) $.post('php/doEditMinutes.php', { id : id, newname : ".DELETE", private : "", public : "" }, function(data) {
-							res = data.split('\n');
-							if (res[0] == 'OK')
-							{
-								$('td#minutes' + id).remove();
-								$('#minutes_main').html("Select a meeting to the left.");
-							}
-							else alert("Error:  " + res[0]);
-						});
-						return false;
-					});
-					$('#minutes_send').click(function() {
-						$.post('php/doSendMinutes.php', { id : id }, function(data) {
-							if (data == "OK") alert("Email successfully sent");
-							else alert("Error: " + data);
-						});
-						return false;
-					});
 				});
 			});
 		};

@@ -155,7 +155,6 @@ $choirname = choirname($CHOIR);
 				$sql = "select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester";
 				$arr = mysql_fetch_array(mysql_query($sql));
 				$semesterEnd = $arr['end'];
-				// FIXME newSemesterModal();
 			}
 		}
 	?>

@@ -25,7 +25,7 @@ function getchoir()
 $variables = mysql_fetch_array(mysql_query("select * from variables"));
 $webroot = "/var/www/vhosts/mensgleeclub.gatech.edu";
 $docroot = "$webroot/httpsdocs/buzz";
-$docroot_external = "$webroot/httpdocs";
+$docroot_external = "$webroot/httpsdocs";
 $musicdir = "/music";
 $domain = "gleeclub.gatech.edu";
 $BASEURL = "https://$domain/buzz";
