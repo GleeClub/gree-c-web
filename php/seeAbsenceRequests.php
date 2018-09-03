@@ -1,7 +1,7 @@
 <?php
 
 require_once('./functions.php');
-if (! hasPermission("process-absence-requests") die("You don't have permission to do this.");
+if (! hasPermission("process-absence-requests")) die("You don't have permission to do this.");
 
 $style = "
 <style>

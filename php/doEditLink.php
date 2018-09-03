@@ -35,7 +35,7 @@ else if ($action == "upload")
 	if ($file['error'] > 0) die($file['error']);
 	$name = $file['name'];
 	if ($name == '' || preg_match('/[^a-zA-Z0-9_., -]/', $name) || preg_match('/^\./', $name)) die("BAD_FNAME");
-	if (! move_uploaded_file($file['tmp_name'], $docroot . $musicdir . '/' . $name)) die("BAD_UPLOAD");
+	if (! move_uploaded_file($file['tmp_name'], $docroot_external . $musicdir . '/' . $name)) die("BAD_UPLOAD");
 	$query = "update `songLink` set `target` = '$name' where `id` = '$id'";
 	if (mysql_query($query)) echo "OK $musicdir/$name";
 	else die("FAIL");

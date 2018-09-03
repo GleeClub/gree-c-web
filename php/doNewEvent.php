@@ -103,16 +103,13 @@ function createEvent($name, $type, $call, $done, $location, $points, $sem, $comm
 	if (! mysql_query("insert into event (name, choir, callTime, releaseTime, points, comments, type, location, semester, gigcount, defaultAttend) values ('$name', '$CHOIR', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount', $defattend)")) die("Failed to create event: " . mysql_error());
 	$eventNo = mysql_insert_id();
 
-	if ($defattend && strtotime($call) > strtotime('now'))
+	$shouldAttend = $defattend;
+	if (strtotime($call) < strtotime('+48 hours')) $shouldAttend = 0;
+	if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select `member`, '$eventNo', '$shouldAttend' from `activeSemester` where `semester` = '$SEMESTER' and `choir` = '$CHOIR'")) die("Failed to insert attends relations for event: " . mysql_error()); }
+	else
 	{
-		$shouldAttend = $defattend;
-		if (strtotime($call) < strtotime('+48 hours')) $shouldAttend = 0;
-		if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select `member`, '$eventNo', '$shouldAttend' from `activeSemester` where `semester` = '$SEMESTER' and `choir` = '$CHOIR'")) die("Failed to insert attends relations for event: " . mysql_error()); }
-		else
-		{
-			if (! mysql_query("update `event` set `section` = '$section' where `eventNo` = '$eventNo'")) die("Failed to set section: " . mysql_error());
-			if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `member`, '$eventNo' from `activeSemester` where `section` = '$section' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'")) die("Failed to create attends relation for sectional: " . mysql_error());
-		}
+		if (! mysql_query("update `event` set `section` = '$section' where `eventNo` = '$eventNo'")) die("Failed to set section: " . mysql_error());
+		if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `member`, '$eventNo' from `activeSemester` where `section` = '$section' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'")) die("Failed to create attends relation for sectional: " . mysql_error());
 	}
 	return $eventNo;
 }

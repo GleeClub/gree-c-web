@@ -13,7 +13,9 @@ function member_fields($email)
 
 function member_details($email)
 {
-	$html = "<span class='pull-right'><button type='button' class='btn edit_member'>Edit</button></span><div class='detail_table'><table>";
+	if (hasPermission("edit-user")) $html = "<span class='pull-right'><button type='button' class='btn edit_member'>Edit</button></span>";
+	else $html = "";
+	$html .= "<div class='detail_table'><table>";
 	foreach (member_fields($email) as $field => $value) $html .= "<tr><td><b>$field</b></td><td>$value</td></tr>";
 	$html .= "</table></div>";
 	return $html;
@@ -130,6 +132,7 @@ function active_semesters($memberID)
 		$semester = $result['semester'];
 		$query1 = mysql_query("select `enrollment` from `activeSemester` where `member` = '$memberID' and `semester` = '$semester' and `choir` = '$CHOIR'");
 		$active = mysql_num_rows($query1);
+		$enrollment = "inactive";
 		if ($active)
 		{
 			$result1 = mysql_fetch_array($query1);
@@ -138,12 +141,13 @@ function active_semesters($memberID)
 			else if ($enrollment == "class") $activebtn = 2;
 			else die("Invalid enrollment state");
 		}
-		$table .= "<tr data-semester='$semester'><td>$semester</td><td><div class='btn-group' data-toggle='buttons-radio'>" .
+		if (hasPermission("edit-user")) $table .= "<tr data-semester='$semester'><td>$semester</td><td><div class='btn-group' data-toggle='buttons-radio'>" .
 			"<button class='btn btn-small semesterbutton" . ($activebtn == 0 ? ' active' : '') . "' data-val='0'>Inactive</button>" .
 			"<button class='btn btn-small semesterbutton" . ($activebtn == 1 ? ' active' : '') . "' data-val='1'>Club</button>" .
 			"<button class='btn btn-small semesterbutton" . ($activebtn == 2 ? ' active' : '') . "' data-val='2'>Class</button>" .
-			"</div></td><td>" . dropdown(sections(), "section", $active ? sectionFromEmail($memberID, false, $semester) : 0, ! $active) . "</td>" .
+			"</div></td><td>" . dropdown(sections(), "section", $active ? sectionFromEmail($memberID, false, $semester) : 0, ! hasPermission("edit-user") && ! $active) . "</td>" .
 			"<td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, 0, $semester) . "</span></td></tr>";
+		else $table .= "<tr data-semester='$semester'><td>$semester</td><td>$enrollment</td><td>" . ($active ? sectionFromEmail($memberID, false, $semester) : 0) . "</td><td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, 0, $semester) . "</span></td></tr>";
 	}
 	$table .= "</table>";
 	return $table;

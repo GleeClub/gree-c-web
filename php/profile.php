@@ -79,22 +79,19 @@ function basic_info($person)
 	$sql = mysql_query("select `semester`.`semester` from `activeSemester`, `semester` where `activeSemester`.`member` = '$person' and `activeSemester`.`semester` = `semester`.`semester` order by `semester`.`beginning` desc");
 	$activeSemesters = '';
 	while ($row = mysql_fetch_array($sql)) $activeSemesters .= "<span class='label'>" . $row['semester'] . "</span> ";
-	if (hasPermission("view-user-private-info"))
+	if (hasPermission("view-user-private-details"))
 	{
 		$html .= "<tr><td class='key'>Active</td><td>$activeSemesters</td></tr>";
 		$html .= "</table></td><td style='width: 40%; vertical-align: top'><table>";
 		$html .= "<tr><td class='key'>Enrollment</td><td>" . rosterProp($member, "Enrollment") . "</td></tr>";
+		$html .= "<tr><td class='key'>Gigs</td><td>" . rosterProp($member, "Gigs") . "</td></tr>";
+		$html .= "<tr><td class='key'>Score</td><td>" . rosterProp($member, "Score") . "</td></tr>";
+		$html .= "<tr><td class='key'>Actions</td></tr>";
 		if (hasPermission("view-transactions"))
 		{
 			$html .= "<tr><td class='key'>Balance</td><td>" . rosterProp($member, "Balance") . "</td></tr>";
 			$html .= "<tr><td class='key'>Dues</td><td>" . rosterProp($member, "Dues") . "</td></tr>";
 			$html .= "<tr><td class='key'>Tie</td><td>" . rosterProp($member, "Tie") . "</td></tr>";
-		}
-		if (hasPermission("view-user-private-info"))
-		{
-			$html .= "<tr><td class='key'>Gigs</td><td>" . rosterProp($member, "Gigs") . "</td></tr>";
-			$html .= "<tr><td class='key'>Score</td><td>" . rosterProp($member, "Score") . "</td></tr>";
-			$html .= "<tr><td class='key'>Actions</td></tr>";
 		}
 		if (hasPermission("switch-user"))
 		{
@@ -111,7 +108,7 @@ function basic_info($person)
 
 echo "<div class='section'>" . basic_info($email) . "</div>";
 echo "<hr>";
-if (hasPermission("view-user-private-info"))
+if (hasPermission("view-user-private-details"))
 {
 	echo "<table><tr>";
 		echo "<td class='tab'><a href='#' class='info_toggle' data-tab='details'>Details</a></td>";
