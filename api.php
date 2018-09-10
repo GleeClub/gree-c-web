@@ -28,6 +28,18 @@ function utf8ize($mixed) // https://stackoverflow.com/questions/10199017/how-to-
 	return $mixed;
 }
 
+function fold($str, $w, $sep)
+{
+	$ret = "";
+	while (strlen($str) > $w)
+	{
+		$ret .= substr($str, 0, $w) . $sep;
+		$str = substr($str, $w);
+	}
+	$ret .= $str;
+	return $ret;
+}
+
 function reply($status, $arr = array())
 {
 	$arr["status"] = $status;
@@ -144,7 +156,7 @@ switch ($action)
 {
 case "publicevents":
 	$sem = get("semester", $SEMESTER);
-	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = '$CHOIR' and `event`.`semester` = '$sem' and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1", ["id", "time"]);
+	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = '$CHOIR' and `event`.`semester` = '$sem' and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1 and unix_timestamp(`gig`.`performanceTime`) > current_timestamp", ["id", "time"]);
 	reply("ok", array("events" => $ret));
 case "publicsongs":
 	$ret = [];
@@ -163,7 +175,15 @@ case "gigreq":
 	if (! mail($recipient, "New Gig Request", $message)) internal_err("Error sending notification mail");
 	reply("ok");
 case "calendar":
-	raw_reply("hello", "text/calendar", "event.ics"); // TODO
+	$id = get("event");
+	$event = runquery("select unix_timestamp(`gig`.`performanceTime`) as `start`, unix_timestamp(`event`.`releaseTime`) as `end`, `event`.`name` as `summary`, `gig`.`summary` as `description`, `event`.`location` as `location` from `event`, `gig` where `event`.`eventNo` = $id and `gig`.`eventNo` = $id and `event`.`choir` = '$CHOIR' and `gig`.`public` = 1", ["start", "end"])[0];
+	$timefmt = "Ymd\\THis\\Z";
+	$now = gmdate($timefmt);
+	$cal = array("UID" => "$now@$domain", "DTSTAMP" => "$now", "DTSTART" => gmdate($timefmt, $event["start"]), "DTEND" => gmdate($timefmt, $event["end"]), "SUMMARY" => $event["summary"], "DESCRIPTION" => $event["description"], "LOCATION" => $event["location"]);
+	$ret = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//hacksw/handcal//NONSGML v1.0//EN\r\nBEGIN:VEVENT\r\n";
+	foreach ($cal as $k => $v) $ret .= fold("$k:$v", 72, "\r\n ") . "\r\n";
+	$ret .= "END:VEVENT\r\nEND:VCALENDAR\r\n";
+	raw_reply($ret, "text/calendar", "event.ics");
 }
 
 if (! $USER) err("Not logged in");
