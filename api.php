@@ -156,7 +156,7 @@ switch ($action)
 {
 case "publicevents":
 	$sem = get("semester", $SEMESTER);
-	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = '$CHOIR' and `event`.`semester` = '$sem' and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1 and unix_timestamp(`gig`.`performanceTime`) > current_timestamp", ["id", "time"]);
+	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = '$CHOIR' and `event`.`semester` = '$sem' and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1 and `gig`.`performanceTime` > current_timestamp", ["id", "time"]);
 	reply("ok", array("events" => $ret));
 case "publicsongs":
 	$ret = [];

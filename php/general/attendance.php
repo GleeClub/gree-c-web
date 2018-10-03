@@ -106,7 +106,7 @@ function updateSection($member, $semester, $choir, $section, $new = false)
 {
 	if (! mysql_query("update `activeSemester` set `section` = '$section' where `member` = '$member' and `semester` = '$semester' and `choir` = '$choir'")) goto fail; // Change their section registration in activeSemester
 	if (! mysql_query("delete from `attends` where `memberID` = '$member' and `eventNo` in (select `eventNo` from `event` where `type` = 'sectional' and `choir` = '$choir' and `semester` = '$semester') and (select `callTime` from `event` where `event`.`eventNo` = `attends`.`eventNo`) > current_timestamp")) goto fail; // Delete attends for all future sectionals
-	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$member', '1', '0', `eventNo` from `event` where `semester` = '$semester' and `choir` = '$choir' and `type` = 'sectional' and (`section` = '$section' or `section` = 0) and `callTime` > current_timestamp")) goto fail; // Add attends for future sectionals in new section
+	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$member', `defaultAttend`, '0', `eventNo` from `event` where `semester` = '$semester' and `choir` = '$choir' and `type` = 'sectional' and (`section` = '$section' or `section` = 0) and `callTime` > current_timestamp")) goto fail; // Add attends for future sectionals in new section
 	//if ($new)
 	//{
 	//	if (! mysql_query("insert into `attends` (`memberID`, `shouldAttend`, `confirmed`, `eventNo`) select '$member', '1', '0', `eventNo` from `event` where `semester` = '$semester' and `choir` = '$choir' and (`type` = 'rehearsal' or `type` = 'volunteer' or `type` = 'tutti')")) goto fail; // Add attends for non-sectional events
