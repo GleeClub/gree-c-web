@@ -1,5 +1,6 @@
 <?php
 require_once('php/functions.php');
+$CHOIR = "glee";
 
 // https://stackoverflow.com/questions/1282909/php-post-array-empty-upon-form-submission
 $rest_json = file_get_contents("php://input");
@@ -151,6 +152,7 @@ if ($action == "auth")
 }
 
 if (! $CHOIR) err("Choir is not set");
+require_once("php/choir/$CHOIR/base.php");
 
 switch ($action)
 {
