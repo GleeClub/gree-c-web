@@ -86,9 +86,9 @@ function eventEmail($eventNo, $type)
 
 	if ($typeName == "Volunteer Gig") $confirm = "I will attend";
 	else if ($typeName == "Tutti Gig") $confirm = "Confirm I will attend";
-	$yesform = "<a href='$redirectURL?id=$eventNo&attend=true'>$confirm</button>";
-	$noform = "<a href='$redirectURL?id=$eventNo&attend=false'>I will not attend</button>";
-	if ($typeName == "Volunteer Gig") $message .= $yesform . " " . $noform;
+	$yesform = "<a href='$redirectURL?id=$eventNo&attend=true'>$confirm</a>";
+	$noform = "<a href='$redirectURL?id=$eventNo&attend=false'>I will not attend</a>";
+	if ($typeName == "Volunteer Gig") $message .= $yesform . "&nbsp;&nbsp;" . $noform;
 	else if ($typeName == "Tutti Gig") $message .= $yesform;
 	$message .= '</body></html>';
 	if (! mail($recipient, $subject, $message, $headers)) die("Failed to send event email");

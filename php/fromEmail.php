@@ -1,11 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! isset($USER))
-{
-	header("Location: /");
-	exit(1);
-}
+if (! isset($USER)) die("<html><head><title>Log In</title></head><body>You must be logged in to respond via this link.  <a href=\"$BASEURL\">Log in</a> and then try again.</body></html>");
 
 $event = mysql_real_escape_string($_GET['id']);
 if ($_GET['attend'] == 'true') $attend = true;
@@ -20,5 +16,5 @@ if((strtotime($result["callTime"]) - time()) < 86400) die("You cannot respond wi
 if($result['type'] == 'tutti' && ! $attend) die("Nice try.  Try submitting an absence request.");
 
 mysql_query("update `attends` set `shouldAttend` = '$attend', `confirmed` ='1' where `memberID` = '$USER' AND `eventNo` = '$event'");
-header("Location: /#event:$event");
+header("Location: $BASEURL/#event:$event");
 ?>
