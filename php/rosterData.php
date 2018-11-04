@@ -5,7 +5,8 @@ function member_fields($email)
 {
 	$fieldnames = array('firstName', 'prefName', 'lastName', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
 	$ret = array();
-	$member = mysql_fetch_array(mysql_query("select * from member where email = '$email'"), MYSQL_ASSOC);
+	$member = query("select * from `member` where `email` = ?", [$email], QONE);
+	if (! $member) die("No such member");
 	foreach ($fieldnames as $field) $ret[$field] = $member[$field];
 	$ret["registration"] = enrollment($email);
 	return $ret;
@@ -33,12 +34,11 @@ function basic_money_table($memberID, $resolved)
 {
 	global $CHOIR;
 	if (! $CHOIR) die("Choir is not set");
-	$sql = "select * from transaction where memberID = '$memberID' and `choir` = '$CHOIR' and `resolved` = '$resolved' order by time desc";
-	$transactions = mysql_query($sql);
-	if (mysql_num_rows($transactions) == 0) return "<span style='color: gray'>(No transactions)</span><br>";
+	$transactions = query("select * from `transaction` where `memberID` = ? and `choir` = ? and `resolved` = ? order by `time` desc", [$memberID, $CHOIR, $resolved], QALL);
+	if (count($transactions) == 0) return "<span style='color: gray'>(No transactions)</span><br>";
 	$html = "<table>";
 	$count = 0;
-	while($transaction = mysql_fetch_array($transactions))
+	foreach ($transactions as $transaction)
 	{
 		$time = $transaction['time'];
 		$amount = $transaction['amount'];
@@ -51,11 +51,11 @@ function basic_money_table($memberID, $resolved)
 		$html .= $resolved ? "<a href='#' class='transac_edit' data-action='unresolve'><i class='icon-remove-sign'></i></a>" : "<a href='#' class='transac_edit' data-action='resolve'><i class='icon-ok-sign'></i></a>";
 		$html .= "</td><td>$time</td>";
 		//make the amount number red if it is negative
-		if($amount>=0) $html.="<td class='center'>$amount</td>";
+		if ($amount >= 0) $html .= "<td class='center'>$amount</td>";
 		else $html.="<td class='center' style='color: red'>$amount</td>";
 		$html .= "<td>";
-		$sql = "select `name` from `transacType` where `id` = '$type'";
-		$result = mysql_fetch_array(mysql_query($sql));
+		$result = query("select `name` from `transacType` where `id` = ?", [$type], QONE);
+		if (! $result) die("Invalid transaction type");
 		$typename = $result['name'];
 		if ($type == 'dues' || $type == 'deposit')
 		{
@@ -91,9 +91,8 @@ function tie_form($memberID)
 {
 	GLOBAL $SEMESTER;
 	$tie = 0;
-	$query = mysql_query("select `tie` from `tieBorrow` where `member` = '$memberID' and `dateIn` is null");
-	$result = mysql_fetch_array($query);
-	if (mysql_num_rows($query) != 0) $tie = $result['tie'];
+	$result = query("select `tie` from `tieBorrow` where `member` = ? and `dateIn` is null", [$memberID], QONE);
+	if ($result) $tie = $result['tie'];
 	$head = fullNameFromEmail($memberID) . ' ';
 	$form = '';
 	if ($tie == 0)
@@ -111,9 +110,7 @@ function tie_form($memberID)
 		$head .= "is a tie thief.";
 		$form = "<button type='button' class='btn tie_return' data-member='$memberID'>Resolve</button>";
 	}
-	$sql = "select sum(`amount`) as `balance` from `transaction` where `memberID` = '$memberID' and `type` = 'deposit'";
-	$result = mysql_fetch_array(mysql_query($sql));
-	$balance = $result['balance'];
+	$balance = query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ? and `type` = 'deposit'", [$memberID], QONE)["balance"];
 	if ($balance == '') $balance = 0;
 	$deposit = "<span style='color: red'>unpaid</span>";
 	if ($balance >= fee("tie")) $deposit = "<span style='color: green'>paid</span>";
@@ -125,18 +122,15 @@ function active_semesters($memberID)
 	global $CHOIR;
 	if (! $CHOIR) die("Choir is not set");
 	$table = "<style>table.semesters { width: auto; } table.semesters td { padding: 2px 10px; } select.section { margin-bottom: 0px; width: 10em; }</style><table class='semesters'><tr><th>Semester</th><th>Status</th><th>Section</th><th>Score</th></tr>";
-	$query = mysql_query("select `semester` from `semester` order by `beginning` asc");
-	while ($result = mysql_fetch_array($query))
+	foreach (query("select `semester` from `semester` order by `beginning` asc", [], QALL) as $result)
 	{
 		$activebtn = 0;
 		$semester = $result['semester'];
-		$query1 = mysql_query("select `enrollment` from `activeSemester` where `member` = '$memberID' and `semester` = '$semester' and `choir` = '$CHOIR'");
-		$active = mysql_num_rows($query1);
+		$active = query("select `enrollment` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$memberID, $semester, $CHOIR], QONE);
 		$enrollment = "inactive";
 		if ($active)
 		{
-			$result1 = mysql_fetch_array($query1);
-			$enrollment = $result1['enrollment'];
+			$enrollment = $active['enrollment'];
 			if ($enrollment == "club") $activebtn = 1;
 			else if ($enrollment == "class") $activebtn = 2;
 			else die("Invalid enrollment state");
@@ -159,33 +153,34 @@ switch ($_POST['tab'])
 {
 	case 'details':
 		if (! hasPermission("view-user-private-details")) die($denied);
-		echo member_details(mysql_real_escape_string($_POST['email']));
+		echo member_details($_POST['email']);
 		break;
 	case 'details_edit':
 		if (! hasPermission("edit-user")) die($denied);
-		echo member_edit(mysql_real_escape_string($_POST['email']));
+		echo member_edit($_POST['email']);
 		break;
 	case 'money':
 		if (! hasPermission("view-transactions")) die($denied);
-		echo money_table(mysql_real_escape_string($_POST['email']));
+		echo money_table($_POST['email']);
 		break;
 	case 'attendance':
 		if (! hasPermission("view-attendance")) die($denied);
-		echo attendance(mysql_real_escape_string($_POST['email']), 1);
+		echo attendance($_POST['email'], 1);
 		echo "<div style='text-align: right'><a href='php/memberAttendance.php?id=" . $_POST['email'] . "'>Print view</a></div>";
 		break;
 	case 'tie':
 		if (! hasPermission("view-ties")) die($denied);
-		echo tie_form(mysql_real_escape_string($_POST['email']));
+		echo tie_form($_POST['email']);
 		break;
 	case 'semesters':
 		if (! hasPermission("view-users")) die($denied);
-		echo active_semesters(mysql_real_escape_string($_POST['email']));
+		echo active_semesters($_POST['email']);
 		break;
 	case 'col':
 		if (! isset($_POST['email'])) die("BAD_ACTION");
-		$sql = "select * from `member` where `email` = '" . mysql_real_escape_string($_POST['email']) . "'";
-		echo rosterProp(mysql_fetch_array(mysql_query($sql)), mysql_real_escape_string($_POST['col']));
+		$target = query("select * from `member` where `email` = ?", [$_POST["email"]], QONE);
+		if (! $target) die("Member not found");
+		echo rosterProp($target, $_POST["col"]);
 		break;
 	default:
 		echo "???";

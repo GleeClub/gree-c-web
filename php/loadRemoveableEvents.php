@@ -1,37 +1,18 @@
 <?php
 require_once('functions.php');
 
-$types = array();
-$semesters = array();
-
 $types = explode('^',$_POST['types']);
 $semesters = explode('^',$_POST['semesters']);
 
-$tCount = 0;
-$t = "";
-foreach($types as $type){
-	if($tCount>0)
-		$t.=" or ";
-	$t.= "type='$type'";
-	$tCount++;
-}
-
-$sCount = 0;
-$s = "";
-foreach($semesters as $semester){
-	if($sCount>0)
-		$s.=" or ";
-	$s.= "semester='$semester'";
-	$sCount++;
-}
-
-$sql = "select * from event where ($t) AND ($s) order by callTime desc";
-$events = mysql_query($sql);
+$tsub = "(" . implode(", ", array_fill(0, count($types), "?")) . ")";
+$ssub = "(" . implode(", ", array_fill(0, count($semesters), "?")) . ")";
+$query = query("select * from `event` where `type` in $tsub and `semester` in $ssub order by `callTime` desc", array_merge($types, $semesters), QALL);
 
 $html = '
 <div id="events">
 	<table class="table" id="eventsTable">';
-while($row = mysql_fetch_array($events, MYSQL_ASSOC)){
+foreach ($query as $row)
+{
 	$eventDetails = getEventDetails($row['eventNo']);
 	$html = $html.  "
 		<tr id='".$eventDetails['eventNo']."_row'>

@@ -73,12 +73,22 @@ function internal_err($msg)
 	reply("internal_error", array("message" => $msg));
 }
 
-function runquery($qstr, $ints = [], $bools = [])
+function runquery($q, $values = [], $ints = [], $bools = [])
 {
-	$query = mysql_query($qstr);
-	if (! $query) internal_err("Query failed: " . mysql_error());
+	global $DB;
+	$types = "";
+	foreach ($values as $v)
+	{
+		$type = gettype($v);
+		if ($type == "integer" || $type == "double" || $type == "string") $types .= $type[0];
+		else internal_err("Tried to use type $type in database query");
+	}
+	$stmt = $DB->prepare($q) or internal_err($DB->error);
+	if (count($values) > 0) call_user_func_array(array($stmt, "bind_param"), refValues(array_merge(array($types), $values)));
+	$stmt->execute() or err($DB->error);
+	$res = $stmt->get_result();
 	$ret = [];
-	while ($row = mysql_fetch_array($query, MYSQL_ASSOC))
+	foreach ($res->fetch_all(MYSQLI_ASSOC) as $row);
 	{
 		foreach ($ints as $field) $row[$field] = intval($row[$field]);
 		foreach ($bools as $field)
@@ -88,32 +98,10 @@ function runquery($qstr, $ints = [], $bools = [])
 		}
 		$ret[] = $row;
 	}
+	$res->free();
+	$stmt->close();
 	return $ret;
 }
-
-/*function arg($var, $ensure = false, $escape = true)
-{
-	if (! isset($_GET[$var]))
-	{
-		if ($ensure) err("Missing argument \"$var\"");
-		return null;
-	}
-	if ($escape) return mysql_real_escape_string($_GET[$var]);
-	return $_GET[$var];
-}
-
-function postdata($var, $ensure = true, $escape = true)
-{
-	$rest_json = file_get_contents("php://input");
-	$_POST = json_decode($rest_json, true);
-	if (! isset($_POST[$var]))
-	{
-		if ($ensure) err("Missing argument \"$var\"");
-		return null;
-	}
-	if ($escape) return mysql_real_escape_string($_POST[$var]);
-	return $_POST[$var];
-}*/
 
 function param($source, $var, $default = null)
 {
@@ -127,12 +115,12 @@ function param($source, $var, $default = null)
 
 function get($var, $default = null)
 {
-	return mysql_real_escape_string(param($_GET, $var, $default));
+	return param($_GET, $var, $default);
 }
 
 function post($var, $default = null)
 {
-	return mysql_real_escape_string(param($_POST, $var, $default));
+	return param($_POST, $var, $default);
 }
 
 function priv($perm) # Error if the current user doesn't have the specified permission
@@ -147,7 +135,7 @@ if ($action == "auth")
 {
 	$user = post("user");
 	$pass = post("pass");
-	if (mysql_num_rows(mysql_query("select * from `member` where email = '$user' and password = md5('$pass')")) != 1) err("Wrong login information");
+	if (query("select * from `member` where email = ? and password = md5(?)", [$user, $pass], QCOUNT) != 1) err("Wrong login information");
 	reply("ok", array("identity" => cookie_string(param($_POST, "user")), "choir" => "glee")); // TODO Setting choir
 }
 
@@ -158,27 +146,31 @@ switch ($action)
 {
 case "publicevents":
 	$sem = get("semester", $SEMESTER);
-	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = '$CHOIR' and `event`.`semester` = '$sem' and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1 and `gig`.`performanceTime` > current_timestamp", ["id", "time"]);
+	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = ? and `event`.`semester` = ? and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1 and `gig`.`performanceTime` > current_timestamp", [$choir, $sem], ["id", "time"]);
 	reply("ok", array("events" => $ret));
 case "publicsongs":
 	$ret = [];
-	foreach (runquery("select `id`, `title` from `song`", ["id"]) as $song)
+	foreach (runquery("select `id`, `title` from `song`", [], ["id"]) as $song)
 	{
-		$song["links"] = runquery("select `id`, `name`, `target` as `ytid` from `songLink` where `song` = '" . $song["id"] . "' and `type` = 'video'", ["id"], []);
+		$song["links"] = runquery("select `id`, `name`, `target` as `ytid` from `songLink` where `song` = ? and `type` = 'video'", [$song["id"]], ["id"]);
 		$ret[] = $song;
 	}
 	reply("ok", array("songs" => $ret));
 case "gigreq":
 	$starttime = date("Y-m-d H:i:s", post("bookingDateOfEventUnix"));
-	if (! mysql_query("insert into `gigreq` (`name`, `org`, `cname`, `cphone`, `cemail`, `startTime`, `location`, `comments`, `semester`) values ('" . post("bookingNameOfEvent") . "', '" . post("bookingOrg") . "', '" . post("bookingContactName") . "', '" . post("bookingContactPhoneNumber") . "', '" . post("bookingContactEmail") . "', '$starttime', '" . post("bookingLocationOfEvent") . "', '" . post("bookingComments") . "', '$SEMESTER')")) err("Error creating gig request: " . mysql_error());
+	query(
+		"insert into `gigreq` (`name`, `org`, `cname`, `cphone`, `cemail`, `startTime`, `location`, `comments`, `semester`) values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		[post("bookingNameOfEvent"), post("bookingOrg"), post("bookingContactName"), post("bookingContactPhoneNumber"), post("bookingContactEmail"), $starttime, post("bookingLocationOfEvent"), post("bookingComments"), $SEMESTER]
+	);
 	$message = "Event: " . post("bookingNameOfEvent") . "\n\nAt:\n$starttime\n" . post("bookingLocationOfEvent") . "\n\nRequester:\n" . post("bookingOrg") . "\n" . post("bookingContactName") . "\n" . post("bookingContactPhoneNumber") . "\n" . post("bookingContactEmail") . "\n\nNotes:\n" . post("bookingComments") . "\n\nView gig requests at $BASEURL#gigreqs.\n";
-	$choirinfo = mysql_fetch_array(mysql_query("select `admin` from `choir` where `id` = '$CHOIR'"));
+	$choirinfo = query("select `admin` from `choir` where `id` = ?", [$CHOIR], QONE);
+	if (! $choirinfo) err("Invalid choir");
 	$recipient = $choirinfo["admin"];
 	if (! mail($recipient, "New Gig Request", $message)) internal_err("Error sending notification mail");
 	reply("ok");
 case "calendar":
 	$id = get("event");
-	$event = runquery("select unix_timestamp(`gig`.`performanceTime`) as `start`, unix_timestamp(`event`.`releaseTime`) as `end`, `event`.`name` as `summary`, `gig`.`summary` as `description`, `event`.`location` as `location` from `event`, `gig` where `event`.`eventNo` = $id and `gig`.`eventNo` = $id and `event`.`choir` = '$CHOIR' and `gig`.`public` = 1", ["start", "end"])[0];
+	$event = runquery("select unix_timestamp(`gig`.`performanceTime`) as `start`, unix_timestamp(`event`.`releaseTime`) as `end`, `event`.`name` as `summary`, `gig`.`summary` as `description`, `event`.`location` as `location` from `event`, `gig` where `event`.`eventNo` = $id and `gig`.`eventNo` = ? and `event`.`choir` = ? and `gig`.`public` = 1", [$id, $CHOIR], ["start", "end"])[0];
 	$timefmt = "Ymd\\THis\\Z";
 	$now = gmdate($timefmt);
 	$cal = array("UID" => "$now@$domain", "DTSTAMP" => "$now", "DTSTART" => gmdate($timefmt, $event["start"]), "DTEND" => gmdate($timefmt, $event["end"]), "SUMMARY" => $event["summary"], "DESCRIPTION" => $event["description"], "LOCATION" => $event["location"]);
@@ -201,43 +193,40 @@ case "events":
 	$sem = get("semester", $SEMESTER);
 	$member = get("member", $USER);
 	if ($member != $USER) priv("view-attendance");
-	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`event`.`callTime`) as `call`, unix_timestamp(`gig`.`performanceTime`) as `perform`, unix_timestamp(`event`.`releaseTime`) as `release`, `event`.`points` as `points`, `event`.`comments` as `comments`, `event`.`type` as `type`, `event`.`location` as `location`, `sectionType`.`name` as `section`, `event`.`gigcount` as `gigcount`, `gig`.`uniform` as `uniform`, `gig`.`cemail` as `contact`, `attends`.`shouldAttend` as `shouldAttend`, `attends`.`didAttend` as `didAttend`, `attends`.`confirmed` as `confirmed`, `attends`.`minutesLate` as `late` from `event` natural left join `gig`, `attends`, `sectionType` where `event`.`choir` = '$CHOIR' and `attends`.`memberID` = '$member' and `event`.`semester` = '$sem' and `attends`.`eventNo` = `event`.`eventNo` and `event`.`section` = `sectionType`.`id`", ["id", "call", "perform", "release", "points", "late"], ["gigcount", "shouldAttend", "didAttend", "confirmed"]);
+	$ret = runquery("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`event`.`callTime`) as `call`, unix_timestamp(`gig`.`performanceTime`) as `perform`, unix_timestamp(`event`.`releaseTime`) as `release`, `event`.`points` as `points`, `event`.`comments` as `comments`, `event`.`type` as `type`, `event`.`location` as `location`, `sectionType`.`name` as `section`, `event`.`gigcount` as `gigcount`, `gig`.`uniform` as `uniform`, `gig`.`cemail` as `contact`, `attends`.`shouldAttend` as `shouldAttend`, `attends`.`didAttend` as `didAttend`, `attends`.`confirmed` as `confirmed`, `attends`.`minutesLate` as `late` from `event` natural left join `gig`, `attends`, `sectionType` where `event`.`choir` = ? and `attends`.`memberID` = ? and `event`.`semester` = ? and `attends`.`eventNo` = `event`.`eventNo` and `event`.`section` = `sectionType`.`id`", [$CHOIR, $member, $sem], ["id", "call", "perform", "release", "points", "late"], ["gigcount", "shouldAttend", "didAttend", "confirmed"]);
 	reply("ok", array("events" => $ret));
 case "attendees":
 	priv("view-attendance");
 	$event = get("event");
-	$ret = runquery("select `memberID`, `shouldAttend`, `confirmed` from `attends` where `eventNo` = '$event'", [], ["shouldAttend", "confirmed"]); // FIXME Name formatting
+	$ret = runquery("select `memberID`, `shouldAttend`, `confirmed` from `attends` where `eventNo` = ?", [$event], [], ["shouldAttend", "confirmed"]); // FIXME Name formatting
 	reply("ok", array("attendees" => $ret));
 case "members":
-	$ret = runquery("select concat(member.firstName, ' ', (case when member.prefName = '' then '' else concat('\"', member.prefName, '\" ') end), member.lastName) as `name`, member.email as `email`, member.phone as `phone`, member.location as `location`, activeSemester.enrollment as `enrollment` from `member`, `activeSemester` where activeSemester.member = member.email and activeSemester.semester = '$SEMESTER'");
+	$ret = runquery("select concat(member.firstName, ' ', (case when member.prefName = '' then '' else concat('\"', member.prefName, '\" ') end), member.lastName) as `name`, member.email as `email`, member.phone as `phone`, member.location as `location`, activeSemester.enrollment as `enrollment` from `member`, `activeSemester` where activeSemester.member = member.email and activeSemester.semester = ?", [$SEMESTER]);
 	reply("ok", array("members" => $ret));
 case "updateAttendance":
 	$event = get("event");
 	$attend = get("attend");
 	if ($attend != "1" && $attend != "0") err("Invalid attend value");
-	$query = mysql_query("select * from `event` where `eventNo` = '$event'");
-	if (! $query) internal_err("Error retrieving event: " . mysql_error());
-	if (mysql_num_rows($query) != 1) err("Invalid event");
-	$result = mysql_fetch_array($query);
+	$result = query("select * from `event` where `eventNo` = ?", [$event], QONE);
+	if (! $result) err("Invalid event");
 	if ($result["type"] != "volunteer" && $result["type"] != "tutti") err("Not a gig");
 	if ((strtotime($result["callTime"]) - time()) < 86400) err("Responses are closed for this event");
 	if ($result["type"] == "tutti" && $attend != "1") err("Try submitting an absence request instead");
-	if (! mysql_query("update `attends` set `shouldAttend` = '$attend', confirmed = '1' where `memberID` = '$USER' and `eventNo` = '$event'")) internal_err("Update failed: " . mysql_error());
+	query("update `attends` set `shouldAttend` = ?, confirmed = '1' where `memberID` = ? and `eventNo` = ?", [$attend, $USER, $event]);
 	reply("ok");
 case "songs":
 	$ret = [];
-	foreach (runquery("select * from `song`", ["id"], ["current"]) as $song)
+	foreach (runquery("select * from `song`", [], ["id"], ["current"]) as $song)
 	{
-		$song["links"] = runquery("select `id`, `type`, `name`, `target` from `songLink` where `song` = '" . $song["id"] . "'", ["id"], []);
+		$song["links"] = runquery("select `id`, `type`, `name`, `target` from `songLink` where `song` = ?", [$song["id"]], ["id"], []);
 		$ret[] = $song;
 	}
 	reply("ok", array("songs" => $ret, "music_dir" => $musicdir));
 case "member":
 	$ret = [];
 	$member = get("member");
-	$query = mysql_query("select * from `member` where `email` = '$member'");
-	if (mysql_num_rows($query) != 1) err("Invalid member");
-	$info = mysql_fetch_array($query);
+	$info = query("select * from `member` where `email` = ?", [$member], QONE);
+	if (! $info) err("Invalid member");
 	$ret["positions"] = positions($member);
 	$ret["name"] = completeNameFromEmail($member);
 	if ($info["about"] == "") $ret["quote"] = "I don't have a quote";
@@ -253,9 +242,9 @@ case "member":
 	$ret["techYear"] = $info["techYear"];
 	if (hasPermission("view-user-private-info"))
 	{
-		$query2 = mysql_query("select `semester`.`semester` from `activeSemester`, `semester` where `activeSemester`.`member` = '$member' and `activeSemester`.`semester` = `semester`.`semester` order by `semester`.`beginning` desc");
 		$semesters = [];
-		while ($row = mysql_fetch_array($query2)) $semesters[] = $row["semester"];
+		foreach (query("select `semester`.`semester` from `activeSemester`, `semester` where `activeSemester`.`member` = ? and `activeSemester`.`semester` = `semester`.`semester` order by `semester`.`beginning` desc", [$member], QALL) as $row)
+			$semesters[] = $row["semester"];
 		$ret["activeSemesters"] = $semesters;
 		$ret["enrollment"] = ""; // TODO
 		$ret["gigs"] = attendance($member, 3);
@@ -264,7 +253,7 @@ case "member":
 	if (hasPermission("view-transactions"))
 	{
 		$ret["balance"] = intval(balance($member));
-		$dues = mysql_fetch_array(mysql_query("select sum(`amount`) as `balance` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'dues' and `semester` = '$SEMESTER'"))["balance"];
+		$dues = query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ? and `type` = 'dues' and `semester` = ?", [$member["email"], $SEMESTER], QONE)["balance"];
 		if ($dues == "") $ret["dues"] = 0;
 		else $ret["dues"] = $dues;
 	}

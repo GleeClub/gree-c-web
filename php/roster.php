@@ -16,10 +16,12 @@ echo "<span class='pull-left'><div class='btn-toolbar' style='display: inline-bl
 echo "<span class='pull-right' id='roster_ops'>";
 if (hasPermission("edit-grading"))
 {
-	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$SEMESTER'"));
+	$result = query("select `gigreq` from `semester` where `semester` = ?", [$SEMESTER], QONE);
+	if (! $result) die("Bad semester");
 	$gigreq = $result['gigreq'];
 	echo "Volunteer gig requirement:  <input type='text' id='gigreq' style='width: 20px; margin-bottom: 0px' value='$gigreq'><button class='btn' onclick='setGigReq($(\"#gigreq\").attr(\"value\"))'>Go</button><span class='spacer'></span><div style='display: inline-block'><input type='checkbox' style='margin-top: -16px' name='gigcheck' onclick='setGigCheck($(this).attr(\"checked\"))'";
-	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
+	$result = query("select `gigCheck` from `variables`", [], QONE);
+	if (! $result) die("Missing variables");
 	if ($result['gigCheck']) echo " checked";
 	echo "> <div style='display: inline-block'>Include gig requirement<br>in grade calculation</div></div>";
 }

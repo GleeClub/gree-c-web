@@ -1,19 +1,18 @@
 <?php
 require_once('functions.php');
 
-$sql = "SELECT `event`.`eventNo`, `event`.`choir`, `event`.`name`, `event`.`callTime`, `event`.`releaseTime`, `event`.`comments`, `event`.`location`, `uniform`.`name` as `uniform`, `eventType`.`name` as `type`
+$result = query("SELECT `event`.`eventNo`, `event`.`name`, `event`.`callTime`, `event`.`releaseTime`, `event`.`comments`, `event`.`location`, `uniform`.`name` as `uniform`, `eventType`.`name` as `type`
 	FROM `event`, `eventType`, `gig`, `uniform`
 	WHERE `event`.`type` = `eventType`.`id`
 		AND `event`.`eventNo` = `gig`.`eventNo`
 		AND `uniform`.`id` = `gig`.`uniform`
 		AND (`eventType`.`id` = 'volunteer' OR `eventType`.`id` = 'tutti')
 		AND TIMESTAMPDIFF(HOUR, CURRENT_TIMESTAMP, `event`.`callTime`) = 48
-	ORDER BY `event`.`callTime` ASC";
+		AND `event`.`choir` = ?
+	ORDER BY `event`.`callTime` ASC", [$CHOIR], QALL);
 
-$result = mysql_query($sql);
-
-$choir = $result['choir'];
-$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$choir'"));
+$row = query("select `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
+if (! $row) die("Bad choir");
 $sender = $row['admin'];
 $recipient = $row['list'];
 //$recipient = "Matthew Schauer <awesome@gatech.edu>";
@@ -22,7 +21,7 @@ $headers = "Content-type:text/html;\n" .
 	"From: $sender\n" .
 	'X-Mailer: PHP/' . phpversion();
 
-while($event = mysql_fetch_array($result))
+foreach($result as $event)
 {
 	$type = $event['type'];
 	if($type == "Volunteer Gig" || $type == "Tutti Gig")

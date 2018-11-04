@@ -2,11 +2,11 @@
 require_once('functions.php');
 if (! hasPermission("view-ties")) die("DENIED");
 
-function tietable($result)
+function tietable($query)
 {
 	global $SEMESTER;
 	echo "<table class='table'><tr><th>#</th><th>Status</th><th>Comments</th><th>Actions</th></tr>";
-	while ($row = mysql_fetch_array($result))
+	foreach (query($query, [], QALL) as $row)
 	{
 		if ($row['borrower'] == '')
 		{
@@ -20,10 +20,10 @@ function tietable($result)
 			else if ($row['status'] == "Lost") $stat = "Lost by";
 			else $stat = "<span style='color: red'>$row[status]</span>; held by";
 			$status = "$stat <a href='#profile:$row[borrower]'>$row[borrowerName]</a> since $row[dateOut]";
-			$active = mysql_num_rows(mysql_query("select * from `activeSemester` where `member` = '$row[borrower]' and `semester` = '$SEMESTER'"));
+			$active = query("select * from `activeSemester` where `member` = ? and `semester` = ?", [$row["borrower"], $SEMESTER], QCOUNT) > 0;
 			if ($active) $status .= "<br><span style='color: green'>Active</span> this semester";
 			else $status .= "<br><span style='color: red'>Inactive</span> this semester";
-			$deposit = mysql_fetch_array(mysql_query("select sum(`amount`) as `total` from `transaction` where `type` = 'deposit' and `memberID` = '$row[borrower]'"));
+			$deposit = query("select sum(`amount`) as `total` from `transaction` where `type` = 'deposit' and `memberID` = ?", [$row["borrower"]], QONE);
 			if ($deposit['total'] >= fee("tie")) $depok = true;
 			else $depok = false;
 			if ($depok) $status .= "<br>Tie deposit <span style='color: green'>paid</span>";
@@ -39,10 +39,10 @@ function tietable($result)
 
 echo "<style>th { text-align: left; }</style>";
 $sqlbase = "select `id` as `tie`, `status`, `member` as `borrower`, (select concat_ws(' ', `firstName`, `lastName`) from `member` where `member`.`email` = `borrower`) as `borrowerName`, `dateOut`, `comments` from (select `id`, `status`, `comments` from `tie`) as `ties` left outer join (select `member`, `dateOut`, `tie` from `tieBorrow` where `dateIn` is null) as `borrows` on `ties`.`id` = `borrows`.`tie`";
-tietable(mysql_query($sqlbase . " where `ties`.`status` = 'Circulating'"));
+tietable($sqlbase . " where `ties`.`status` = 'Circulating'");
 echo "<button type='button' class='btn btn-link' onclick='$(\"#tie_inactive\").toggle()'>Inactive ties</button>";
 echo "<div id='tie_inactive' style='display: none'>";
-tietable(mysql_query($sqlbase . " where `ties`.`status` != 'Circulating'"));
+tietable($sqlbase . " where `ties`.`status` != 'Circulating'");
 echo "</div><span class='pull-right'><input type='text' id='tie_newnum' placeholder='#' style='width: 30px'><button type='button' class='btn' id='tie_add'>Add tie</button></span>";
 
 ?>

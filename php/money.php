@@ -6,8 +6,7 @@ if (! hasPermission("view-transactions")) die("Access denied");
 function transacTypes()
 {
 	$html = "<select class='ttype' style='width: 140px'>";
-	$result = mysql_query("select `id`, `name` from `transacType` order by `name` asc");
-	while ($row = mysql_fetch_array($result))
+	foreach (query("select `id`, `name` from `transacType` order by `name` asc", [], QALL) as $row)
 	{
 		$html .= "<option value='" . $row['id'] . "'";
 		if ($row['id'] == 'other') $html .= " selected";
@@ -27,9 +26,8 @@ if (! isset($_POST['action']) || $_POST['action'] == "none")
 switch ($_POST['action'])
 {
 case 'values':
-	$member = mysql_real_escape_string($_POST['member']);
-	$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `total` from `transaction` where `memberID` = '$member' and `type` = 'deposit'"));
-	$total = $result['total'];
+	$member = $_POST['member'];
+	$total = query("select sum(`amount`) as `total` from `transaction` where `memberID` = ? and `type` = 'deposit'", [$member], QONE)["total"];
 	$deposit = fee("tie");
 	$dues = fee("dues");
 	if ($total >= $deposit) $dep = -1 * $deposit;

@@ -9,8 +9,8 @@ function isgig($event)
 
 function uniform($id) # FIXME Use the values stored in the database rather than rewriting them!
 {
-	$sql = "select `uniform`.`name` as `uniform` from `gig`, `uniform` where `gig`.`eventNo` = '$id' and `gig`.`uniform` = `uniform`.`id`";
-	$res = mysql_fetch_array(mysql_query($sql));
+	$res = query("select `uniform`.`name` as `uniform` from `gig`, `uniform` where `gig`.`eventNo` = ? and `gig`.`uniform` = `uniform`.`id`", [$id], QONE);
+	if (! $res) die("No such gig");
 	$uni = $res['uniform'];
 	$background = '#aaa';
 	$html = '';
@@ -41,21 +41,18 @@ function uniform($id) # FIXME Use the values stored in the database rather than 
 	return "<div class='infoblock' style='background: $background'><div>$html</div></div>";
 }
 
-$sql = "SELECT * FROM `event` WHERE eventNo = '$eventNo'";
-$result = mysql_query($sql);
-if (mysql_num_rows($result) != 1) die("The requested event could not be found: $eventNo.");
-$event = mysql_fetch_array($result);
-$attends = mysql_query("select `shouldAttend`, `confirmed` from `attends` where `eventNo` = '$eventNo' and `memberID` = '$USER'");
-if (mysql_num_rows($attends) != 1)
+$event = query("select * from `event` where eventNo = ?", [$eventNo], QONE);
+if (! $event) die("The requested event could not be found: $eventNo.");
+$attends = query("select `shouldAttend`, `confirmed` from `attends` where `eventNo` = ? and `memberID` = ?", [$eventNo, $USER], QONE);
+if (! $attends)
 {
 	$confirmed = 0;
 	$should = 0;
 }
 else
 {
-	$row = mysql_fetch_array($attends);
-	$confirmed = $row['confirmed'];
-	$should = $row['shouldAttend'];
+	$confirmed = $attends['confirmed'];
+	$should = $attends['shouldAttend'];
 }
 $html = '<style>
 	h4 { font-weight: normal; }

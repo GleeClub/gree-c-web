@@ -1,13 +1,12 @@
 <?php
 //This returns the results for the To: field in creating a message.
 require_once('functions.php');
-$q = mysql_real_escape_string($_GET['q']);
+$q = $_GET["q"] . "%";
 
-$sql = "select email, firstName, prefName, lastName from member where firstName like '$q%' or prefName like '$q%' or lastName like '$q%';";
-$res = mysql_query($sql);
 $ret = "[\n";
 $i = 1;
-while($arr = mysql_fetch_array($res)) {
+foreach (query("select `email`, `firstName`, `prefName`, `lastName` from `member` where `firstName` like ? or `prefName` like ? or `lastName` like ?", [$q, $q, $q], QALL) as $arr)
+{
 	$fn = $arr['firstName'];
 	$pn = $arr['prefName'];
 	$ln = $arr['lastName'];

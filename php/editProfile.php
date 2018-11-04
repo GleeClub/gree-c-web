@@ -14,16 +14,13 @@ span.radio-option { margin-right: 30px; }
 $userinfo = array();
 if ($USER)
 {
-	$userinfo = mysql_fetch_array(mysql_query("select * from `member` where `email` = '$USER'"));
-	$query = mysql_query("select `enrollment` from `activeSemester` where `member` = '$USER' and `semester` = '$SEMESTER'");
-	if (mysql_num_rows($query) == 0) $userinfo["registration"] = "inactive";
-	else
-	{
-		$res = mysql_fetch_array($query);
-		$userinfo["registration"] = $res['enrollment'];
-	}
-	$query = mysql_fetch_array(mysql_query("select `section` from `activeSemester` where `member` = '$USER' and `semester` = '$SEMESTER' and choir = '$CHOIR'"));
-	$userinfo["section"] = $query["section"];
+	$userinfo = query("select * from `member` where `email` = ?", [$USER], QONE);
+	if (! $userinfo) die("Invalid user");
+	$row = query("select `enrollment` from `activeSemester` where `member` = ? and `semester` = ?", [$USER, $SEMESTER], QONE);
+	if (! $row) $userinfo["registration"] = "inactive";
+	else $userinfo["registration"] = $row["enrollment"];
+	$query = query("select `section` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?". [$USER, $SEMESTER, $CHOIR], QONE);
+	if ($query) $userinfo["section"] = $query["section"];
 }
 
 $fields = array(

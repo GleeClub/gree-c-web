@@ -7,11 +7,8 @@ if(hasPermission("edit-carpool")){
 }
 $html .= "<div id='carpools'>";
 
-$sql = "SELECT * FROM `carpool` WHERE eventNo=$eventNo;";
-$result = mysql_query($sql);
-//echo $sql;
-//echo $result;
-while($row = mysql_fetch_array($result, MYSQL_ASSOC)){
+foreach (query("select * from `carpool` where `eventNo` = ?", [$eventNo], QALL) as $row)
+{
 	$html .= "<div class='carpool block' id='".$row['carpoolID']."'>";
 	$driver = $row['driver'];
 	//$shouldAttend='';
@@ -47,9 +44,9 @@ while($row = mysql_fetch_array($result, MYSQL_ASSOC)){
 			";
 	}
 	//$passengers = array();
-	$carpoolDetails = getCarpoolDetails($row['carpoolID']);
 	$html .= "<div class='passengers block'>";
-	while($passenger = mysql_fetch_array($carpoolDetails)){
+	foreach (getCarpoolDetails($row['carpoolID']) as $passenger)
+	{
 		//$passengers[] = $passenger['memberID'];
 		if($passenger['memberID'] !== $driver){
 			//$shouldAttend='';
@@ -80,8 +77,8 @@ while($row = mysql_fetch_array($result, MYSQL_ASSOC)){
 			</table></div>";
 		}
 	}
-	$sql = "select `name` from `event` where `eventNo` = $eventNo";
-	$event = mysql_fetch_array(mysql_query($sql));
+	$event = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
+	die("No such event exists");
 	$html .= '</div>';//end passengers div
 	$html .= '<div style="display: inline-block; width: 100%"><a href="mailto:' . rawurlencode($emails) . '?subject=' . rawurlencode('Carpool for ' . $event['name']) . '" class="btn pull-right"><i class="icon-envelope"></i>&nbsp;Mail this carpool</a></div>';
 	$html .= "</div>";//end carpool div

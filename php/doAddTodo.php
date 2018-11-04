@@ -1,31 +1,11 @@
 <?php
 require_once('functions.php');
-$msg = mysql_real_escape_string($_POST['message']);
-if(isset($_POST['userList'])) {
-	echo $_POST['userList'];
-	$userlist = $_POST['userList'];
-} else {
-	$userlist = $USER;
-}
+if (isset($_POST['userList'])) $userlist = $_POST['userList'];
+else $userlist = $USER;
 
-if (! $USER)
-{
-	echo "UNAUTHORIZED";
-	exit(1);
-}
+if (! $USER) die("UNAUTHORIZED");
 $users = explode(',', $userlist);
-$query = "insert into `todo` (text, completed) values(\"$msg\", 0)";
-if (mysql_query($query)) echo "OK";
-else exit(1);
-//max(id) should be different --TH
-/*$query = "select max(id) where `text` = \"$msg\" and `completed` = 0";
-$results = mysql_query($query);
-if (mysql_query($query)) echo "OK";
-else exit(1);
-$res_arr = mysql_fetch_array($results);
-$id = $res_arr['id'];
-*/
-$id = mysql_insert_id();
+$id = query("insert into `todo` (text, completed) values(?, 0)", [$_POST["message"]], QID);
 if (! hasPermission("add-multi-todo")) // TODO handle duplicate users in the list
 {
 	foreach ($users as $user)
@@ -34,12 +14,5 @@ if (! hasPermission("add-multi-todo")) // TODO handle duplicate users in the lis
 	}
 }
 foreach ($users as $user)
-{
-	$query = "insert into `todoMembers` (memberID, todoID) values(\"$user\", \"$id\")";
-	echo $user;
-	echo $id;
-	echo $query;
-	if (mysql_query($query)) echo "OK";
-	else exit(1);
-}
+	query("insert into `todoMembers` (memberID, todoID) values(?, ?)", [$user, $id]);
 ?>

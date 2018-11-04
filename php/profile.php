@@ -56,13 +56,12 @@ button.action
 <?php
 require_once('functions.php');
 if (! $USER) die("You must be logged in to view member profiles.");
-$email = mysql_real_escape_string($_GET['person']);
-$query = mysql_query("select `email` from `member` where `email` = '$email'");
-if (mysql_num_rows($query) == 0) die("No such user");
+$email = $_GET['person'];
 
 function basic_info($person)
 {
-	$member = mysql_fetch_array(mysql_query("select * from `member` where `email` = '$person'"));
+	$member = query("select * from `member` where `email` = ?", [$person], QONE);
+	if (! $member) die("No such user");
 	$about = getMemberAttribute('about', $person);
 	if ($about == '') $about = "I don't have a quote";
 	$html .= "<img class='profile' src='" . profilePic($person) . "'>";
@@ -76,9 +75,9 @@ function basic_info($person)
 	$html .= "<tr><td class='key'>Car</td><td>".rosterProp($member, "Car")."</td></tr>";
 	$html .= "<tr><td class='key'>Major</td><td>".getMemberAttribute('major', $person)."</td></tr>";
 	$html .= "<tr><td class='key'>Year at Tech</td><td>".getMemberAttribute('techYear', $person)."</td></tr>";
-	$sql = mysql_query("select `semester`.`semester` from `activeSemester`, `semester` where `activeSemester`.`member` = '$person' and `activeSemester`.`semester` = `semester`.`semester` order by `semester`.`beginning` desc");
 	$activeSemesters = '';
-	while ($row = mysql_fetch_array($sql)) $activeSemesters .= "<span class='label'>" . $row['semester'] . "</span> ";
+	foreach (query("select `semester`.`semester` from `activeSemester`, `semester` where `activeSemester`.`member` = ? and `activeSemester`.`semester` = `semester`.`semester` order by `semester`.`beginning` desc", [$person], QALL) as $row)
+		$activeSemesters .= "<span class='label'>" . $row['semester'] . "</span> ";
 	if (hasPermission("view-user-private-details"))
 	{
 		$html .= "<tr><td class='key'>Active</td><td>$activeSemesters</td></tr>";

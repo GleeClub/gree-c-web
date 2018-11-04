@@ -1,13 +1,11 @@
 <?php
 require_once('functions.php');
-$request = mysql_real_escape_string($_POST['request']);
-if ($request != "typeid" && $request != "name" && $request != "storage") exit(1);
-$query = "select `$request` from `mediaType` order by `order` asc";
-$sql = mysql_query($query);
+$request = $_POST['request'];
+if ($request != "typeid" && $request != "name" && $request != "storage") die("Invalid request type \"$request\"");
 $i = 0;
-while ($results = mysql_fetch_array($sql))
+foreach (query("select `$request` from `mediaType` order by `order` asc", [], QALL) as $result)
 {
 	if ($i++ != 0) echo "\n";
-	echo "$results[0]";
+	echo $result[$request];
 }
 ?>

@@ -1,7 +1,8 @@
 <?php
 require_once('functions.php');
 if (! $CHOIR) die("Choir not set");
-$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$CHOIR'"));
+$row = query("select `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
+if (! $row) die("Invalid choir");
 $recipient = $row['admin'];
 $prefix = "<html><head></head><body>";
 $suffix = "</body></html>";
@@ -10,10 +11,8 @@ $headers = 'Content-type:text/html; charset=utf-8' . "\n" .
 	'X-Mailer: PHP/' . phpversion();
 
 if (! isset($_POST['id'])) die("No ID specified");
-$id = mysql_real_escape_string($_POST['id']);
-$query = mysql_query("select `name`, `private` from `minutes` where `id` = '$id'");
-if (! $query) die("Query failed: " + mysql_error());
-$result = mysql_fetch_array($query);
+$id = $_POST['id'];
+$result = query("select `name`, `private` from `minutes` where `id` = ?", [$id], QONE);
 if (! $result) die("Failed to fetch minutes with ID " . $id);
 $message = $prefix . $result['private'] . "<br><br>View these minutes online at $BASEURL/#minutes:$id<br>" . $suffix;
 $subject = "Minutes for " . $result['name'];

@@ -36,39 +36,30 @@ function gcalEvent($ids, $title, $location, $desc, $unixstart, $unixend, $interv
 	}*/
 }
 
-function eventEmail($eventNo, $type)
+function eventEmail($eventNo, $type) // TODO $type should not be necessary
 {
 	GLOBAL $BASEURL, $CHOIR;
-	$sql = "select * from `eventType` where `id` = '$type'";
-	$eventType  =  mysql_fetch_array(mysql_query($sql));
-	$typeName = $eventType['name'];
-	
-	$eventResults = mysql_fetch_array(mysql_query("SELECT * from `event` where `eventNo` = '$eventNo'"));
+
+	$eventResults = query("select `event`.`name`, `event`.`callTime`, `event`.`releaseTime`, `event`.`comments`, `event`.`location`, `uniform`.`name` as `uniformName`, `eventType`.`name` as `eventTypeName` from `event`, `gig`, `uniform`, `eventType` where `event`.`eventNo` = ? and `gig`.`eventNo` = `event`.`eventNo` and `uniform`.`id` = `gig`.`uniform` and `eventType`.`id` = `event`.`type`", [$eventNo], QONE);
+	if (! $eventResults) die("Bad event ID");
 	$eventName = $eventResults['name'];
-	$eventType = $eventResults['type'];
+	$eventType = $eventResults['eventTypeName']; // TODO Appears unused
 	$eventTime = $eventResults['callTime'];
 	$eventReleaseTime = $eventResults['releaseTime'];
 	$eventComments = $eventResults['comments'];
 	$eventLocation = $eventResults['location'];
-	$gigResults = mysql_fetch_array(mysql_query("select * from `gig` where `eventNo` = '$eventNo'"));
-	$uniformCode = $gigResults['uniform'];
-	$uniformResults = mysql_fetch_array(mysql_query("select `name` from `uniform` where `id` = '$uniformCode'"));
-	$eventUniform = $uniformResults['name'];
-
+	$eventUniform = $eventResults['uniformName'];
 	$eventTime = strtotime($eventTime);
 	$eventTimeDisplay = date("D, M d g:i a", $eventTime);
-
 	$eventReleaseTime = strtotime($eventReleaseTime);
 	$eventReleaseTimeDisplay = date("D, M d g:i a", $eventReleaseTime);
-	
-	$typeResults = mysql_fetch_array(mysql_query("SELECT * from `eventType` where `id` = '$eventType`"));
-	$eventType = $typeResults['name'];
 
 	$redirectURL = "$BASEURL/php/fromEmail.php";
 	$eventUrl = "$BASEURL/#event:$eventNo";
 
 	if (! $CHOIR) die("Choir not set");
-	$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$CHOIR'"));
+	$row = query("select `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
+	if (! $row) die("Invalid choir");
 	$sender = $row['admin'];
 	$recipient = $row['list'];
 	//$recipient = "Matthew Schauer <awesome@gatech.edu>";
@@ -97,18 +88,20 @@ function eventEmail($eventNo, $type)
 // Add to event, and everyone's attending
 function createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, $gigcount, $section, $defattend)
 {
-	global $SEMESTER, $CHOIR;
+	global $SEMESTER, $CHOIR; // FIXME Why are we using $sem in some places and $SEMESTER in others?  I think this is wrong.
 	if (! $CHOIR) die("No choir currently selected");
-	if (! mysql_query("insert into event (name, choir, callTime, releaseTime, points, comments, type, location, semester, gigcount, defaultAttend) values ('$name', '$CHOIR', '$call', '$done', '$points', '$comments', '$type', '$location', '$sem', '$gigcount', $defattend)")) die("Failed to create event: " . mysql_error());
-	$eventNo = mysql_insert_id();
+	$eventNo = query(
+		"insert into event (name, choir, callTime, releaseTime, points, comments, type, location, semester, gigcount, defaultAttend) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		[$name, $CHOIR, $call, $done, $points, $comments, $type, $location, $sem, $gigcount, $defattend], QID
+	);
 
 	$shouldAttend = $defattend;
 	if (strtotime($call) < strtotime('+48 hours')) $shouldAttend = 0;
-	if ($section == 0) { if (! mysql_query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select `member`, '$eventNo', '$shouldAttend' from `activeSemester` where `semester` = '$SEMESTER' and `choir` = '$CHOIR'")) die("Failed to insert attends relations for event: " . mysql_error()); }
+	if ($section == 0) query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select `member`, ?, ? from `activeSemester` where `semester` = ? and `choir` = ?", [$eventNo, $shouldAttend, $SEMESTER, $CHOIR]);
 	else
 	{
-		if (! mysql_query("update `event` set `section` = '$section' where `eventNo` = '$eventNo'")) die("Failed to set section: " . mysql_error());
-		if (! mysql_query("insert into `attends` (`memberID`, `eventNo`) select `member`, '$eventNo' from `activeSemester` where `section` = '$section' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'")) die("Failed to create attends relation for sectional: " . mysql_error());
+		query("update `event` set `section` = ? where `eventNo` = ?", [$section, $eventNo]);
+		query("insert into `attends` (`memberID`, `eventNo`) select `member`, ? from `activeSemester` where `section` = ? and `semester` = ? and `choir` = ?", [$eventNo, $section, $SEMESTER, $CHOIR]);
 	}
 	return $eventNo;
 }
@@ -117,9 +110,11 @@ function createEvent($name, $type, $call, $done, $location, $points, $sem, $comm
 function createGig($name, $tutti, $call, $perform, $done, $location, $points, $sem, $comments, $uniform, $cname, $cemail, $cphone, $price, $gigcount, $public, $summary, $description, $defattend)
 {
 	$eventNo = createEvent($name, ($tutti ? 'tutti' : 'volunteer'), $call, $done, $location, $points, $sem, $comments, $gigcount, 0, $defattend);
-
 	$publicval = $public ? 1 : 0;
-	if (! mysql_query("insert into `gig` (eventNo, performanceTime, uniform, cname, cemail, cphone, price, public, summary, description) values ('$eventNo', '$perform', '$uniform', '$cname', '$cemail', '$cphone', '$price', '$publicval', '$summary', '$description')")) die("Failed to create gig: " . mysql_error());
+	query(
+		"insert into `gig` (eventNo, performanceTime, uniform, cname, cemail, cphone, price, public, summary, description) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		[$eventNo, $perform, $uniform, $cname, $cemail, $cphone, $price, $publicval, $summary, $description]
+	);
 	return $eventNo;
 }
 
@@ -137,7 +132,6 @@ function createRehearsal($name, $type, $call, $done, $location, $points, $sem, $
 $unesc_name = $_POST["name"];
 $unesc_location = $_POST["location"];
 $unesc_comments = $_POST["comments"];
-foreach ($_POST as &$value) $value = mysql_real_escape_string($value);
 $eventNo = array();
 $repeat = $_POST['repeat'];
 $type = $_POST['type'];

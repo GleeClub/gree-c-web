@@ -45,10 +45,8 @@ function removeSemesterForm($btnClasses=''){
 			    <select class=\"semesterSelect\" id=\"rmSemesterName\">
 					<option value=''>Pick One</option>";
 
-	$sql = "select semester from semester where 1";
-	$result = mysql_query($sql);
-
-	while($semesterInfo = mysql_fetch_array($result)){
+	foreach (query("select `semester` from `semester`", [], QALL) as $semesterInfo)
+	{
 		$semester = $semesterInfo['semester'];
 		$html .= "
 					<option value='$semester'>$semester</option>";
@@ -67,7 +65,8 @@ function removeSemesterForm($btnClasses=''){
 /**
 * Return a form with which a semester can be removed
 */
-function changeSemesterForm(){
+function changeSemesterForm()
+{
 	$html = "
 	<div id='changeSemesterDiv' class=\"semesterDiv\">
 		<form id='changeSemesterForm'>
@@ -76,10 +75,8 @@ function changeSemesterForm(){
 			    <select class=\"changeSemesterName\" id=\"changeSemesterName\">
 					<option value=''>Pick One</option>";
 
-	$sql = "select semester from semester where 1";
-	$result = mysql_query($sql);
-
-	while($semesterInfo = mysql_fetch_array($result)){
+	foreach (query("select `semester` from `semester`", [], QALL) as $semesterInfo)
+	{
 		$semester = $semesterInfo['semester'];
 		$html .= "
 					<option value='$semester'>$semester</option>";

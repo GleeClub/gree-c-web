@@ -1,16 +1,15 @@
 <?php
 require_once('./functions.php');
-$eventNo = mysql_real_escape_string($_POST['eventNo']);
+$eventNo = $_POST['eventNo'];
 
 if (! hasEventPermission("view-attendance", $eventNo)) die("Access denied");
 if (! isset($eventNo)) die("Missing event number");
-
-$sql = "select `name`, `section` from `event` where `eventNo` = '$eventNo'";
-$event = mysql_fetch_array(mysql_query($sql));
-$name = $event['name'];
+$res = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
+if (! $res) die("That event does not exist");
+$name = $res["name"];
 
 $html ="<div class='pull-right'><button class='btn' onclick='excuseall($eventNo)'>Excuse Unconfirmed</button></div>
-<p style='text-align: center; font-weight: bold;'>$name Attendance</p> 
+<p style='text-align: center; font-weight: bold;'>$name Attendance</p>
 <p id='attendanceList'><table id='$eventNo"."_table'>" . getEventAttendanceRows($eventNo) . "</table></p>";
 
 echo $html;

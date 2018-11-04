@@ -1,39 +1,33 @@
 <?php
 /**** Event functions ****/
 
+function nullcheck($result, $kind = "event")
+{
+	if (! $result) die("Could not find matching $kind");
+	return $result;
+}
+
 function eventTypes()
 {
 	$ret = array();
-	$result = mysql_query("select * from `eventType` order by `weight`");
-	while ($row = mysql_fetch_array($result)) $ret[$row["id"]] = $row["name"];
+	foreach(query("select * from `eventType` order by `weight`", [], QALL) as $row) $ret[$row["id"]] = $row["name"];
 	return $ret;
-	#if ($eventNo && $value > 2 && $row['typeNo'] <= 2) continue;
 }
 
 function getEventDetails($eventNo){
-	$sql = "SELECT * FROM `event` WHERE eventNo=$eventNo;";
-	$result = mysql_query($sql);
-	if (mysql_num_rows($result) != 1) return "NULL";
-	$results = mysql_fetch_array($result);
-	return $results;
+	return nullcheck(query("select * from `event` where `eventNo` = ?", [$eventNo], QONE));
 }
 
 function getGigDetails($eventNo){
-	$sql = "SELECT * FROM `gig` WHERE eventNo=$eventNo;";
-	$results = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	return $results;
+	return nullcheck(query("select * from `gig` where `eventNo` = ?", [$eventNo], QONE), "gig");
 }
 
 function getEventType($id){
-	$sql = "SELECT `name` FROM `eventType` WHERE `id` = '$id'";
-	$results = mysql_fetch_array(mysql_query($sql));
-	return $results['name'];
+	return nullcheck(query("select `name` from `eventType` where `id` = ?", [$id], QONE))["name"];
 }
 
 function getEventName($eventNo){
-	$eventSql = "SELECT name from `event` where eventNo='$eventNo'";
-	$eventResults = mysql_fetch_array(mysql_query($eventSql));
-	return $eventResults['name'];
+	return nullcheck(query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE))["name"];
 }
 
 function getEventTypeLabelClass($number){
@@ -51,18 +45,17 @@ function labelArea($type){
 function buttonArea($eventNo, $typeid)
 {
 	global $USER;
-	$sql = "SELECT `callTime` FROM `event` WHERE `eventNo` = $eventNo";
-	$results = mysql_fetch_array(mysql_query($sql));
+	$callTime = query("select `callTime` from `event` where `eventNo` = ?", [$eventNo], QONE);
+	if (! $callTime) die("Invalid event ID");
 	$soon = 0;
-	if (strtotime($results['callTime']) < time() + 86400) $soon = 1;
+	if (strtotime($callTime["callTime"]) < time() + 86400) $soon = 1;
 	
-	$sql = mysql_query("SELECT * FROM `attends` WHERE eventNo=$eventNo AND memberID='$USER';");
-	if (mysql_num_rows($sql) == 0) $html = "<span class='label'>Not attending</span>";
+	$attend = query("select * from `attends` where `eventNo` = ? and `memberID` = ?", [$eventNo, $USER], QONE);
+	if (! $attend) $html = "<span class='label'>Not attending</span>";
 	else
 	{
-		$results = mysql_fetch_array($sql);
-		if ($results['shouldAttend'] == '0') $html = "<span class='label'>Not attending</span>";
-		else if ($results['confirmed'] == '0')
+		if ($attend['shouldAttend'] == '0') $html = "<span class='label'>Not attending</span>";
+		else if ($attend['confirmed'] == '0')
 		{
 			if ($typeid == 'volunteer')
 			{
@@ -103,21 +96,17 @@ function buttonArea($eventNo, $typeid)
 //}
 
 function getAbsenceRequest($eventNo, $person){
-	$sql = "SELECT * FROM `absencerequest` WHERE eventNo=$eventNo AND memberID='$person';";
-	$results = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	return $results;
+	return nullcheck(query("select * from `absencerequest` where `eventNo` = ? and `memberID` = ?", [$eventNo, $person], QONE), "absence request");
 }
 
 function shouldAttend($email, $eventNo){
-	$sql = "SELECT shouldAttend FROM attends WHERE memberID='$email' AND eventNo=$eventNo;";
-	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	return $result['shouldAttend'] == 0 ? false : true;
+	$res = query("select `shouldAttend` from `attends` where `memberID` = ? and `eventNo` = ?", [$email, $eventNo], QONE);
+	return $res && $res["shouldAttend"] != 0;
 }
 
 function isConfirmed($email, $eventNo){
-	$sql = "SELECT confirmed FROM attends WHERE memberID='$email' AND eventNo=$eventNo;";
-	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	return $result['confirmed'] == 0 ? false : true;
+	$res = query("select `confirmed` from `attends` where `memberID` = ? and `eventNo` = ?", [$email, $eventNo], QONE);
+	return $res && $res["confirmed"] != 0;
 }
 
 // Google Calendar stuff
@@ -129,7 +118,7 @@ function get_gcal()
 	global $application, $docroot;
 	$client = new Google_Client();
 	$client->setApplicationName($application);
-	$client->setAuthConfig("$docroot/secrets/Gree-C-Web-7ed7b150ae38.json");
+	$client->setAuthConfig("$docroot/secrets/$gcal_secret_file");
 	$client->setScopes(["https://www.googleapis.com/auth/calendar"]);
 	$service = new Google_Service_Calendar($client);
 	return $service;
@@ -149,8 +138,13 @@ function set_event_fields($event, $title, $desc, $location, $unixstart, $unixend
 	$end->setTimeZone($tz);
 	$event->setEnd($end);
 	$creator = new Google_Service_Calendar_EventCreator();
-	$creator->displayName = "Georgia Tech Glee Club";
-	$creator->email = "gleeclub_officers@lists.gatech.edu";
+	$res = query("select `name`, `admin` from `choir` where `id` = ?", [$CHOIR], QONE);
+	if (! $res) $creator->displayName = "Georgia Tech Choirs";
+	else
+	{
+		$creator->displayName = "Georgia Tech " . $res["name"];
+		$creator->email = $res["admin"];
+	}
 	$event->setCreator($creator);
 }
 ?>

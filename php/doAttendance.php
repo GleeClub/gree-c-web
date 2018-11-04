@@ -5,47 +5,48 @@ if (! isset($_POST['eventNo'])) die("Missing event number");
 
 function ensure_attends($memberID, $eventNo)
 {
-	$attendses = mysql_query("select * from attends where memberID='$memberID' and eventNo='$eventNo'");
-	if(mysql_num_rows($attendses) == 0) mysql_query("INSERT INTO attends (memberID, shouldAttend, didAttend, eventNo, minutesLate, confirmed) VALUES ('$memberID', '0', '0', '$eventNo', '0', '1')");
+	$attendses = query("select * from `attends` where `memberID` = ? and `eventNo` = ?", [$memberID, $eventNo], QCOUNT);
+	if ($attendses == 0) query("insert into `attends` (`memberID`, `shouldAttend`, `didAttend`, `eventNo`, `minutesLate`, `confirmed`) values (?, ?, ?, ?, ?, ?)", [$memberID, 0, 0, $eventNo, 0, 1]);
 }
 
-$eventNo = mysql_real_escape_string($_POST['eventNo']);
-$memberID = mysql_real_escape_string($_POST['email']);
+$eventNo = $_POST['eventNo'];
+$memberID = $_POST['email'];
 $action = $_POST['action'];
-$value = mysql_real_escape_string($_POST['value']);
+$value = $_POST['value'];
 if (! hasPermission("edit-attendance"))
 {
 	if ($USER != $memberID) die("Access denied");
-	$event = mysql_fetch_array(mysql_query("select * from `event` where `eventNo` = '$eventNo'"));
+	$event = query("select * from `event` where `eventNo` = ?", [$eventNo], QONE);
+	if (! $event) die("Event not found");
 	if ($action == "did") die();
-	if ($action == "should" && strtotime($event['callTime'] < strtotime('+1 day')) && $value != 1) die();
-	if ($action == "should" && $event['type'] != 'volunteer' && $value != 1) die();
+	if ($action == "should" && strtotime($event["callTime"] < strtotime("+1 day")) && $value != 1) die();
+	if ($action == "should" && $event["type"] != "volunteer" && $value != 1) die();
 	if ($action == "late") die();
 	if ($action == "confirmed" && $value == "0") die();
 	if ($action == "excuse_all") die();
 }
 if ($action == "should" || $action == "did")
 {
-	$field = '';
 	if ($action == "should") $field = "shouldAttend";
 	else if ($action == "did") $field = "didAttend";
+	else die("Invalid action \"$action\"");
 
 	ensure_attends($memberID, $eventNo);
-	mysql_query("update `attends` set `$field` = '$value' where `memberID` = '$memberID' and `eventNo` = '$eventNo'");
+	query("update `attends` set `$field` = ? where `memberID` = ? and `eventNo` = ?", [$value, $memberID, $eventNo]);
 }
 else if ($action == "late")
 {
 	ensure_attends($memberID, $eventNo);
-	mysql_query("update `attends` set `minutesLate` = '$value' where `memberID` = '$memberID' and `eventNo` = '$eventNo'");
+	query("update `attends` set `minutesLate` = ? where `memberID` = ? and `eventNo` = ?", [$value, $memberID, $eventNo]);
 }
 else if ($action == "confirmed")
 {
 	ensure_attends($memberID, $eventNo);
-	mysql_query("update `attends` set `confirmed` = '$value' where `memberID` = '$memberID' and `eventNo` = '$eventNo'");
+	query("update `attends` set `confirmed` = ? where `memberID` = ? and `eventNo` = ?", [$value, $memberID, $eventNo]);
 }
 else if ($action == "excuse_all")
 {
-	mysql_query("update `attends` set `shouldAttend` = '0' where `eventNo` = '$eventNo' and `confirmed` = '0'");
+	query("update `attends` set `shouldAttend` = '0' where `eventNo` = ? and `confirmed` = '0'", [$eventNo]);
 }
 else die("Unknown action");
 

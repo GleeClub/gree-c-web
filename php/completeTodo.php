@@ -3,13 +3,5 @@ require_once('functions.php');
 $id = $_POST['id'];
 $status = $_POST['status'];
 
-if($status=='complete'){
-	$sql = "UPDATE `todo` SET completed=1 WHERE id=$id;";
-	mysql_query($sql);
-}
-if($status=='incomplete'){
-	$sql = "UPDATE `todo` SET completed=0 WHERE id=$id;";
-	mysql_query($sql);
-}
-
+query("update `todo` set `completed` = ? where `id` = ?", [$status == "complete" ? 1 : 0, $id]);
 ?>

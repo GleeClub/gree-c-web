@@ -10,9 +10,8 @@ if(! $USER)
 function user_money_table($memberID)
 {
 	global $CHOIR;
-	$sql = "select * from `transaction` where `memberID` = '$memberID' and `choir` = '$CHOIR' and `resolved` = '0' order by time desc";
-	$transactions = mysql_query($sql);
-	if (mysql_num_rows($transactions) == 0) return "<span style='color: gray'>(No transactions)</span><br>";
+	if (query("select * from `transaction` where `memberID` = ? and `choir` = ? and `resolved` = '0' order by time desc", [$memberID, $CHOIR], QCOUNT) == 0)
+		return "<span style='color: gray'>(No transactions)</span><br>";
 	$html = "<table style='width: 100%'>";
 	{
 		$time = $transaction['time'];
@@ -22,8 +21,8 @@ function user_money_table($memberID)
 		$type = $transaction['type'];
 		$sem = $transaction['semester'];
 		$time = strftime("%b %d, %Y", strtotime($time));
-		$sql = "select `name` from `transacType` where `id` = '$type'";
-		$result = mysql_fetch_array(mysql_query($sql));
+		$result = query("select `name` from `transacType` where `id` = ?", [$type], QONE);
+		if (! $result) die("Bad transaction type");
 		$typename = $result['name'];
 		$desc = '';
 		if ($type == 'dues' || $type == 'deposit')
@@ -55,7 +54,8 @@ function gigBlock($userEmail)
 {
 	global $SEMESTER;
 	$count = attendance($userEmail, 3);
-	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$SEMESTER'"));
+	$result = query("select `gigreq` from `semester` where `semester` = ?", [$SEMESTER], QONE);
+	if (! $result) die("Invalid semester");
 	$gigreq = $result['gigreq'];
 	if ($count < $gigreq) $precentProgress = floor(100 * $count / $gigreq);
 	else $precentProgress = 100;
@@ -71,13 +71,9 @@ function info($userEmail)
 {
 	global $SEMESTER, $CHOIR;
 	$html = "";
-	$sql = "select sum(`amount`) as `balance` from `transaction` where `memberID` = '$userEmail' and `type` = 'dues' and `semester` = '$SEMESTER'";
-	$result = mysql_fetch_array(mysql_query($sql));
-	$dues = $result['balance'];
+	$dues = query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ? and `type` = 'dues' and `semester` = ?", [$userEmail, $SEMESTER], QONE)["balance"];
 	if ($dues == '') $dues = 0;
-	$sql = "select sum(`amount`) as `balance` from `transaction` where `memberID` = '$userEmail' and `type` = 'deposit'";
-	$result = mysql_fetch_array(mysql_query($sql));
-	$tie = $result['balance'];
+	$tie = query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ? and `type` = 'deposit'", [$userEmail], QONE)["balance"];
 	if ($tie == '') $tie = 0;
 	$html .= "<table><tr><td>";
 	if ($dues >= 0) $html .= "<span class='color: green'><i class='icon-ok'></i></span>";
@@ -86,14 +82,9 @@ function info($userEmail)
 	if ($tie >= fee("tie")) $html .= "<span class='color: green'><i class='icon-ok'></i></span>";
 	else $html .= "<span class='color: red'><i class='icon-remove'></i></span>";
 	$html .= "</td><td>Tie Deposit</td></tr></table><br>";
-	$sql = "select `tie` from `tieBorrow` where `member` = '$userEmail' and `dateIn` is null";
-	$query = mysql_query($sql);
-	if (mysql_num_rows($query) == 0) $html .= "You do <b>not</b> have a tie checked out.";
-	else
-	{
-		$result = mysql_fetch_array($query);
-		$html .= "You have tie <b>" . $result['tie'] . "</b> checked out.";
-	}
+	$result = query("select `tie` from `tieBorrow` where `member` = ? and `dateIn` is null", [$userEmail], QONE);
+	if (! $result) $html .= "You do <b>not</b> have a tie checked out.";
+	else $html .= "You have tie <b>" . $result['tie'] . "</b> checked out.";
 	$html .= "<br>";
 	$balance = balance($userEmail);
 	$choir = choirname($CHOIR);
@@ -110,9 +101,7 @@ function announcements($userEmail)
 	$html = "<p class='lead'>Announcements <small>– Obviously each thing is the most important thing.</small></p>";
 	//announcement block
 	//Show only announcements less than a month old and unarchived
-	$sql = "SELECT * FROM `announcement` WHERE date_add(timePosted, INTERVAL 1 MONTH) > now() and `choir` = '$CHOIR' AND `archived`=0 ORDER BY `timePosted` DESC LIMIT 0, 3";
-	$result = mysql_query($sql);
-	while ($announcement=mysql_fetch_array($result))
+	foreach (query("select * from `announcement` where date_add(timePosted, interval 1 month) > now() and `choir` = ? and `archived` = 0 order by `timePosted` desc limit 0, 3", [$CHOIR], QALL) as $announcement)
 	{
 		$timestamp = strtotime($announcement['timePosted']);
 		$dayPosted = date( 'M j, Y', $timestamp);

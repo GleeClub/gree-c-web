@@ -3,13 +3,11 @@
 	if (! $USER) die();
 	$nameType = 'prefName';
 	if(isset($_POST['nameType'])) $nameType = $_POST['nameType'];
-	$order = 'lastName';
-	$sql = "select firstName,lastName,prefName,email from member order by $order";
-	$result = mysql_query($sql);
 	$arr = array();
 	$temp = array();
 	$count=0;
-	while($resultArray = mysql_fetch_array($result)){
+	foreach(query("select `firstName`, `lastName`, `prefName`, `email` from `member` order by 'lastName'", [], QALL) as $resultArray)
+	{
 		if($nameType == 'both')
 			if($resultArray['firstName'] != $resultArray['prefName'] && !empty($resultArray['prefName']))
 				$temp[0] = $resultArray['firstName'] . ' "' . $resultArray['prefName'] . '"';

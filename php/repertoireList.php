@@ -1,17 +1,15 @@
 <div class="span3 block" id=repertoire_list><?php
 require_once('functions.php');
 if (! $CHOIR) die("Not logged in"); # FIXME
-$results = mysql_query("select `id`, `title` from `song` where `current` = 1 and `choir` = '$CHOIR' order by `title` asc");
-if (! $results) die("Database query failed.");
+$results = query("select `id`, `title` from `song` where `current` = 1 and `choir` = ? order by `title` asc", [$CHOIR], QALL);
 if ($USER && hasPermission("edit-repertoire")) echo "<div style=\"padding-top: 5px\"><button class=btn style=\"padding: 5px; width: 100%\" id=repertoire_add>Add Song...</button></div>";
 echo "<style>td.repertoire_head { font-size: 12pt; font-weight: bold; }</style>";
 echo "<table class=\"table\" id=repertoire_table>";
-if (mysql_num_rows($results)) echo "<tr><td class=repertoire_head>Current Repertoire</td></tr>";
-while ($result = mysql_fetch_array($results)) echo "<tr><td id=\"row_$result[0]\" class=repertoire_row>$result[1]</td></tr>";
-if (mysql_num_rows($results)) echo "<tr><td class=repertoire_head>Other Repertoire</td></tr>";
-$results = mysql_query("select `id`, `title` from `song` where `current` = 0 and `choir` = '$CHOIR' order by `title` asc");
-if (! $results) die("Database query failed.");
-while ($result = mysql_fetch_array($results)) echo "<tr><td id=\"row_$result[0]\" class=repertoire_row>$result[1]</td></tr>";
+if (count($results) > 0) echo "<tr><td class=repertoire_head>Current Repertoire</td></tr>";
+foreach ($results as $result) echo "<tr><td id=\"row_$result[id]\" class=repertoire_row>$result[title]</td></tr>";
+if (count($results) > 0) echo "<tr><td class=repertoire_head>Other Repertoire</td></tr>";
+$results = query("select `id`, `title` from `song` where `current` = 0 and `choir` = ? order by `title` asc", [$CHOIR], QALL);
+foreach ($results as $result) echo "<tr><td id=\"row_$result[id]\" class=repertoire_row>$result[title]</td></tr>";
 echo "</table>";
 ?></div>
 <div class="span8 block" id=repertoire_main>Select a song to the left.</div>

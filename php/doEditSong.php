@@ -1,52 +1,26 @@
 <?php
 require_once('functions.php');
-mysql_set_charset("utf8");
-$id = mysql_real_escape_string($_POST['id']);
-$action = mysql_real_escape_string($_POST['action']);
-$title = mysql_real_escape_string($_POST['name']);
-$info = mysql_real_escape_string($_POST['desc']);
-$note = mysql_real_escape_string($_POST['note']);
-$current = mysql_real_escape_string($_POST['current']);
+$id = $_POST['id'];
+$action = $_POST['action'];
+$title = $_POST['name'];
+$info = $_POST['desc'];
+$note = $_POST['note'];
+$current = $_POST['current'];
 if (! $CHOIR) die("Choir is not set");
 if (! $USER || ! hasPermission("edit-repertoire")) die("UNAUTHORIZED");
-if ($action == "add")
-{
-	$query = "insert into `song` (`choir`, `title`, `info`) values ('$CHOIR', '$title', '$info')";
-	if (mysql_query($query)) echo mysql_insert_id();
-	else echo mysql_error();
-}
+if ($action == "add") echo query("insert into `song` (`choir`, `title`, `info`) values (?, ?, ?)", [$CHOIR, $title, $info], QID);
 else if ($action == "delete")
 {
-	$query = "select `id` from `songLink` where `song` = '$id'";
-	$sql = mysql_query($query);
-	while ($result = mysql_fetch_array($sql)) repertoire_delfile($result[0]) || die("NODEL");
-	$query = "delete from `song` where `id` = '$id'";
-	if (mysql_query($query)) echo "OK";
-	else echo mysql_error();
+	foreach(query("select `id` from `songLink` where `song` = ?", [$id], QALL) as $result) repertoire_delfile($result["id"]);
+	query("delete from `song` where `id` = ?", [$id]);
 }
 else if ($action == "update")
-{
-	$query = "update `song` set `title` = '$title', `info` = '$info' where `id` = '$id'";
-	if (mysql_query($query)) echo "OK";
-	else echo mysql_error();
-}
+	query("update `song` set `title` = ?, `info` = ? where `id` = ?", [$title, $info, $id]);
 else if ($action == "current")
-{
-	$query = "update `song` set `current` = '$current' where `id` = '$id'";
-	if (mysql_query($query)) echo "OK";
-	else echo mysql_error();
-}
+	query("update `song` set `current` = ? where `id` = ?", [$current, $id]);
 else if ($action == "key")
-{
-	$query = "update `song` set `key` = '$note' where `id` = '$id'";
-	if (mysql_query($query)) echo "OK";
-	else echo mysql_error();
-}
+	query("update `song` set `key` = ? where `id` = ?", [$note, $id]);
 else if ($action == "pitch")
-{
-	$query = "update `song` set `pitch` = '$note' where `id` = '$id'";
-	if (mysql_query($query)) echo "OK";
-	else echo mysql_error();
-}
-else echo "BAD_ACTION";
+	query("update `song` set `pitch` = ? where `id` = ?", [$note, $id]);
+else echo "Unknown action \"$action\"";
 ?>

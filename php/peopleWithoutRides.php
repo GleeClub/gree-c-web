@@ -3,21 +3,21 @@ require_once('functions.php');
 $eventNo = $_POST['eventNo'];
 
 $needRides = array();
-$sql = "
+$results = query("
 	SELECT email,shouldAttend,attends.confirmed 
 	FROM member,attends
 	WHERE
 		email NOT IN (
 			SELECT email FROM carpool, ridesin LEFT JOIN member 
 				ON email=memberID 
-			WHERE carpool.carpoolID=ridesin.carpoolID AND carpool.eventNo=$eventNo)
-		AND exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = `member`.`email`)
-		AND attends.eventNo=$eventNo
+			WHERE carpool.carpoolID=ridesin.carpoolID AND carpool.eventNo=?)
+		AND exists (select * from `activeSemester` where `activeSemester`.`semester` = ? and `activeSemester`.`member` = `member`.`email`)
+		AND attends.eventNo=?
 		AND attends.memberID=email
-	ORDER BY shouldAttend DESC, lastName ASC, firstName ASC";
+	ORDER BY shouldAttend DESC, lastName ASC, firstName ASC", [$eventNo, $SEMESTER, $eventNo], QALL);
 
-$results = mysql_query($sql);
-while($personInNeedOfRide = mysql_fetch_array($results)){
+foreach ($results as $personInNeedOfRide)
+{
 	$email = $personInNeedOfRide['email'];
 	$shouldAttend = $personInNeedOfRide['shouldAttend'];
 	$confirmed = $personInNeedOfRide['confirmed'];

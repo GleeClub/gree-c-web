@@ -34,12 +34,6 @@ function valid_time($string)
 
 /**** Semester and member info functions ****/
 
-function getCurrentSemester() {
-	$sql = "SELECT semester FROM variables";
-	$arr = mysql_fetch_array(mysql_query($sql));
-	return $arr['semester'];
-}
-
 function dropdown($options, $name, $selected = '', $disabled = 0)
 {
 	$ret = "<select name='$name' class='$name'" . ($disabled ? " disabled" : "") . ">";
@@ -63,62 +57,60 @@ function radio($options, $name, $selected = '', $disabled = 0)
 
 // First "Pref" Last if pref exists && pref != first
 function completeNameFromEmail($email) {
-	if ($email == '') return '';
-	$sql = "SELECT firstName, lastName, prefName FROM `member` WHERE email='$email';";
-	$res = mysql_fetch_array(mysql_query($sql));
-	if(!empty($res['prefName']) && $res['firstName'] != $res['prefName'])
+	if ($email == "") return "";
+	$res = query("select `firstName`, `lastName`, `prefName` from `member` where `email` = ?", [$email], QONE);
+	if (! $res) return "";
+	if (! empty($res['prefName']) && $res['firstName'] != $res['prefName'])
 		return $res['firstName'] . ' "' . $res['prefName'] . '" ' . $res['lastName'];
 	else
 		return $res['firstName'] . " " . $res['lastName'];
 }
 
 function fullNameFromEmail($email) {
+	if ($email == "") return "";
 	return firstNameFromEmail($email) . " " . lastNameFromEmail($email);
 }
 
 function firstNameFromEmail($email){
-	if ($email == '') return '';
-	$sql = "SELECT firstName FROM `member` WHERE email='$email';";
-	$result= mysql_fetch_array(mysql_query($sql));
-	return $result["firstName"];
+	if ($email == "") return "";
+	$res = query("select `firstName` from `member` where `email` = ?", [$email], QONE);
+	if (! $res) return "";
+	return $res["firstName"];
 }
 
 function prefNameFromEmail($email){
-	if ($email == '') return '';
-	$sql = "SELECT prefName FROM `member` WHERE email='$email';";
-	$result= mysql_fetch_array(mysql_query($sql));
-	if ($result["prefName"] == '') return firstNameFromEmail($email);
-	return $result["prefName"];
+	if ($email == "") return "";
+	$res = query("select `firstName`, `prefName` from `member` where `email` = ?", [$email], QONE);
+	if (! $res) return "";
+	if ($res["prefName"] == '') return $res["firstName"];
+	return $res["prefName"];
 }
 
 function lastNameFromEmail($email){
-	if ($email == '') return '';
-	$sql = "SELECT lastName FROM `member` WHERE email='$email';";
-	$result= mysql_fetch_array(mysql_query($sql));
-	return $result["lastName"];
+	if ($email == "") return "";
+	$res = query("select `lastName` from `member` where `email` = ?", [$email], QONE);
+	if (! $res) return "";
+	return $res["lastName"];
 }
 
 function prefFullNameFromEmail($email){
-	return prefNameFromEmail($email).' '.lastNameFromEmail($email);
+	if ($email == "") return "";
+	return prefNameFromEmail($email) . " " . lastNameFromEmail($email);
 }
 
 function positions($email)
 {
 	global $SEMESTER, $CHOIR; // TODO Semester filtering
-	$result = mysql_query("select `role`.`name` from `role`, `memberRole` where `memberRole`.`member` = '" . mysql_real_escape_string($email) . "' and `memberRole`.`role` = `role`.`id` and (`role`.`choir` = '$CHOIR' or `role`.`name` = 'Webmaster') order by `role`.`rank` asc");
-	if (mysql_num_rows($result) == 0) return array("Member");
+	$result = query("select `role`.`name` from `role`, `memberRole` where `memberRole`.`member` = ? and `memberRole`.`role` = `role`.`id` and (`role`.`choir` = ? or `role`.`name` = 'Webmaster') order by `role`.`rank` asc", [$email, $CHOIR], QALL);
+	if (count($result) == 0) return array("Member");
 	$ret = array();
-	while ($row = mysql_fetch_array($result)) $ret[] = $row["name"];
+	foreach ($result as $row) $ret[] = $row["name"];
 	return $ret;
 }
 
 function hasPosition($email, $position)
 {
-	if ($position == "Member")
-	{
-		if (mysql_num_rows(mysql_query("select * from `member` where `email` = '" . mysql_real_escape_string($email) . "'"))) return true; # TODO Active semester
-		return false;
-	}
+	if ($position == "Member") return query("select * from `member` where `email` = ?", [$email], QCOUNT) > 0; // TODO Active semester
 	if (array_search($position, positions($email)) !== false) return true;
 	return false;
 }
@@ -129,61 +121,56 @@ function getPosition($position = "Member")
 	$ret = array();
 	if ($position == "Member")
 	{
-		$result = mysql_query("select `email` from `member`");
-		while ($row = mysql_fetch_array($result)) $ret[] = $row["email"];
+		foreach (query("select `email` from `member`", [], QALL) as $row) $ret[] = $row["email"];
 		return $ret;
 	}
-	$result = mysql_query("select `memberRole`.`member` as `member` from `role`, `memberRole` where `role`.`name` = '" . mysql_real_escape_string($position) . "' and `role`.`id` = `memberRole`.`role` and `role`.`choir` = '$CHOIR'");
-	while($row = mysql_fetch_array($result)) $ret[] = $row["member"];
+	foreach (query("select `memberRole`.`member` as `member` from `role`, `memberRole` where `role`.`name` = ? and `role`.`id` = `memberRole`.`role` and `role`.`choir` = ?", [$position, $CHOIR], QALL) as $row) $ret[] = $row["member"];
 	return $ret;
 }
 
 function profilePic($email)
 {
 	$default = "http://lorempixel.com/g/256/256";
-	if ($email == '') return $default;
-	$sql = "SELECT picture FROM member WHERE email='$email';";
-	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	if ($result['picture'] == '') return $default;
-	else return $result['picture'];
+	if ($email == "") return $default;
+	$res = query("select `picture` from `member` where `email` = ?", [$email], QONE);
+	if (! $res) return $default;
+	$picture = $res["picture"];
+	if ($picture == "") return $default;
+	else return $picture;
 }
 
 function sectionFromEmail($email, $friendly = 0, $semester = "")
 {
 	global $SEMESTER, $CHOIR;
 	if ($semester == "") $semester = $SEMESTER;
-	if ($email == '') return ($friendly ? "" : 0);
-	$sql = mysql_query("select `sectionType`.`id`, `sectionType`.`name` from `activeSemester`, `sectionType` where `activeSemester`.`member` = '$email' and `activeSemester`.`section` = `sectionType`.`id` and `activeSemester`.`semester` = '$semester' and `activeSemester`.`choir` = '$CHOIR'");
-	if (mysql_num_rows($sql) == 0) return ($friendly ? "" : 0);
-	$result = mysql_fetch_array($sql, MYSQL_ASSOC);
-	return $friendly ? $result['name'] : $result['id'];
+	if ($email == "") return ($friendly ? "" : 0);
+	$result = query("select `sectionType`.`id`, `sectionType`.`name` from `activeSemester`, `sectionType` where `activeSemester`.`member` = ? and `activeSemester`.`section` = `sectionType`.`id` and `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ?", [$email, $semester, $choir], QONE);
+	if (! $result) return ($friendly ? "" : 0);
+	return $friendly ? $result["name"] : $result["id"];
 }
 
-function enrollment($email, $semester = '')
+function enrollment($email, $semester = "")
 {
 	global $SEMESTER, $CHOIR;
-	if ($semester == '') $semester = $SEMESTER;
-	$query = mysql_query("select `enrollment` from `activeSemester` where `member` = '$email' and `semester` = '$semester' and `choir` = '$CHOIR'");
-	if (mysql_num_rows($query) != 1) return "inactive";
-	$result = mysql_fetch_array($query);
-	return $result['enrollment'];
+	if ($semester == "") $semester = $SEMESTER;
+	$result = query("select `enrollment` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$email, $semester, $choir], QONE);
+	if (! $result) return "inactive";
+	return $result["enrollment"];
 }
 
 function hasPermission($perm, $eventType = "any")
 {
-	// FIXME Issues with mysql_real_escape-ing zero or multiple times
 	global $USER, $CHOIR;
-	$query = mysql_query("select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = '$perm' and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = '$CHOIR'" . ($eventType == "any" ? "" : " and (`rolePermission`.`eventType` = '$eventType' or `rolePermission`.`eventType` is null)"));
-	if (! $query) die("Permission check failed: Failed to fetch permitted roles: " . mysql_error());
 	$allowed = [];
-	while ($row = mysql_fetch_array($query)) $allowed[] = $row["roleName"];
+	$basesql = "select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = ? and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = ?";
+	if ($eventType == "any") $query = query($basesql, [$perm, $choir], QALL);
+	else $query = query($basesql . " and (`rolePermission`.`eventType` = ? or `rolePermission`.`eventType` is null)", [$perm, $choir, $eventType], QALL);
+	foreach ($query as $row) $allowed[] = $row["roleName"];
 	if (in_array("Any", $allowed)) return true;
 	if (! $USER) return false;
 	if (in_array("Member", $allowed)) return true;
-	$query = mysql_query("select `role`.`name` as `roleName` from `role`, `memberRole` where `memberRole`.`member` = '$USER' and `memberRole`.`role` = `role`.`id` and `role`.`choir` = '$CHOIR'"); // TODO I feel like we could combine these two queries.
-	if (! $query) die("Permission check failed: Failed to fetch member roles: " . mysql_error());
 	$held = [];
-	while ($row = mysql_fetch_array($query)) $held[] = $row["roleName"];
+	foreach (query("select `role`.`name` as `roleName` from `role`, `memberRole` where `memberRole`.`member` = ? and `memberRole`.`role` = `role`.`id` and `role`.`choir` = ?", [$USER, $CHOIR], QALL) as $row) $held[] = $row["roleName"];
 	//echo("Permission: $perm for $eventType<br>Allowed roles: "); print_r($allowed); echo("<br>Held roles: "); print_r($held); echo("<br>");
 	if (in_array("President", $held) || in_array("Webmaster", $held)) return true;
 	if (count(array_intersect($allowed, $held)) > 0) return true;
@@ -215,32 +202,33 @@ function hasEventTypePermission($perm, $type = "any", $sect = 0)
 function hasEventPermission($perm, $event)
 {
 	global $USER;
-	$query = mysql_query("select `section`, `type` from `event` where `eventNo` = '$event'");
-	if (! $query) die("Permission check failed: " . mysql_error());
-	if (mysql_num_rows($query) != 1) die("Permission check failed: no matching event");
-	$ev = mysql_fetch_array($query);
+	$ev = query("select `section`, `type` from `event` where `eventNo` = ?", $event, QONE);
+	if (! $ev) die("Permission check failed: no matching event");
 	return hasEventTypePermission($perm, $ev["type"], $ev["section"]);
 }
 
-function getMemberAttribute($attribute, $email){
-        $sql = "SELECT $attribute FROM member WHERE email='$email';";
-        $result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-        return $result[$attribute];
+function getMemberAttribute($attribute, $email)
+{
+	$valid = [];
+	foreach (query("show columns from `member`", [], QALL) as $row) $valid[] = $row["Field"];
+	if (! in_array($attribute, $valid)) die("Invalid member attribute \"$attribute\"");
+	$res = query("select `$attribute` from `member` where `email` = ?", [$email], QONE);
+	if (! $res) die("No such member");
+	return $res[$attribute];
 }
 
 function members($cond = "")
 {
 	global $SEMESTER, $CHOIR;
 	$ret = array("" => "(nobody)");
-	$sql = "";
-	if ($cond == "active") $sql = "select `member`.`firstName`, `member`.`lastName`, `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' order by `member`.`lastName` asc";
-	else $sql = "select `firstName`, `lastName`, `email` from `member` order by `lastName` asc";
-	$results = mysql_query($sql);
-	while ($row = mysql_fetch_array($results)) $ret[$row['email']] = $row['lastName'] . ", " . $row['firstName'];
+	$res = [];
+	if ($cond == "active") $res = query("select `member`.`firstName`, `member`.`lastName`, `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ? order by `member`.`lastName` asc", [$SEMESTER, $CHOIR], QALL);
+	else $res = query("select `firstName`, `lastName`, `email` from `member` order by `lastName` asc", [], QALL);
+	foreach ($res as $row) $ret[$row["email"]] = $row["lastName"] . ", " . $row["firstName"];
 	return $ret;
 }
 
-function memberDropdown($member = '')
+function memberDropdown($member = "")
 {
 	return dropdown(members(), "member", $member);
 	//return typeahead(members(), "member", $member);
@@ -249,17 +237,15 @@ function memberDropdown($member = '')
 function semesters()
 {
 	$ret = array();
-	$results = mysql_query("select `semester` from `semester` order by `beginning` desc");
-	while ($row = mysql_fetch_array($results)) $ret[$row['semester']] = $row['semester'];
+	foreach (query("select `semester` from `semester` order by `beginning` desc", [], QALL) as $row) $ret[$row["semester"]] = $row["semester"];
 	return $ret;
 }
 
 function fee($type)
 {
 	global $CHOIR;
-	$query = mysql_query("select `amount` from `fee` where `choir` = '$CHOIR' and `id` = '$type'");
-	if (mysql_num_rows($query) == 0) return 0;
-	$row = mysql_fetch_array($query);
+	$row = query("select `amount` from `fee` where `choir` = ? and `id` = ?", [$CHOIR, $type], QONE);
+	if (! $row) return 0;
 	return $row["amount"];
 }
 
@@ -269,38 +255,36 @@ function semesterDropdown()
 	return dropdown(semesters(), "semester", $SEMESTER);
 }
 
-function sections($choir = '')
+function sections($choir = "")
 {
-	$ret = array();
 	global $CHOIR;
-	if ($choir == '') $choir = $CHOIR;
-	$results = mysql_query("select * from `sectionType` where (`choir` = '$choir' or `choir` is null) order by `id` desc");
-	while ($row = mysql_fetch_array($results)) $ret[$row["id"]] = $row["name"];
+	if ($choir == "") $choir = $CHOIR;
+	$ret = array();
+	foreach (query("select * from `sectionType` where (`choir` = ? or `choir` is null) order by `id` desc", [$choir], QALL) as $row) $ret[$row["id"]] = $row["name"];
 	return $ret;
 }
 
 function uniforms()
 {
-	$ret = array();
 	global $CHOIR;
-	$result = mysql_query("select * from `uniform` where `choir` = '$CHOIR'");
-	while ($row = mysql_fetch_array($result)) $ret[$row["id"]] = $row["name"];
+	$ret = array();
+	foreach (query("select * from `uniform` where `choir` = ?", [$CHOIR], QALL) as $row) $ret[$row["id"]] = $row["name"];
 	return $ret;
 }
 
 function choirs()
 {
 	$ret = array();
-	$result = mysql_query("select * from `choir`");
-	while ($row = mysql_fetch_array($result)) $ret[$row["id"]] = $row["name"];
+	foreach (query("select * from `choir`", [], QALL) as $row) $ret[$row["id"]] = $row["name"];
 	return $ret;
 }
 
-function choirname($CHOIR)
+function choirname($choir)
 {
-	if (! $CHOIR) return "Georgia Tech Choirs";
-	$row = mysql_fetch_array(mysql_query("select `name` from `choir` where `id` = '$CHOIR'"));
-	return $row["name"];
+	if (! $choir) return "Georgia Tech Choirs";
+	$res = query("select `name` from `choir` where `id` = ?", [$choir], QONE);
+	if (! $res) return "Georgia Tech Choirs";
+	return $res["name"];
 }
 
 /**** Misc ****/
@@ -309,15 +293,12 @@ function choirname($CHOIR)
 function repertoire_delfile($id)
 {
 	global $docroot, $musicdir;
-	$query = "select `target`, `type` from `songLink` where `id` = '$id'";
-	$result = mysql_fetch_array(mysql_query($query));
-	$file = $result[0];
-	if ($file == '') return true;
-	$type = $result[1];
-	$query = "select `storage` from `mediaType` where `typeid` = '$type'";
-	$result = mysql_fetch_array(mysql_query($query));
-	if ($result[0] != 'local') return true;
-	if (strpos($file, '/') !== false) return false;
+	$res = query("select `songLink`.`target`, `mediaType`.`storage` from `songLink`, `mediaType` where `songLink`.`id` = ? and `mediaType`.`typeid` = `songLink`.`type`", [$id], QONE);
+	if (! $res) return true;
+	$file = $res["target"];
+	if ($file == "") return true;
+	if ($res["storage"] != "local") return true;
+	if (strpos($file, "/") !== false) return false;
 	return unlink($docroot . $musicdir . "/" . $file);
 }
 
@@ -361,9 +342,8 @@ function todoBlock($userEmail, $form, $list)
 	{
 		$html .= "<div id='todos'>";
 		//$sql = "SELECT * FROM `todoMembers` where memberID='$userEmail' ORDER BY todoID ASC;";
-		$sql = "select todo.id, todo.text from `todo`, `todoMembers` where todo.id = todoMembers.todoID and todo.completed = '0' and todoMembers.memberID = '$userEmail' order by todo.id asc";
-		$todos = mysql_query($sql);
-		while ($row = mysql_fetch_array($todos, MYSQL_ASSOC)){
+		foreach (query("select todo.id, todo.text from `todo`, `todoMembers` where todo.id = todoMembers.todoID and todo.completed = '0' and todoMembers.memberID = ? order by todo.id asc", [$userEmail], QALL) as $row)
+		{
 			$id = $row['id']; //$row['todoID'];
 			$text = $row['text']; //$text['text'];
 			$html .= "<div class='block'><label class='checkbox'><input type='checkbox' id='$id'> $text</label></div>";

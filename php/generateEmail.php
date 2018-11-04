@@ -2,9 +2,9 @@
 require_once('functions.php');
 $email = $_POST['email'];
 $hc = "1234321ffeeff";
-$safeEmail = mysql_real_escape_string($email);
-$n = mysql_num_rows(mysql_query("select * from member where email='$safeEmail';"));
-if($n) {
+$n = query("select * from member where email = ?", [$email], QCOUNT);
+if ($n > 0)
+{
 //To encrypt
 	$now = time();
 	$toenc = $email . " $now";
@@ -16,7 +16,6 @@ if($n) {
 	$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\n";
 	mail($email, "Gree-C-Web Password Reset", $msg, $headers);
 	echo "Reset link sent to $email.";
-} else {
-	echo "That email was not found on the server.  Please try another email.";
 }
+else echo "That email was not found on the server.  Please try another email.";
 ?>

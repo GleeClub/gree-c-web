@@ -1,32 +1,34 @@
 <?php
 /**** Carpool functions ****/
 
-function passengerSpots($email){
-	$sql = "SELECT passengers FROM member WHERE email='$email';";
-	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	return $result['passengers'];
+function nullcheck($res)
+{
+	if (! $res) die("No such member");
+	return $res;
 }
 
-function livesAt($email){
-	$sql = "SELECT location FROM member WHERE email='$email';";
-	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	return $result['location'];
+function passengerSpots($email)
+{
+	return nullcheck(query("select `passengers` from `member` where `email` = ?", [$email], QONE))["passengers"];
 }
 
-function phoneNumber($email){
-	$sql = "SELECT phone FROM member WHERE email='$email';";
-	$result = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
-	return $result['phone'];
+function livesAt($email)
+{
+	return nullcheck(query("select `location` from `member` where `email` = ?", [$email], QONE))["location"];
 }
 
-function getSectionTypes() {
-	$sql = "select * from sectionType";
-	return mysql_query($sql);
+function phoneNumber($email)
+{
+	return nullcheck(query("select `phone` from `member` where `email` = ?", [$email], QONE))["phone"];
 }
 
-function getCarpoolDetails($carpoolId){
-	$sql = "SELECT * FROM `ridesin` WHERE carpoolID=$carpoolId;";
-	$result = mysql_query($sql);
-	return $result;
+function getSectionTypes()
+{
+	return query("select * from `sectionType`", [], QALL);
+}
+
+function getCarpoolDetails($carpoolId)
+{
+	return query("select * from `ridesin` where `carpoolID` = ?", [$carpoolId], QALL);
 }
 ?>

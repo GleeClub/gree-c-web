@@ -40,12 +40,12 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	}
 	$score = 100;
 	$gigcount = 0;
-	$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$SEMESTER'"));
+	$result = query("select `gigreq` from `semester` where `semester` = ?", [$semester], QONE);
+	if (! $result) die("Invalid semester");
 	$gigreq = $result['gigreq'];
 
-	$query = mysql_query("select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `call`, UNIX_TIMESTAMP(`event`.`releaseTime`) as `release`, `event`.`name`, `event`.`type`, `eventType`.`name` as `typeName`, `event`.`points`, `event`.`gigcount` from `attends`, `event`, `eventType` where `attends`.`memberID` = '$memberID' and `event`.`eventNo` = `attends`.`eventNo` and `event`.`releaseTime` <= (current_timestamp - interval 1 day) and `event`.`type` = `eventType`.`id` and `event`.`semester` = '$semester' and `event`.`choir` = '$CHOIR' order by `event`.`callTime` asc");
-	if (! $query) die("Couldn't fetch attendance: " . mysql_error());
-	if(mysql_num_rows($query) == 0)
+	$query = query("select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `call`, UNIX_TIMESTAMP(`event`.`releaseTime`) as `release`, `event`.`name`, `event`.`type`, `eventType`.`name` as `typeName`, `event`.`points`, `event`.`gigcount` from `attends`, `event`, `eventType` where `attends`.`memberID` = ? and `event`.`eventNo` = `attends`.`eventNo` and `event`.`releaseTime` <= (current_timestamp - interval 1 day) and `event`.`type` = `eventType`.`id` and `event`.`semester` = ? and `event`.`choir` = ? order by `event`.`callTime` asc", [$memberID, $semester, $CHOIR], QALL);
+	if (count($query) == 0)
 	{
 		if ($mode == 0) return $score;
 		if ($mode == 3) return $gigcount;
@@ -53,7 +53,7 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 		return $tableOpen . $eventRows . $tableClose;
 	}
 	$allEvents = [];
-	while ($row = mysql_fetch_array($query))
+	foreach ($query as $row)
 	{
 		// FIXME This method will fail if a semester lasts more than a year.
 		$week = intval(date("W", $row["call"]));
@@ -234,7 +234,8 @@ function attendance($memberID, $mode, $semester = '', $media = 'normal')
 	}
 	if ($mode == 3) return $gigcount;
 	// Multiply the top half of the score by the fraction of volunteer gigs attended, if enabled
-	$result = mysql_fetch_array(mysql_query("select `gigCheck` from `variables`"));
+	$result = query("select `gigCheck` from `variables`", [], QONE);
+	if (! $result) die("Could not retrieve variables");
 	if ($result['gigCheck']) $score *= 0.5 + min(floatval($gigcount) * 0.5 / $gigreq, 0.5);
 	// Bound the final score between 0 and 100
 	if ($score > 100) $score = 100;
@@ -281,7 +282,11 @@ function rosterProp($member, $prop)
 	switch ($prop)
 	{
 		case "Section":
-			$section = mysql_fetch_array(mysql_query("select `sectionType`.`name` from `sectionType`, `activeSemester` where `sectionType`.`id` = `activeSemester`.`section` and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = '" . $member["email"] . "'"));
+			$section = query(
+				"select `sectionType`.`name` from `sectionType`, `activeSemester` where `sectionType`.`id` = `activeSemester`.`section` and `activeSemester`.`choir` = ? and `activeSemester`.`semester` = ? and `activeSemester`.`member` = ?",
+				[$CHOIR, $SEMESTER, $member["email"]], QONE
+			);
+			if (! $section) die("Failed to retrieve section");
 			$html .= $section['name'];
 			break;
 		case "Contact":
@@ -306,15 +311,15 @@ function rosterProp($member, $prop)
 			else $html .= "<span class='moneycell'>$balance</span>";
 			break;
 		case "Dues":
-			$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `balance` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'dues' and `semester` = '$SEMESTER'"));
-			$balance = $result['balance'];
+			$balance = query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ? and `type` = 'dues' and `semester` = ?", [$member["email"], $SEMESTER], QONE)["balance"];
 			if ($balance == '') $balance = 0;
 			if ($balance >= 0) $html .= "<span class='duescell' style='color: green'>$balance</span>";
 			else $html .= "<span class='duescell' style='color: red'>$balance</span>";
 			break;
 		case "Gigs":
 			$gigcount = attendance($member["email"], 3);
-			$result = mysql_fetch_array(mysql_query("select `gigreq` from `semester` where `semester` = '$SEMESTER'"));
+			$result = query("select `gigreq` from `semester` where `semester` = ?", [$SEMESTER], QONE);
+			if (! $result) die("Invalid semester");
 			$gigreq = $result['gigreq'];
 			if ($gigcount >= $gigreq) $html .= "<span class='gigscell' style='color: green'>";
 			else $html .= "<span class='gigscell' style='color: red'>";
@@ -329,18 +334,13 @@ function rosterProp($member, $prop)
 			break;
 		case "Tie":
 			$html .= "<span class='tiecell' ";
-			$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `amount` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'deposit'"));
-			$tieamount = $result['amount'];
+			$tieamount = query("select sum(`amount`) as `amount` from `transaction` where `memberID` = ? and `type` = 'deposit'", [$member["email"]], QONE)["amount"];
 			if ($tieamount == '') $tieamount = 0;
 			if ($tieamount >= fee("tie")) $html .= "style='color: green'";
 			else $html .= "style='color: red'";
 			$html .= ">";
-			$query = mysql_query("select `tie` from `tieBorrow` where `member` = '" . $member['email'] . "' and `dateIn` is null");
-			if (mysql_num_rows($query) != 0)
-			{
-				$result = mysql_fetch_array($query);
-				$html .= $result['tie'];
-			}
+			$result = query("select `tie` from `tieBorrow` where `member` = ? and `dateIn` is null", [$member["email"]], QONE);
+			if ($result) $html .= $result['tie'];
 			else $html .= "•";
 			$html .= "</span>";
 			break;

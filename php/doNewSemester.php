@@ -2,7 +2,7 @@
 require_once('functions.php');
 
 if (! $USER || ! hasPermission("edit-semester")) die("DENIED");
-$name = mysql_real_escape_string($_POST['name']);
+$name = $_POST['name'];
 $sDD = $_POST['sDD'];
 $sMM = $_POST['sMM'];
 $sYYYY = $_POST['sYYYY'];
@@ -13,21 +13,12 @@ $eYYYY = $_POST['eYYYY'];
 $start = "$sYYYY-$sMM-$sDD 00:00:00";
 $end = "$eYYYY-$eMM-$eDD 00:00:00";
 
-$sql = "insert into semester (semester,beginning,end) values ('$name','$start','$end')";
-mysql_query($sql);
+query("insert into semester (semester,beginning,end) values (?, ?, ?)". [$name, $start, $end]);
+query("update `variables` set `semester` = ?", [$name]);
+$cursem = query("select `semester` from `variables`", [], QONE);
+if (! $cursem) die("Could not retrieve variables");
 
-$sql = "UPDATE `variables` SET `semester`='$name' WHERE 1";
+//query("update `member` set `confirmed` = 0");
 
-if(mysql_query($sql))
-{
-	$sql = "select `semester` from `variables` WHERE 1";
-	$cur_sem = mysql_fetch_array(mysql_query($sql));
-	$cur_sem = $cur_sem['semester'];
-
-	//$sql = "UPDATE `member` SET `confirmed`=0 WHERE 1";
-	//mysql_query($sql);
-
-	echo "<legend>Results</legend>The current semester is now: $cur_sem";
-}
-else echo "<legend>Results</legend>Something went wrong.";
+echo "<legend>Results</legend>The current semester is now: " . $cursem["semester"];
 ?>

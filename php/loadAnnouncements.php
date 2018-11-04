@@ -2,10 +2,8 @@
 require_once('functions.php');
 if (! $CHOIR) die("Choir not set");
 echo "<div class='span6 block'>";
-	//announcements
-	$sql = "SELECT * FROM `announcement` where `choir` = '$CHOIR' ORDER BY `timePosted` DESC";
-	$result = mysql_query($sql);
-	while($announcement=mysql_fetch_array($result)){
+	foreach (query("select * from `announcement` where `choir` = ? order by `timePosted` desc", [$CHOIR], QALL) as $announcement)
+	{
 		$timestamp = strtotime($announcement['timePosted']);
 		$dayPosted = date( 'M j, Y', $timestamp);
 		$timePosted = date( 'g:i a', $timestamp);

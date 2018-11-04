@@ -51,8 +51,7 @@ function absenceEmail($recipient, $state, $event)
 	</html>
 	';
 	if (! $CHOIR) die("Choir not set");
-	$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$CHOIR'"));
-	$sender = $row['admin'];
+	$sender = query("select `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE)["admin"];
 	$headers = "Content-type: text/html\r\nX-Mailer: PHP/".phpversion()."\r\nReply-To: $sender";
 	mail($recipient, $subject, $message, $headers);
 }
@@ -60,9 +59,9 @@ function absenceEmail($recipient, $state, $event)
 if (! hasPermission("process-absence-requests")) die("<td align='center' colspan='7' class='data'>You don't have permission to do this.</td>");
 if (! isset($_POST['eventNo'])) die("<td align='center' colspan='7' class='data' style='font-weight:bold'>Something went wrong. :0</td>");
 
-$eventNo = mysql_real_escape_string($_POST["eventNo"]);
-$email = mysql_real_escape_string($_POST["email"]);
-$action = mysql_real_escape_string($_POST["action"]);
+$eventNo = $_POST["eventNo"];
+$email = $_POST["email"];
+$action = $_POST["action"];
 
 //check which action you're doing, as this changes what you will se the state of the request and the shouldAtend field to
 if ($action == "approve")
@@ -77,12 +76,9 @@ else if ($action == "deny")
 }
 else if ($action == "toggle")
 {
-	$sql = "select state from absencerequest where memberID='$email' and eventNo='$eventNo'";
-	$query = mysql_query($sql);
-	if (! $query) die(mysql_error());
-	if (mysql_num_rows($query) == 0) die("Absence request not found");
-	$request = mysql_fetch_array($query);
-	if($request["state"] == "confirmed")
+	$reqstate = query("select `state` from `absencerequest` where `memberID` = ? and `eventNo` = ?", [$email, $eventNo], QONE);
+	if (! $reqstate) die("Could not find absence request");
+	if ($reqstate["state"] == "confirmed")
 	{
 		$state = "denied";
 		$shouldAttend = "1";
@@ -95,21 +91,19 @@ else if ($action == "toggle")
 }
 
 //make the queries
-$sql = "update absencerequest set state='$state' where memberID='$email' and eventNo='$eventNo'";
-if (! mysql_query($sql)) die(mysql_error());
-$sql="update attends set shouldAttend='$shouldAttend',confirmed='1' where memberID='$email' and eventNo='$eventNo'";
-if (! mysql_query($sql)) die(mysql_error());
+query("update `absencerequest` set `state` = ? where `memberID` = ? and `eventNo` = ?", [$state, $email, $eventNo]);
+query("update `attends` set `shouldAttend` = ?, `confirmed` = ? where `memberID` = ? and `eventNo` = ?", [$shouldAttend, 1, $email, $eventNo]);
 
 // Notify the requester
-$sql = "select `name` from `event` where `eventNo` = '$eventNo'";
-$request = mysql_fetch_array(mysql_query($sql));
-absenceEmail($email, $state, $request['name']);
+$evname = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
+if (! $evname) die("Could not find event");
+absenceEmail($email, $state, $evname["name"]);
 
 //get the updated information to plug back into the row
-$sql= "SELECT  `absencerequest`.`eventNo` ,  `absencerequest`.`time` ,  `absencerequest`.`reason` ,  `absencerequest`.`replacement` ,  `absencerequest`.`memberID` ,  `absencerequest`.`state` ,  `event`.`callTime` , `event`.`name` ,  `member`.`firstName` ,  `member`.`lastName` FROM  `absencerequest` ,  `member` ,  `event` WHERE  `absencerequest`.`eventNo`='$eventNo' AND `event`.`eventNo`='$eventNo' and `absencerequest`.`memberID`='$email' and `member`.`email`='$email'";
-$request = mysql_fetch_array(mysql_query($sql));
+$request = query("select  `absencerequest`.`eventNo` ,  `absencerequest`.`time` ,  `absencerequest`.`reason` ,  `absencerequest`.`replacement` ,  `absencerequest`.`memberID` ,  `absencerequest`.`state` ,  `event`.`callTime` , `event`.`name` ,  `member`.`firstName` ,  `member`.`lastName` from  `absencerequest` ,  `member` ,  `event` where  `absencerequest`.`eventNo` = ? and `event`.`eventNo` = ? and `absencerequest`.`memberID` = ? and `member`.`email` = ?", [$eventNo, $eventNo, $email, $email], QONE);
+if (! $request) die("Could not find absence request");
 
-$eventNo = $request['eventNo'];
+$eventNo = $request["eventNo"];
 $time = $request["time"];
 $reason = $request["reason"];
 $email = $request["memberID"];
@@ -118,12 +112,7 @@ $name = $request["firstName"]." ".$request["lastName"];
 $eventName = $request["name"];
 $replacement = "";
 
-if ($request["replacement"] != "")
-{
-	$sql = "SELECT  `member`.`firstName` ,  `member`.`lastName` FROM  `member` WHERE `member`.`email`='" . $request["replacement"] . "'";
-	$result = mysql_fetch_array(mysql_query($sql));
-	$replacement =$result["firstName"]." ".$result["lastName"];
-}
+if ($request["replacement"] != "") $replacement = prefNameFromEmail($request["replacement"]);
 
 echo "
 	<td align='left' class='data'>$time</td>

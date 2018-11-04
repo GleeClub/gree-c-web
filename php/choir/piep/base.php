@@ -76,8 +76,7 @@ function rosterProp($member, $prop)
 			else $html .= "<span class='moneycell'>$balance</span>";
 			break;
 		case "Dues":
-			$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `balance` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'dues' and `semester` = '$SEMESTER'"));
-			$balance = $result['balance'];
+			$balance = query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ? and `type` = 'dues' and `semester` = ?", [$member["email"], $SEMESTER], QONE)["balance"];
 			if ($balance == '') $balance = 0;
 			if ($balance >= 0) $html .= "<span class='duescell' style='color: green'>$balance</span>";
 			else $html .= "<span class='duescell' style='color: red'>$balance</span>";

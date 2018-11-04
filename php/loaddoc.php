@@ -1,10 +1,7 @@
 <?php
 require_once('functions.php');
 
-$name = mysql_real_escape_string($_POST['name']);
-$query = mysql_query("select `url` from `gdocs` where `name` = '$name'");
-if (mysql_num_rows($query) == 0) die("No such document");
-$result = mysql_fetch_array($query);
-echo "OK\n" . $result['url'];
-
+$res = query("select `url` from `gdocs` where `name` = ?", [$name], QONE);
+if (! $res) die("No such document");
+echo "OK\n" . $res['url'];
 ?>

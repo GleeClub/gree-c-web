@@ -1,16 +1,15 @@
 <?php
-//it would seem you cannot connect to the database from outside a function and inside a function
 require_once('functions.php');
 
 if (! $USER) die("Access denied");
 if (! $CHOIR) die("Choir not set");
-$row = mysql_fetch_array(mysql_query("select `admin`, `list` from `choir` where `id` = '$CHOIR'"));
-$sender = $row['admin'];
-$recipient = $row['list'];
+$row = query("select `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
+if (! $row) die("Choir is invalid");
+$sender = $row["admin"];
+$recipient = $row["list"];
 
-$text = $_POST['text'];
-$sql = "INSERT INTO  `announcement` (`announcementNo`, `choir`, `memberID`,`timePosted`,`announcement`) VALUES (NULL, '$CHOIR', '$USER', NOW( ),'".mysql_real_escape_string($text)."');";
-mysql_query($sql);
+$text = $_POST["text"];
+query("insert into `announcement` (`announcementNo`, `choir`, `memberID`, `timePosted`, `announcement`) values (null, ?, ?, now(), ?)", [$CHOIR, $USER, $text]);
 $position = positions($USER)[0];
 
 $subject = "Important message from your $position!";

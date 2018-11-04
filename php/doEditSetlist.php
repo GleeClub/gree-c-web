@@ -1,38 +1,40 @@
 <?php
 require_once('functions.php');
-mysql_set_charset("utf8");
-$action = $_POST['action'];
-$event = mysql_real_escape_string($_POST['event']);
-$song = mysql_real_escape_string($_POST['song']);
-$order = mysql_real_escape_string($_POST['order']);
+$action = $_POST["action"];
+$event = $_POST["event"];
+$song = $_POST["song"];
+$order = $_POST["order"];
 if (! hasEventPermission("edit-setlist", $event)) die("DENIED");
 if ($action == "add")
 {
-	$query = mysql_query("select max(`order`) as `num` from `gigSong` where `event` = '$event'");
-	$row = mysql_fetch_array($query);
-	$next = $row['num'] + 1;
-	if (! mysql_query("insert into `gigSong` (`event`, `song`, `order`) values ('$event', '$song', '$next')")) die("FAIL");
-	$query = mysql_query("select `title`, `key`, `pitch` from `song` where `id` = '$song'");
-	$row = mysql_fetch_array($query);
+	$next = query("select max(`order`) as `num` from `gigSong` where `event` = ?", [$event], QONE)["num"] + 1; // FIXME Won't work if gigSong table is empty?
+	query("insert into `gigSong` (`event`, `song`, `order`) values (?, ?, ?)", [$event, $song, $next]);
+	$row = query("select `title`, `key`, `pitch` from `song` where `id` = ?", [$song], QONE);
+	if (! $row) die("Song not found");
 	echo "<tr id='song$next'><td class='delcol' style='display: table-cell'><a href='#' class='set_del'><i class='icon-remove'></i></a></td><td>$next</td><td><a href='#song:$song'>" . $row['title'] . "</a></td><td>" . $row['key'] . "</td><td>" . $row['pitch'] . "</td></tr>";
 }
 else if ($action == "remove")
 {
-	$query = mysql_query("select max(`order`) as `num` from `gigSong` where `event` = '$event'");
-	$row = mysql_fetch_array($query);
-	$num = $row['num'];
-	if (! mysql_query("delete from `gigSong` where `event` = '$event' and `order` = '$order'")) die("FAIL");
-	for ($i = $order + 1; $i <= $num; $i++) if (! mysql_query("update `gigSong` set `order` = '" . ($i - 1) . "' where `order` = '$i'")) die("FAIL");
+	$num = query("select max(`order`) as `num` from `gigSong` where `event` = ?", [$event], QONE)["num"]; // FIXME Won't work if gigSong table is empty
+	query("delete from `gigSong` where `event` = ? and `order` = ?", [$event, $order]);
+	for ($i = $order + 1; $i <= $num; $i++) query("update `gigSong` set `order` = ? where `order` = ?", [$i - 1, $i]); // TODO This can probably be done in one query
 	echo "OK";
 }
 else if ($action == "arrange")
 {
 	// $order contains a comma-separated list of the new order based on the old order
 	$sql = "update `gigSong` set `order` = case `order` ";
+	$vars = [];
 	$new = split(',', $order);
-	for ($i = 1; $i <= count($new); $i++) $sql .= "when '" . $new[$i - 1] . "' then '$i' ";
-	$sql .= "end where `event` = '$event'";
-	if (! mysql_query($sql)) die("FAIL");
+	for ($i = 1; $i <= count($new); $i++)
+	{
+		$sql .= "when ? then ? ";
+		$vars[] = $new[$i - 1];
+		$vars[] = $i;
+	}
+	$sql .= "end where `event` = ?";
+	$vars[] = $event;
+	query($sql, $vars);
 	echo "OK";
 }
 else die("BAD_ACTION");

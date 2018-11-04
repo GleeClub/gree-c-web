@@ -29,15 +29,16 @@ if(isset($_POST['emails']))
 	$count=0;
 	foreach($emailArr as $email)
 	{
-		if ($email == '') continue; // Ignore transactions with nobody
-		if (! mysql_query("insert into transaction (memberID, choir, amount, description, semester, type) values ('".mysql_escape_string($email)."', '$CHOIR', '".mysql_escape_string($amountArr[$count])."','".mysql_escape_string($descriptionArr[$count])."', '".mysql_escape_string($semArr[$count])."', '".mysql_escape_string($typeArr[$count])."')")) die(mysql_error());
-		if($sendArr[$count])
+		if ($email == "") continue; // Ignore transactions with nobody
+		query("insert into transaction (memberID, choir, amount, description, semester, type) values (?, ?, ?, ?, ?, ?)", [$email, $CHOIR, $amountArr[$count], $descriptionArr[$count], $semArr[$count], $typeArr[$count]]);
+		if ($sendArr[$count])
 		{
-			$name = fullNameFromEmail(mysql_real_escape_string($email));
+			$name = fullNameFromEmail($email);
 			$msg = "Keep this receipt for your records.";
 			$msg .= "<br />Name: " . $name;
 			$msg .= "<br />Semester:  " . $semArr[$count];
-			$result = mysql_fetch_array(mysql_query("select `name` from `transacType` where `id` = '" . $typeArr[$count] . "'"));
+			$result = query("select `name` from `transacType` where `id` = ?", [$typeArr[$count]], QONE);
+			if (! $result) die("Could not find matching transaction type");
 			$msg .= "<br />Category:  " . $result['name'];
 			$msg .= "<br />Amount: " . $amountArr[$count];
 			$msg .= "<br />Description: " . $descriptionArr[$count];

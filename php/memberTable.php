@@ -1,5 +1,6 @@
 <?php
 require_once('functions.php');
+die("Not implemented!");
 
 $style = '<style>
 table { width: 100%; }

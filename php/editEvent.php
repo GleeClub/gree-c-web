@@ -1,28 +1,25 @@
 <?php
 require_once('functions.php');
 
-$eventNo = mysql_real_escape_string($_POST['id']);
+$eventNo = $_POST['id'];
 $event = array();
 $hasValue = false;
 if ($eventNo)
 {
 	if (! hasEventPermission("modify", $eventNo)) die("DENIED");
 	$hasValue = true;
-	$eventquery = mysql_query("select * from `event` where `eventNo` = '$eventNo'");
-	if (mysql_num_rows($eventquery) != 1) die("Bad event number");
-	$eventresult = mysql_fetch_array($eventquery);
-	$gigresult = mysql_fetch_array(mysql_query("select * from `gig` where `eventNo` = '$eventNo'"));
+	$eventresult = query("select * from `event` where `eventNo` = ?", [$eventNo], QONE);
+	if (! $eventresult) die("No such event exists");
+	$gigresult = query("select * from `gig` where `eventNo` = ?", [$eventNo], QONE);
+	// if (! $gigresult) die("That event is not a gig"); // FIXME Should we check for a null gig result?
 	$event = (array) $eventresult + (array) $gigresult;
 }
 else if (! hasEventTypePermission("create")) die("DENIED");
 else if (isset($_POST["gigreq"]))
 {
 	$hasValue = true;
-	$gigReqNo = mysql_real_escape_string($_POST["gigreq"]);
-	$query = mysql_query("select * from `gigreq` where `id` = '$gigReqNo'");
-	if (! $query) die("Failed to fetch gig request: " . mysql_error());
-	if (mysql_num_rows($query) != 1) die("No matching gig request");
-	$event = mysql_fetch_array($query);
+	$event = query("select * from `gigreq` where `id` = ?", [$_POST["gigreq"]], QONE);
+	if (! $event) die("No such gig request exists");
 	$event["callTime"] = date("Y-m-d H:i:s", strtotime($row["startTime"]) - 30 * 60);
 	$event["releaseTime"] = date("Y-m-d H:i:s", strtotime($row["startTime"]) + 60 * 60);;
 	$event["performanceTime"] = $row["startTime"];

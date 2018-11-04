@@ -43,13 +43,13 @@ $addressed = "
 		<td style='font-weight: bold;'>Action</td>
 	</tr>";
 
-$sql = "SELECT  `absencerequest`.`eventNo` ,  `absencerequest`.`time` ,  `absencerequest`.`reason` ,  `absencerequest`.`replacement` ,  `absencerequest`.`memberID` ,  `absencerequest`.`state` ,  `event`.`callTime` , `event`.`name` ,  `member`.`firstName` ,  `member`.`lastName` FROM  `absencerequest` ,  `member` ,  `event` WHERE  `absencerequest`.`eventNo` =  `event`.`eventNo` AND  `absencerequest`.`memberID` =  `member`.`email` AND `event`.`semester`='" . $SEMESTER . "' ORDER BY  `member`.`lastName` ASC ,  `member`.`firstName` ASC ,  `absencerequest`.`time` DESC ";
+$requests = query("SELECT  `absencerequest`.`eventNo` ,  `absencerequest`.`time` ,  `absencerequest`.`reason` ,  `absencerequest`.`replacement` ,  `absencerequest`.`memberID` ,  `absencerequest`.`state` ,  `event`.`callTime` , `event`.`name` ,  `member`.`firstName` ,  `member`.`lastName` FROM  `absencerequest` ,  `member` ,  `event` WHERE  `absencerequest`.`eventNo` =  `event`.`eventNo` AND  `absencerequest`.`memberID` =  `member`.`email` AND `event`.`semester`=? ORDER BY  `member`.`lastName` ASC ,  `member`.`firstName` ASC ,  `absencerequest`.`time` DESC", [$SEMESTER], QALL);
 
-$requests = mysql_query($sql);
 $oldMember = "";
 $newCount = 0;
 
-while($request = mysql_fetch_array($requests)){
+foreach ($requests as $request)
+{
 	$eventNo =$request['eventNo'];
 	$time = $request["time"];
 	$reason = $request["reason"];
@@ -60,10 +60,11 @@ while($request = mysql_fetch_array($requests)){
 	$replacement = "";
 
 
-	if($request["replacement"]!=""){
-		$sql = "SELECT  `member`.`firstName` ,  `member`.`lastName` FROM  `member` WHERE `member`.`email`='".$request["replacement"]."'";
-		$result = mysql_fetch_array(mysql_query($sql));
-		$replacement =$result["firstName"]." ".$result["lastName"];
+	if($request["replacement"]!="")
+	{
+		$result = query("select  `member`.`firstName`, `member`.`lastName` from  `member` where `member`.`email` = ?", [$request["replacement"]], QONE);
+		if (! $result) die("Replacement is not a valid member");
+		$replacement = $result["firstName"] . " " . $result["lastName"];
 	}
 
 	if($state=='pending'){

@@ -1,34 +1,28 @@
 <?php
 require_once('functions.php');
-mysql_set_charset("utf8");
-$id = mysql_real_escape_string($_POST['id']);
 if (! $USER) die("You must be logged in to view repertoire.");
-$query = "select * from `song` where `id` = '$id'";
-$result = mysql_fetch_array(mysql_query($query));
+$result = query("select * from `song` where `id` = ?", [$_POST["id"]], QONE);
+if (! $result) die("Bad song ID");
 $title = $result['title'];
 $desc = $result['info'];
 $key = $result['key'];
 $pitch = $result['pitch'];
 $current = $result['current'];
-$query = "select `id`, `type`, `name`, `target` from `songLink` where `song` = '$id'";
-$sql = mysql_query($query);
-while ($result = mysql_fetch_array($sql))
+foreach (query("select `id`, `type`, `name`, `target` from `songLink` where `song` = ?", [$_POST["id"]], QALL) as $result)
 {
 	$linkIds[] = $result[0];
 	$linkTypes[] = $result[1];
 	$linkNames[] = $result[2];
 	$linkTargets[] = $result[3];
 }
-$query = "select `typeid`, `name`, `storage` from `mediaType` order by `order` asc";
-$sql = mysql_query($query);
-while ($result = mysql_fetch_array($sql))
+foreach (query("select `typeid`, `name`, `storage` from `mediaType` order by `order` asc", [], QALL) as $result)
 {
 	$typeids[] = $result['typeid'];
 	$typenames[] = $result['name'];
 	$storage[] = $result['storage'];
 }
-$keys='?,A♭,a♭,A,a,a♯,B♭,b♭,B,b,C♭,C,c,C♯,c♯,D♭,D,d,d♯,E♭,e♭,E,e,F,f,F♯,f♯,G♭,G,g,g♯';
-$pitches='?,A♭,A,A♯,B♭,B,C,C♯,D♭,D,D♯,E♭,E,F,F♯,G♭,G,G♯';
+$keys = "?,A♭,a♭,A,a,a♯,B♭,b♭,B,b,C♭,C,c,C♯,c♯,D♭,D,d,d♯,E♭,e♭,E,e,F,f,F♯,f♯,G♭,G,g,g♯";
+$pitches = "?,A♭,A,A♯,B♭,B,C,C♯,D♭,D,D♯,E♭,E,F,F♯,G♭,G,G♯";
 echo "<h2><span id=song_title>$title</span> <span id=repertoire_header style='font-size: 10pt;' data-current='$current'></span></h2><div id=song_desc><pre>$desc</pre></div><br>";
 echo "Key: <span id='song_key' data-vals='$keys'>$key</span><br>";
 echo "Starting pitch: <span id='song_pitch' data-vals='$pitches'>$pitch</span><br><br>";

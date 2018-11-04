@@ -67,7 +67,11 @@ function rosterProp($member, $prop)
 	switch ($prop)
 	{
 		case "Section":
-			$section = mysql_fetch_array(mysql_query("select `sectionType`.`name` from `sectionType`, `activeSemester` where `sectionType`.`id` = `activeSemester`.`section` and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = '" . $member["email"] . "'"));
+			$section = query(
+				"select `sectionType`.`name` from `sectionType`, `activeSemester` where `sectionType`.`id` = `activeSemester`.`section` and `activeSemester`.`choir` = ? and `activeSemester`.`semester` = ? and `activeSemester`.`member` = ?",
+				[$CHOIR, $SEMESTER, $member["email"]], QONE
+			);
+			if (! $section) die("Invalid semester");
 			$html .= $section['name'];
 			break;
 		case "Contact":
@@ -82,8 +86,7 @@ function rosterProp($member, $prop)
 			else $html .= "<span class='moneycell'>$balance</span>";
 			break;
 		case "Dues":
-			$result = mysql_fetch_array(mysql_query("select sum(`amount`) as `balance` from `transaction` where `memberID` = '" . $member['email'] . "' and `type` = 'dues' and `semester` = '$SEMESTER'"));
-			$balance = $result['balance'];
+			$balance = query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ? and `type` = 'dues' and `semester` = ?", [$member["email"], $SEMESTER], QONE)["balance"];
 			if ($balance == '') $balance = 0;
 			if ($balance >= 0) $html .= "<span class='duescell' style='color: green'>$balance</span>";
 			else $html .= "<span class='duescell' style='color: red'>$balance</span>";

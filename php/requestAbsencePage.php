@@ -5,13 +5,11 @@ if(isset($_POST['eventNo'])){
 	$eventNo = $_POST["eventNo"];
 
 	//get the event name
-	$sql = "SELECT * FROM `event` WHERE eventNo=$eventNo;";
-	$event = mysql_fetch_array(mysql_query($sql));
+	$res = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
+	if (! $res) die("No such event");
 	$eventName = $event["name"];
 
 	//make a drop down of possible replacements
-	$sql = "SELECT * FROM `member`";
-	$result= mysql_query($sql);
 	$dropdown = dropdown(members("active"), "replacement");
 
 	echo "<div id='absenceRequestTable'>

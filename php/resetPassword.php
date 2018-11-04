@@ -4,9 +4,8 @@
 	$arr = explode(" ", $email);
 	$email = $arr[0];
 	$time = intval($arr[1]);
-	$sql = "select * from member where email='" . mysql_real_escape_string($email) . "';";
-	$res = mysql_fetch_array(mysql_query($sql));
-	if(empty($res) || time() - $time > 1800) echo 'Link has expired, please request a reset again.';
+	$res = query("select * from `member` where `email` = ?", [$email], QONE);
+	if(! $res || time() - $time > 1800) echo 'Link has expired, please request a reset again.';
 	else
 	{
 		echo 'Resetting password for ' . $email . '<br />';

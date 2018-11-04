@@ -3,28 +3,29 @@ require_once('functions.php');
 if (! $USER) die("<p>It would seem that you are logged out.</p>");
 if (! $CHOIR) die("Choir not set");
 
-$type = mysql_real_escape_string($_POST['type']);
-$cond = "`choir` = '$CHOIR'";
-if ($type != "all" && $type != "past") $cond = "`type` = '$type'";
+$type = $_POST['type'];
+$cond = ["`choir` = ?"];
+$vars = [$CHOIR];
+if ($type != "all" && $type != "past")
+{
+	$cond[] = "`type` = ?";
+	$vars[] = $type;
+}
 if (! hasPermission("view-all-events"))
 {
-	if ($cond != '') $cond .= " and ";
-	$cond .= "exists(select * from `attends` where `eventNo` = `event`.`eventNo` and `memberID` = '$USER')";
+	$cond[] = "exists(select * from `attends` where `eventNo` = `event`.`eventNo` and `memberID` = ?)";
+	$vars[] = $USER;
 }
 if ($type != 'past')
 {
-	if ($cond != '') $cond .= " and ";
-	$cond .= "`semester` = '$SEMESTER'";
+	$cond[] = "`semester` = ?";
+	$vars[] = $SEMESTER;
 }
-if ($cond != '') $cond = "where $cond";
 
-$sql = "select `eventNo` from `event` $cond order by `callTime` desc";
-$events = mysql_query($sql);
-if (! $events) die(mysql_error());
-
+$events = query("select `eventNo` from `event` where " . implode($cond, " and ") . " order by `callTime` desc", $vars, QALL);
 echo '<div class="block span5" id="events"><table class="table" id="eventsTable">';
-if (mysql_num_rows($events) == 0) echo "(No events yet this semester)";
-while($row = mysql_fetch_array($events, MYSQL_ASSOC))
+if (count($events) == 0) echo "(No events yet this semester)";
+foreach ($events as $row)
 {
 	$eventDetails = getEventDetails($row['eventNo']);
 	echo '<tr class="event" id="'.$eventDetails['eventNo'].'">

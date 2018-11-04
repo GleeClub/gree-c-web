@@ -7,38 +7,29 @@ if (! hasPermission("edit-transaction"))
 	exit(1);
 }
 
-$type = $_POST['type'];
+$type = $_POST["type"];
 if (! $CHOIR) die("Choir is not set");
 if ($type == "dues")
 {
-	$query = mysql_query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$SEMESTER'");
 	$dues = -1 * fee("dues");
-	while ($row = mysql_fetch_array($query))
+	foreach (query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = ?", [$SEMESTER], QALL) as $row)
 	{
-		$member = $row['email'];
-		$query2 = mysql_query("select * from `transaction` where `memberID` = '$member' and `semester` = '$SEMESTER' and `type` = 'dues' and `amount` < 0");
-		if (mysql_num_rows($query2)) continue;
-		mysql_query("insert into `transaction` (`memberID`, `choir`, `amount`, `description`, `semester`, `type`) values ('$member', '$CHOIR', '$dues', '', '$SEMESTER', 'dues')");
+		$member = $row["email"];
+		if (query("select * from `transaction` where `memberID` = ? and `semester` = ? and `type` = 'dues' and `amount` < 0", [$member, $SEMESTER], QCOUNT) > 0) continue;
+		query("insert into `transaction` (`memberID`, `choir`, `amount`, `description`, `semester`, `type`) values (?, ?, ?, ?, ?, ?)", [$member, $CHOIR, $dues, "", $SEMESTER, "dues"]);
 	}
 }
 else if ($type == "late")
 {
 	$fee = -1 * fee("latedues");
-	$query = mysql_query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$SEMESTER'");
-	while ($row = mysql_fetch_array($query))
+	foreach (query("select `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = ?", [$SEMESTER], QALL) as $row)
 	{
-		$member = $row['email'];
-		$result = mysql_fetch_array(mysql_query("select sum(`amount`) as amount from `transaction` where `memberID` = '$member' and `semester` = '$SEMESTER' and `type` = 'dues'"));
-		if ($result['amount'] >= 0) continue;
-		if (! mysql_query("insert into `transaction` (`memberID`, `choir` `amount`, `description`, `semester`, `type`) values ('$member', '$CHOIR', '$fee', 'Late fee', '$SEMESTER', 'dues')")) die("BAD_QUERY");
+		$member = $row["email"];
+		$amount = query("select sum(`amount`) as `amount` from `transaction` where `memberID` = ? and `semester` = ? and `type` = 'dues'", [$member, $SEMESTER], QONE)["amount"];
+		if ($amount >= 0) continue;
+		query("insert into `transaction` (`memberID`, `choir` `amount`, `description`, `semester`, `type`) values (?, ?, ?, ?, ?, ?)", [$member, $CHOIR, $fee, "Late fee", $SEMESTER, "dues"]);
 	}
 }
-else
-{
-	echo "BAD_TYPE";
-	exit(1);
-}
-
+else die("Bad request type");
 echo "OK";
-
 ?>

@@ -4,9 +4,6 @@ require_once('functions.php');
 
 function eventFilters()
 {
-	$sql = "select * from semester where 1 order by beginning desc";
-	$semesters = mysql_query($sql);
-
 	$html = "
 	<div id='filters'>
 		<div id='semesterFilters'>
@@ -14,7 +11,8 @@ function eventFilters()
 			  <fieldset>
 				<h3>Choose the Event's Semester</h3><br>";
 
-	while($row = mysql_fetch_array($semesters)) {
+	foreach (query("select * from semester where 1 order by beginning desc", [], QALL) as $row)
+	{
 		$semester = $row['semester'];
 		$html .= "
 				<button type='button' class='btn removeFilterBtn' name='semester' id='$semester'>$semester</button>";

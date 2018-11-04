@@ -75,10 +75,7 @@ $choirname = choirname($CHOIR);
 					<?php if ($USER) { ?><li><a href="#repertoire">Repertoire</a></li><?php } ?>
 					<li><a href="#minutes">Meeting Minutes</a></li>
 					<li class="divider"><li>
-					<?php
-						$query = mysql_query("select * from `gdocs` where `choir` = '$CHOIR'");
-						while ($row = mysql_fetch_array($query)) echo "<li><a href='#doc:" . $row['name'] . "'>" . $row['name'] . "</a></li>";
-					?>
+					<?php foreach (query("select * from `gdocs` where `choir` = ?", [$CHOIR], QALL) as $row) echo "<li><a href='#doc:" . $row['name'] . "'>" . $row['name'] . "</a></li>"; ?>
 				</ul>
 			</li>
 		</ul>
@@ -137,14 +134,14 @@ $choirname = choirname($CHOIR);
 	</div>
 
 	<?php
-		if ($USER != '')
+		if ($CHOIR && $USER != "")
 		{
-			$arr = mysql_fetch_array(mysql_query("SELECT `location` FROM `member` WHERE `email` = '$USER'"));
-			$confirmed = mysql_num_rows(mysql_query("select `member` from `activeSemester` where `member` = '$USER' and `semester` = '$SEMESTER' and `choir` = '$CHOIR'"));
-			if (! $CHOIR) die("Choir is not set");
+			$arr = query("select `location` from `member` where `email` = ?", [$USER], QONE);
+			if (! $arr) die("Invalid user");
+			$confirmed = query("select `member` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$USER, $SEMESTER, $CHOIR], QCOUNT) > 0;
 			if (! $confirmed)
 			{
-				$loc = addslashes($arr['location']);
+				$loc = addslashes($arr["location"]);
 				echo '<script>
 					$("#confirm_location").prop("value", "' . $loc . '");
 					$("#confirmModal").modal();
@@ -152,9 +149,7 @@ $choirname = choirname($CHOIR);
 			}
 			else if (hasPermission("edit-semester"))
 			{
-				$sql = "select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester";
-				$arr = mysql_fetch_array(mysql_query($sql));
-				$semesterEnd = $arr['end'];
+				$semesterEnd = query("select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester", [], QONE)["end"];
 			}
 		}
 	?>

@@ -1,6 +1,5 @@
 <?php
 require_once('functions.php');
-//$name = mysql_real_escape_string($_POST['name']);
 if (! $USER)
 {
 	echo "You must be logged in to view minutes.";
