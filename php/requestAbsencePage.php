@@ -5,28 +5,28 @@ if(isset($_POST['eventNo'])){
 	$eventNo = $_POST["eventNo"];
 
 	//get the event name
-	$res = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
-	if (! $res) die("No such event");
+	$event = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
+	if (! $event) die("No such event");
 	$eventName = $event["name"];
 
 	//make a drop down of possible replacements
-	$dropdown = dropdown(members("active"), "replacement");
+	$dropdown = dropdown(listMembers(), "replacement");
 
 	echo "<div id='absenceRequestTable'>
 			<table>
 				<tr>
-					<td align='center' colspan='2'><b>Request Absence for ".$eventName."</b></td>
+					<td align='center' colspan='2'><b>Request Absence for $eventName</b></td>
 				</tr>
 				<tr>
 					<td>Replacement:</td>
-					<td>".$dropdown."</td>
+					<td>$dropdown</td>
 				</tr>
 				<tr>
 					<td>Reason:</td>
 					<td><input type='text' size='50' id='reason' /></td>
 				</tr>
 				<tr>
-					<td><button type='button' onClick='loadDetails($eventNo);'>Never Mind</button></td>
+					<td>&nbsp;</td>
 					<td><button type='button' id='submitAbsenceRequest'>Beg for Mercy</button></td>
 				</tr>
 			</table>

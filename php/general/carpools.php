@@ -1,7 +1,7 @@
 <?php
 /**** Carpool functions ****/
 
-function nullcheck($res)
+function cpnullcheck($res)
 {
 	if (! $res) die("No such member");
 	return $res;
@@ -9,17 +9,17 @@ function nullcheck($res)
 
 function passengerSpots($email)
 {
-	return nullcheck(query("select `passengers` from `member` where `email` = ?", [$email], QONE))["passengers"];
+	return cpnullcheck(query("select `passengers` from `member` where `email` = ?", [$email], QONE))["passengers"];
 }
 
 function livesAt($email)
 {
-	return nullcheck(query("select `location` from `member` where `email` = ?", [$email], QONE))["location"];
+	return cpnullcheck(query("select `location` from `member` where `email` = ?", [$email], QONE))["location"];
 }
 
 function phoneNumber($email)
 {
-	return nullcheck(query("select `phone` from `member` where `email` = ?", [$email], QONE))["phone"];
+	return cpnullcheck(query("select `phone` from `member` where `email` = ?", [$email], QONE))["phone"];
 }
 
 function getSectionTypes()

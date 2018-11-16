@@ -36,14 +36,14 @@ function gcalEvent($ids, $title, $location, $desc, $unixstart, $unixend, $interv
 	}*/
 }
 
-function eventEmail($eventNo, $type) // TODO $type should not be necessary
+function eventEmail($eventNo)
 {
 	GLOBAL $BASEURL, $CHOIR;
 
-	$eventResults = query("select `event`.`name`, `event`.`callTime`, `event`.`releaseTime`, `event`.`comments`, `event`.`location`, `uniform`.`name` as `uniformName`, `eventType`.`name` as `eventTypeName` from `event`, `gig`, `uniform`, `eventType` where `event`.`eventNo` = ? and `gig`.`eventNo` = `event`.`eventNo` and `uniform`.`id` = `gig`.`uniform` and `eventType`.`id` = `event`.`type`", [$eventNo], QONE);
+	$eventResults = query("select `event`.`name` as `eventName`, `event`.`callTime`, `event`.`releaseTime`, `event`.`comments`, `event`.`location`, `uniform`.`name` as `uniformName`, `eventType`.`name` as `eventTypeName` from `event`, `gig`, `uniform`, `eventType` where `event`.`eventNo` = ? and `gig`.`eventNo` = `event`.`eventNo` and `uniform`.`id` = `gig`.`uniform` and `eventType`.`id` = `event`.`type`", [$eventNo], QONE);
 	if (! $eventResults) die("Bad event ID");
-	$eventName = $eventResults['name'];
-	$eventType = $eventResults['eventTypeName']; // TODO Appears unused
+	$eventName = $eventResults['eventName'];
+	$typeName = $eventResults['eventTypeName'];
 	$eventTime = $eventResults['callTime'];
 	$eventReleaseTime = $eventResults['releaseTime'];
 	$eventComments = $eventResults['comments'];
@@ -58,10 +58,10 @@ function eventEmail($eventNo, $type) // TODO $type should not be necessary
 	$eventUrl = "$BASEURL/#event:$eventNo";
 
 	if (! $CHOIR) die("Choir not set");
-	$row = query("select `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
+	$row = query("select `name`, `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
 	if (! $row) die("Invalid choir");
-	$sender = $row['admin'];
-	$recipient = $row['list'];
+	$sender = $row["name"] . " Officers <" . $row['admin'] . ">";
+	$recipient = $row["name"] . " <" . $row['list'] . ">";
 	//$recipient = "Matthew Schauer <awesome@gatech.edu>";
 	$choirname = choirname($CHOIR);
 	$subject = "New $choirname Event: $eventName";
@@ -110,10 +110,9 @@ function createEvent($name, $type, $call, $done, $location, $points, $sem, $comm
 function createGig($name, $tutti, $call, $perform, $done, $location, $points, $sem, $comments, $uniform, $cname, $cemail, $cphone, $price, $gigcount, $public, $summary, $description, $defattend)
 {
 	$eventNo = createEvent($name, ($tutti ? 'tutti' : 'volunteer'), $call, $done, $location, $points, $sem, $comments, $gigcount, 0, $defattend);
-	$publicval = $public ? 1 : 0;
 	query(
 		"insert into `gig` (eventNo, performanceTime, uniform, cname, cemail, cphone, price, public, summary, description) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		[$eventNo, $perform, $uniform, $cname, $cemail, $cphone, $price, $publicval, $summary, $description]
+		[$eventNo, $perform, $uniform, $cname, $cemail, $cphone, $price, $public, $summary, $description]
 	);
 	return $eventNo;
 }
@@ -159,7 +158,7 @@ if ($type == 'volunteer' || $type == 'tutti')
 	$unixperform = strtotime($perftime . ' ' . $_POST['calldate']);
 	$perform = date('Y-m-d H:i:s', $unixperform);
 	if ($unixperform < $unixcall || $unixperform > $unixdone) die("Performance time not between start and end");
-	$eventNo[] = createGig($_POST['name'], ($type == 'tutti' ? true : false), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']), isset($_POST['public']), $_POST['summary'], $_POST['description'], $defattend);
+	$eventNo[] = createGig($_POST['name'], ($type == 'tutti' ? 1 : 0), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']) ? 1 : 0, isset($_POST['public']) ? 1 : 0, $_POST['summary'], $_POST['description'], $defattend);
 }
 else
 {
@@ -190,7 +189,7 @@ else
 }
 
 if ($eventNo[0] < 0) die("Error " . $eventNo[0]);
-if (($type == 'volunteer' || $type == 'tutti') && $unixcall > strtotime('now')) eventEmail($eventNo[0], $type);
+if (($type == 'volunteer' || $type == 'tutti') && $unixcall > strtotime('now')) eventEmail($eventNo[0]);
 gcalEvent($eventNo, $unesc_name, $unesc_location, $unesc_comments, $unixcall, $unixdone, $interval);
 echo $eventNo[0];
 ?>

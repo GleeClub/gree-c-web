@@ -20,9 +20,9 @@ else if (isset($_POST["gigreq"]))
 	$hasValue = true;
 	$event = query("select * from `gigreq` where `id` = ?", [$_POST["gigreq"]], QONE);
 	if (! $event) die("No such gig request exists");
-	$event["callTime"] = date("Y-m-d H:i:s", strtotime($row["startTime"]) - 30 * 60);
-	$event["releaseTime"] = date("Y-m-d H:i:s", strtotime($row["startTime"]) + 60 * 60);;
-	$event["performanceTime"] = $row["startTime"];
+	$event["callTime"] = date("Y-m-d H:i:s", strtotime($event["startTime"]) - 30 * 60);
+	$event["releaseTime"] = date("Y-m-d H:i:s", strtotime($event["startTime"]) + 60 * 60);;
+	$event["performanceTime"] = $event["startTime"];
 	$event["points"] = "10";
 	$event["type"] = "volunteer";
 	$event["semester"] = $SEMESTER;

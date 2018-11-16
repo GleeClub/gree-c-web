@@ -147,10 +147,6 @@ $choirname = choirname($CHOIR);
 					$("#confirmModal").modal();
 				</script>';
 			}
-			else if (hasPermission("edit-semester"))
-			{
-				$semesterEnd = query("select UNIX_TIMESTAMP(semester.end) as end from semester,variables where semester.semester=variables.semester", [], QONE)["end"];
-			}
 		}
 	?>
 </body>

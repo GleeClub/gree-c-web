@@ -1,13 +1,6 @@
 <?php
 /**** Attendance functions ****/
 
-function balance($member)
-{
-	$balance = query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ?", [$member], QONE)["balance"];
-	if ($balance == '') $balance = 0;
-	return $balance;
-}
-
 /**
 * Returns attendance info about the event whose eventNo matches $eventNo in the form of rows
 **/

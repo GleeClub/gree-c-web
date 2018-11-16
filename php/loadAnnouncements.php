@@ -9,7 +9,7 @@ echo "<div class='span6 block'>";
 		$timePosted = date( 'g:i a', $timestamp);
 		$op = $announcement['memberID'];
 		$mid = $announcement['announcementNo'];
-		$name = prefNameFromEmail($op);
+		$name = memberName($op, "pref");
 		$text = nl2br(htmlspecialchars($announcement["announcement"]));
 		echo "<div class='block'><p><b>$dayPosted $timePosted</b><br>$text<br><br><small style='color:grey'>&mdash; $name</small></p></div>";
 	}

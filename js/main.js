@@ -523,7 +523,6 @@ function editCarpools(id){
 	$('#carpools').append("<div class='carpool block'><div class='driver block'>add new driver here first</div><div class='passengers block'></div></div>");
 	$("#editCarpoolsButton").html('save carpools').off().on('click', function(){
 		saveCarpools(id);
-		loadEvents(h);
 	});
 }
 
@@ -538,8 +537,7 @@ function saveCarpools(id){
 		//$('.span5').eq(1).removeClass('span5').addClass('span3');
 		//$('.span5').eq(1).removeClass('span5').addClass('span3'); //tricksy
 		//console.log('h is ');
-		loadEvents(h);
-		loadDetails('current');
+		loadEvents('all');
 		seeCarpools(id);
 	});
 }
@@ -822,8 +820,8 @@ function getRosterData(tab, member, target)
 					row.find('span.gradecell').html('...');
 					row.find('span.gigscell').html('...');
 					getRosterData(tab, member, target);
-					$.post('php/rosterData.php', { tab : 'col', col : 'Grade', email : member }, function(data) { row.find('span.gradecell').replaceWith(data); });
-					$.post('php/rosterData.php', { tab : 'col', col : 'Gigs', email : member }, function(data) { row.find('span.gigscell').replaceWith(data); });
+					$.post('php/rosterData.php', { tab : 'col', col : 'score', email : member }, function(data) { row.find('span.gradecell').replaceWith(data); });
+					$.post('php/rosterData.php', { tab : 'col', col : 'gigs', email : member }, function(data) { row.find('span.gigscell').replaceWith(data); });
 				}
 				else alert(data);
 			});
@@ -853,7 +851,7 @@ function getRosterData(tab, member, target)
 				{
 					row.find('span.tiecell').html('...');
 					getRosterData(tab, member, target);
-					$.post('php/rosterData.php', { tab : 'col', col : 'Tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
+					$.post('php/rosterData.php', { tab : 'col', col : 'tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
 				}
 				else alert(data);
 			});
@@ -865,7 +863,7 @@ function getRosterData(tab, member, target)
 				{
 					row.find('span.tiecell').html('...');
 					getRosterData(tab, member, target);
-					$.post('php/rosterData.php', { tab : 'col', col : 'Tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
+					$.post('php/rosterData.php', { tab : 'col', col : 'tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
 				}
 				else alert(data);
 			});
@@ -902,9 +900,9 @@ function getRosterData(tab, member, target)
 				row.find('span.duesell').html('...');
 				row.find('span.tiecell').html('...');
 				getRosterData(tab, member, target);
-				$.post('php/rosterData.php', { tab : 'col', col : 'Balance', email : member }, function(data) { row.find('span.moneycell').replaceWith(data); });
-				$.post('php/rosterData.php', { tab : 'col', col : 'Dues', email : member }, function(data) { row.find('span.duescell').replaceWith(data); });
-				$.post('php/rosterData.php', { tab : 'col', col : 'Tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
+				$.post('php/rosterData.php', { tab : 'col', col : 'balance', email : member }, function(data) { row.find('span.moneycell').replaceWith(data); });
+				$.post('php/rosterData.php', { tab : 'col', col : 'dues', email : member }, function(data) { row.find('span.duescell').replaceWith(data); });
+				$.post('php/rosterData.php', { tab : 'col', col : 'tie', email : member }, function(data) { row.find('span.tiecell').replaceWith(data); });
 			});
 			return false;
 		});
@@ -919,24 +917,14 @@ function roster()
 		{
 			if (typeof cur != 'undefined') cur.toggleClass('active'); // Ick
 			var cond = '';
-			$('#roster_filters').children('.btn-group').each(function() {
-				$(this).children('button.active').each(function() { cond += $(this).data('cond') + ','; });
-				cond = cond.replace(/,$/, ';');
-			});
+			$("#roster_filters button.active").each(function() { cond += $(this).data("cond") + ","; });
+			cond = cond.replace(/,$/, "");
 			if (typeof cur != 'undefined') cur.toggleClass('active');
-			$.post('php/memberTable.php', { cond : cond.replace(/;$/, ''), type : 'normal' }, function(data) {
+			$("a.tablelink").each(function() {
+				$(this).attr("href", ($(this).attr("href").split("?")[0] + "?format=" + $(this).data("format") + "&filter=" + cond));
+			});
+			$.get('php/memberTable.php', { filter : cond }, function(data) {
 				$('#roster_table').html(data);
-			});
-		}
-		function formatted_table(type) // FIXME This is no longer being used because it doesn't handle response headers, so the CSV is being displayed as HTML
-		{
-			var cond = '';
-			$('#roster_filters').children('.btn-group').each(function() {
-				$(this).children('button.active').each(function() { cond += $(this).data('cond') + ','; });
-				cond = cond.replace(/,$/, ';');
-			});
-			$.post('php/memberTable.php', { cond : cond.replace(/;$/, ''), type : type }, function(data) {
-				document.write(data);
 			});
 		}
 		$('.filter').on('click', function() { member_table($(this)); });
@@ -2486,7 +2474,7 @@ function gigreqs()
 					if (data != "OK") alert(data);
 				});
 				window.location.hash = "event:" + eventNo;
-			}, [{ name : "Go<br>Back", onclick : "gigreqs()" }]);
+			}, null, [{ name : "Go<br>Back", onclick : "gigreqs()" }]);
 		});
 		$(".event-dismiss").on("click", function() {
 			var id = $(this).parent().data("id");

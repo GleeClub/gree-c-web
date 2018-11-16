@@ -25,14 +25,14 @@ if (isset($_POST['section']))
 {
 	$section = $_POST['section'];
 	if (! $wasactive) die("Can't change section for inactive semester");
-	query("begin");
+	$DB->begin_transaction();
 	$err = updateSection($member, $semester, $CHOIR, $section);
 	if ($err)
 	{
-		query("rollback");
+		$DB->rollback();
 		die("Error changing section: " . $err);
 	}
-	query("commit");
+	$DB->commit();
 }
 echo "OK";
 ?>

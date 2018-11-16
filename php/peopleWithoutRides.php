@@ -29,7 +29,7 @@ foreach ($results as $personInNeedOfRide)
 	echo "<div class='person' id='".$email."'><table>
 		<tr>
 			<td>$livesAt</td>
-			<td>".prefFullNameFromEmail($email)."</td>
+			<td>".memberName($email)."</td>
 			<td class='passengerSpots'>$passengerSpots</td>
 			<td>$shouldAttendHTML</td>
 			<td>$confirmedHTML</td>

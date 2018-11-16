@@ -14,7 +14,7 @@ foreach (query("select * from `carpool` where `eventNo` = ?", [$eventNo], QALL) 
 	//$shouldAttend='';
 	//$isConfirmed ='';
 	//$passengerSpots=0;
-	$emails = prefFullNameFromEmail($driver) . ' <' . $driver . '>';
+	$emails = memberName($driver) . ' <' . $driver . '>';
 	$shouldAttend = (shouldAttend($driver, $eventNo) == true) ? '<span class="label label-info">should</span>' : '<span class="label label-important">shouldn\'t</span>';
 	$isConfirmed = (isConfirmed($driver, $eventNo) == true) ? '<span class="label label-info">confirmed</span>' : '<span class="label label-warning">unconfirmed</span>';
 	$passengerSpots = (passengerSpots($driver) !== "0") ? "<span class='badge badge-info'>".passengerSpots($driver)."</span>" : "";
@@ -24,7 +24,7 @@ foreach (query("select * from `carpool` where `eventNo` = ?", [$eventNo], QALL) 
 		$html .= "<div class='driver block'><div class='person' id='".$driver."'><table>
 		<tr>
 			<td class='carpoolLives'>".$livesAt."</td>
-			<td class='carpoolName'><a href='#profile:$driver'>".prefFullNameFromEmail($driver)."</a></td>
+			<td class='carpoolName'><a href='#profile:$driver'>".memberName($driver)."</a></td>
 			<td class='carpoolSpots'>".$passengerSpots."</td>
 			<td class='carpoolShould'>".$phoneNumber."</td>
 			<td class='carpoolConfirmed'>".$isConfirmed."</td>
@@ -35,7 +35,7 @@ foreach (query("select * from `carpool` where `eventNo` = ?", [$eventNo], QALL) 
 		$html.="
 			<tr>
 				<td class='carpoolLives'>".$livesAt."</td>
-				<td class='carpoolName'>".prefFullNameFromEmail($driver)."</td>
+				<td class='carpoolName'>".memberName($driver)."</td>
 				<td class='carpoolSpots'>".$passengerSpots."</td>
 				<td class='carpoolShould'>".$phoneNumber."</td>
 				<td class='carpoolConfirmed'>".$isConfirmed."</td>
@@ -52,7 +52,7 @@ foreach (query("select * from `carpool` where `eventNo` = ?", [$eventNo], QALL) 
 			//$shouldAttend='';
 			//$isConfirmed ='';
 			//$passengerSpots=0;
-			$emails .= ', ' . prefFullNameFromEmail($passenger['memberID']) . ' <' . $passenger['memberID'] . '>';
+			$emails .= ', ' . memberName($passenger['memberID']) . ' <' . $passenger['memberID'] . '>';
 			if (shouldAttend($passenger['memberID'], $eventNo))
 			{
 				$shouldAttend = '<span class="label label-info">should</span>';
@@ -69,7 +69,7 @@ foreach (query("select * from `carpool` where `eventNo` = ?", [$eventNo], QALL) 
 			$html .= "<div class='person' id='".$passenger['memberID']."'><table>
 			<tr>
 				<td class='carpoolLives'>".$livesAt."</td>
-				<td class='carpoolName'><a href='profile:".$passenger['memberID']."'>".prefFullNameFromEmail($passenger['memberID'])."</a></td>
+				<td class='carpoolName'><a href='profile:".$passenger['memberID']."'>".memberName($passenger['memberID'])."</a></td>
 				<td class='carpoolSpots'>".$passengerSpots."</td>
 				<td class='carpoolShould'>".$phoneNumber."</td>
 				<td class='carpoolConfirmed'>".$isConfirmed."</td>
@@ -78,7 +78,7 @@ foreach (query("select * from `carpool` where `eventNo` = ?", [$eventNo], QALL) 
 		}
 	}
 	$event = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
-	die("No such event exists");
+	if (! $event) die("No such event exists");
 	$html .= '</div>';//end passengers div
 	$html .= '<div style="display: inline-block; width: 100%"><a href="mailto:' . rawurlencode($emails) . '?subject=' . rawurlencode('Carpool for ' . $event['name']) . '" class="btn pull-right"><i class="icon-envelope"></i>&nbsp;Mail this carpool</a></div>';
 	$html .= "</div>";//end carpool div

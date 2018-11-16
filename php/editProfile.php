@@ -19,7 +19,7 @@ if ($USER)
 	$row = query("select `enrollment` from `activeSemester` where `member` = ? and `semester` = ?", [$USER, $SEMESTER], QONE);
 	if (! $row) $userinfo["registration"] = "inactive";
 	else $userinfo["registration"] = $row["enrollment"];
-	$query = query("select `section` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?". [$USER, $SEMESTER, $CHOIR], QONE);
+	$query = query("select `section` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$USER, $SEMESTER, $CHOIR], QONE);
 	if ($query) $userinfo["section"] = $query["section"];
 }
 

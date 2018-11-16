@@ -1,119 +1,108 @@
 <?php
 require_once('functions.php');
-die("Not implemented!");
 
-$style = '<style>
-table { width: 100%; }
-th { text-align: left; }
-th, td { vertical-align: top; padding-right: 10px; }
-div.tabbox { margin-bottom: 20px; padding: 10px; }
-span.spacer { display: inline-block; width: 20px; }
-</style>';
-
-function member_table($conditions, $type = 'normal')
+function csvencode($row)
 {
-	global $SEMESTER;
-	
-	$cols = rosterPropList($type);
-	$sql = 'select * from `member` order by `lastName` asc, `firstName` asc';
-	if ($conditions != '' && $conditions != '()') $sql = 'select * from `member` where ' . $conditions . ' order by `lastName` asc, `firstName` asc';
-	$members = mysql_query($sql);
-	if (! $members) die(mysql_error());
+	$fields = [];
+	foreach ($row as $field) $fields[] = '"' . addslashes($field) . '"';
+	return implode(",", $fields) . "\r\n";
+}
 
-	$html = "<table class='no-highlight' id='roster_table'><thead><tr>";
-	foreach ($cols as $col => $width) $html .= "<th style='width: $width'>$col</th>";
-	$html .= "</tr></thead><tbody>";
+$filters = [];
+if (isset($_GET["filter"]) && $_GET["filter"] != "") $filters = explode(",", $_GET["filter"]);
+$data = [];
+foreach(listMembers($filters) as $email => $name) $data[] = memberInfo($email);
+$cols = ["#", "name", "section", "email", "phone", "location"];
+if (hasPermission("view-user-private-details")) array_push($cols, "enrollment");
+if (hasPermission("view-transactions")) array_push($cols, "balance", "dues");
+if (hasPermission("view-user-private-details")) array_push($cols, "gigs", "score");
+
+if (! isset($_GET["format"]) || $_GET["format"] == "normal")
+{
+	$gigreq = query("select `gigreq` from `semester` where `semester` = ?", [$SEMESTER], QONE);
+	if (! $gigreq) die("Bad semester");
+	$gigreq = $gigreq["gigreq"];
+
+	echo '<style>
+	table { width: 100%; }
+	th { text-align: left; }
+	th, td { vertical-align: top; padding-right: 10px; }
+	div.tabbox { margin-bottom: 20px; padding: 10px; }
+	span.spacer { display: inline-block; width: 20px; }
+	</style>';
+
+	echo "<table class='no-highlight' id='roster_table'><thead><tr>";
+	foreach ($cols as $col) echo "<th>" . ucfirst($col) . "</th>";
+	echo "</tr></thead><tbody>";
 	$i = 1;
-	while ($member = mysql_fetch_array($members, MYSQL_ASSOC))
+	foreach ($data as $member)
 	{
-		$html .= "<tr data-member='" . $member["email"] . "'>";
-		foreach ($cols as $col => $width)
+		$email = $member["email"];
+		echo "<tr data-member='$email'>";
+		foreach ($cols as $col)
 		{
-			$html .= "<td style='width: ${width}px'";
+			$value = $member[$col];
+			echo "<td>";
 			switch ($col)
 			{
-				case "#":
-					$html .= ">$i";
-					break;
-				case "Name":
-					$html .= " data-tab=''><a href='#profile:" . $member["email"] . "'>" . completeNameFromEmail($member["email"]) . "</a>";
-					break;
-				default:
-					$html .= ">" . rosterProp($member, $col);
-					break;
+			case "#":
+				echo $i;
+				break;
+			case "name":
+				echo "<a href='#profile:$email'>$value</a>";
+				break;
+			case "email":
+				echo "<a href='mailto:$value'>$value</a>";
+				break;
+			case "phone":
+				echo "<a href='tel:$value'>$value</a>";
+				break;
+			case "enrollment":
+				$colors = array("club" => "black", "class" => "blue", "inactive" => "gray");
+				$color = $colors[$value];
+				echo "<span style='color: $color'>$value</span>";
+				break;
+			case "balance":
+			case "dues":
+			case "gigs":
+			case "score":
+				$cutoffs = array("balance" => 0, "dues" => 0, "gigs" => $gigreq, "score" => 80);
+				$color = "green";
+				if ($value < $cutoffs[$col]) $color = "red";
+				echo "<span style='color: $color'>$value</span>";
+				break;
+			case "section":
+			case "location":
+				echo $value;
+				break;
 			}
-			$html .= "</td>";
+			echo "</td>";
 		}
-		$html .= "</tr>";
-		if ($type == "normal") $html .= "<tr><td colspan=" . count($cols) . "><div class=tabbox></div></td></tr>";
+		echo "</tr>";
 		$i++;
 	}
-	$html .= "</tbody></table>";
-	return $html;
+	echo "</tbody></table>";
 }
-
-function member_csv($conditions)
+else if ($_GET["format"] == "csv")
 {
-	# FIXME No support for conditions right now
-	global $SEMESTER, $CHOIR, $USER;
-	if (! hasPermission("view-users")) die("Access denied");
-	$cols = array("firstName", "prefName", "lastName", "email", "phone", "section", "location", "major", "hometown", "section");
-	if ($conditions != '()') $conditions = ' and ' . $conditions;
-	$sql = "SELECT `member`.`lastName`, `member`.`firstName`, `member`.`prefName`, `member`.`email`, `member`.`phone`, `member`.`location`, `member`.`major`, `member`.`hometown`, `sectionType`.`name` as `section` FROM `member`, `activeSemester`, `sectionType` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `sectionType`.`id` = `activeSemester`.`section`  ORDER BY `member`.`lastName` asc, `member`.`firstName` asc";
-	$members = mysql_query($sql);
-
-	$ret = '"' . join('","', $cols) . "\"\r\n";
-	while ($row = mysql_fetch_array($members))
-	{
-		$vals = array();
-		foreach ($cols as $col) array_push($vals, addslashes($row[$col]));
-		$ret .= '"' . join('","', $vals) . "\"\r\n";
-	}
-	return $ret;
-}
-
-if (! $CHOIR) die("Choir not set");
-$type = $_GET['type'];
-$conds = split(';', $_POST['cond']);
-$condarr = array();
-foreach ($conds as $cond)
-{
-	if ($cond == '') continue;
-	$subcondarr = array();
-	$subconds = split(',', $cond);
-	foreach ($subconds as $subcond)
-	{
-		if ($subcond == '') continue;
-		else if ($subcond == 'active') $subcondarr[] = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`member` = `member`.`email`)";
-		else if ($subcond == 'inactive') $subcondarr[] = "not exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`member` = `member`.`email`)";
-		else if ($subcond == 'class') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`member` = `member`.`email`) = 'class'";
-		else if ($subcond == 'club') $subcondarr[] = "(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`choir` = '$CHOIR' and `activeSemester`.`member` = `member`.`email`) = 'club'";
-		else if ($subcond == 'dues') $subcondarr[] = "(select sum(`transaction`.`amount`) from `transaction` where `transaction`.`semester` = '$SEMESTER' and `transaction`.`type` = 'dues' and `transaction`.`memberID` = `member`.`email`) < 0";
-	}
-	$condarr[] = join(' or ', $subcondarr);
-}
-$condstr = '(' . join(") and (", $condarr) . ')';
-
-if (! hasPermission("view-users")) $condstr = "exists (select * from `activeSemester` where `activeSemester`.`semester` = '$SEMESTER' and `activeSemester`.`member` = `member`.`email`)";
-
-if ($type == "print")
-{
-	$choirname = choirname($CHOIR);
-	echo "<html><head><meta charset='UTF-8'><title>$choirname Roster</title></head><body>$style";
-	echo member_table($condstr, "print");
-	echo "</body></html>";
-}
-else if ($type == "csv")
-{
+	array_push($cols, "car", "major", "techYear", "hometown");
 	header("Content-Type: text/csv");
 	header("Content-Disposition: attachment; filename=\"members.csv\"");
-	echo member_csv($condstr);
+	$uccols = [];
+	foreach ($cols as $col) $uccols[] = ucfirst($col);
+	echo csvencode($uccols);
+	$i = 1;
+	foreach ($data as $member)
+	{
+		$row = [];
+		foreach ($cols as $col)
+		{
+			if ($col == "#") $row[] = "$i";
+			else $row[] = $member[$col];
+		}
+		echo csvencode($row);
+		$i++;
+	}
 }
-else if ($type == "normal" || ! isset($_GET['type']))
-{
-	echo $style;
-	echo member_table($condstr, "normal");
-}
-else die("Unknown type");
-
+else die("Unknown format \"" . $_GET["format"] . "\"");
 ?>

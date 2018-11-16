@@ -121,10 +121,10 @@ echo "<div class='block span6'><h3>Positions</h3><table><tr><th>Position</th><th
 foreach (query("select * from `role` where `rank` > 0 and `choir` = ? order by `rank` asc", [$CHOIR], QALL) as $row)
 {
 	$subq = query("select `member`.`email` from `member`, `memberRole` where `memberRole`.`role` = ? and `memberRole`.`member` = `member`.`email`", [$row["id"]], QALL); // TODO Filter by semester
-	for ($i = 0; $i < $row['quantity']; $i++)
+	for ($i = 0; $i < $row["quantity"]; $i++)
 	{
-		$member = $subq[$i];
-		echo "<tr><td class='position'>$row[name]</td><td data-old='$member[email]'>" . ($member ? memberDropdown($member['email']) : memberDropdown("")) . "</td></tr>";
+		$member = ($i >= count($subq)) ? "" : $subq[$i]["email"];
+		echo "<tr><td class='position'>$row[name]</td><td data-old='$member'>" . memberDropdown($member) . "</td></tr>";
 	}
 }
 echo "</table></div>";

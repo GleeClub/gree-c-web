@@ -7,7 +7,7 @@ function absenceEmail($recipient, $state, $event)
 	global $CHOIR;
 	//$to = prefNameFromEmail($recipient)." ".lastNameFromEmail($recipient)." <".$recipient.">"; //make it format: Chris Ernst <cernst3@gatech.edu>
 	$subject = "Absence Request " . ucfirst($state);
-	$msg = prefNameFromEmail($recipient) . ",<br><br> Your absence request for " . $event . " has been " . $state . ".<br><br>Glee Club Officers";
+	$msg = memberName($recipient, "pref") . ",<br><br> Your absence request for " . $event . " has been " . $state . ".<br><br>Glee Club Officers";
 	$message = '
 	<html>
 	<head>
@@ -51,7 +51,9 @@ function absenceEmail($recipient, $state, $event)
 	</html>
 	';
 	if (! $CHOIR) die("Choir not set");
-	$sender = query("select `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE)["admin"];
+	$info = query("select `name`, `admin` from `choir` where `id` = ?", [$CHOIR], QONE);
+	if (! $info) die("Invalid choir");
+	$sender = $info["name"] . " Officers <" . $info["admin"] . ">";
 	$headers = "Content-type: text/html\r\nX-Mailer: PHP/".phpversion()."\r\nReply-To: $sender";
 	mail($recipient, $subject, $message, $headers);
 }
@@ -112,7 +114,7 @@ $name = $request["firstName"]." ".$request["lastName"];
 $eventName = $request["name"];
 $replacement = "";
 
-if ($request["replacement"] != "") $replacement = prefNameFromEmail($request["replacement"]);
+if ($request["replacement"] != "") $replacement = memberName($request["replacement"], "pref");
 
 echo "
 	<td align='left' class='data'>$time</td>

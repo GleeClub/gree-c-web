@@ -26,10 +26,10 @@ else if ($action == 'checkout')
 	if ($ties)
 	{
 		$oldtie = $ties["tie"];
-		die(fullNameFromEmail($member) . " already has tie $oldtie out");
+		die(memberName($member) . " already has tie $oldtie out");
 	}
 	$result = query("select * from `tieBorrow` where `tie` = ? and `dateIn` is null", [$tie], QONE);
-	if ($result) die("Tie $tie is already checked out to " . fullNameFromEmail($result["member"]));
+	if ($result) die("Tie $tie is already checked out to " . memberName($result["member"]));
 	query("insert into `tieBorrow` (`member`, `tie`, `dateOut`) values (?, ?, curdate())", [$member, $tie]);
 	echo "OK";
 }
@@ -64,7 +64,7 @@ else if ($action == 'history')
 	if (! isset($_POST['tie'])) die('MISSING_ARG');
 	echo "<table><tr><th></th><th>Member</th><th>Date Borrowed</th><th>Date Returned</th></tr>";
 	foreach (query("select `id`, `member`, `dateOut`, `dateIn` from `tieBorrow` where `tie` = ? order by `dateOut` asc", [$tie], QALL) as $row)
-		echo "<tr><td><button type='button' class='btn btn-link hist_del' data-id='$row[id]'><i class='icon-remove'></i></button></td><td>" . fullNameFromEmail($row['member']) . "</td><td>$row[dateOut]</td><td>" . ($row['dateIn'] == '' ? '--' : $row['dateIn']) . "</td></tr>";
+		echo "<tr><td><button type='button' class='btn btn-link hist_del' data-id='$row[id]'><i class='icon-remove'></i></button></td><td>" . memberName($row['member']) . "</td><td>$row[dateOut]</td><td>" . ($row['dateIn'] == '' ? '--' : $row['dateIn']) . "</td></tr>";
 	echo "</table>";
 }
 else if ($action == 'editform')

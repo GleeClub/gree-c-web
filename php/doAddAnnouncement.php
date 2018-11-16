@@ -3,10 +3,10 @@ require_once('functions.php');
 
 if (! $USER) die("Access denied");
 if (! $CHOIR) die("Choir not set");
-$row = query("select `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
+$row = query("select `name`, `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
 if (! $row) die("Choir is invalid");
-$sender = $row["admin"];
-$recipient = $row["list"];
+$sender = $row["name"] . " Officers <" . $row["admin"] . ">";
+$recipient = $row["name"] . " <" . $row["list"] . ">";
 
 $text = $_POST["text"];
 query("insert into `announcement` (`announcementNo`, `choir`, `memberID`, `timePosted`, `announcement`) values (null, ?, ?, now(), ?)", [$CHOIR, $USER, $text]);

@@ -25,7 +25,7 @@ else if ($action == "arrange")
 	// $order contains a comma-separated list of the new order based on the old order
 	$sql = "update `gigSong` set `order` = case `order` ";
 	$vars = [];
-	$new = split(',', $order);
+	$new = explode(',', $order);
 	for ($i = 1; $i <= count($new); $i++)
 	{
 		$sql .= "when ? then ? ";

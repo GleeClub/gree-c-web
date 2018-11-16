@@ -60,37 +60,35 @@ $email = $_GET['person'];
 
 function basic_info($person)
 {
-	$member = query("select * from `member` where `email` = ?", [$person], QONE);
-	if (! $member) die("No such user");
-	$about = getMemberAttribute('about', $person);
+	$info = memberInfo($person);
+	$about = $info["quote"];
 	if ($about == '') $about = "I don't have a quote";
-	$html .= "<img class='profile' src='" . profilePic($person) . "'>";
-	$html .= "<h3><span style='font-weight: normal; padding-right: 8pt'>" . implode(" and ", positions($person)) . " </span> " . completeNameFromEmail($person)."</h3>";
+	$html .= "<img class='profile' src='" . $info["picture"] . "'>";
+	$html .= "<h3><span style='font-weight: normal; padding-right: 8pt'>" . implode(" and ", positions($person)) . " </span> " . memberName($person, "complete")."</h3>";
 	$html .= "<div class='about'>\"$about\"</div>";
 	$html .= "<table style='width: initial'><tr><td style='width: 40%; vertical-align: top'>";
 	$html .= "<table>";
 	$html .= "<tr><td class='key'>Email</td><td><a href='mailto:$person'>$person</a></td></tr>";
-	$html .= "<tr><td class='key'>Phone</td><td><a href='tel:" . phoneNumber($person) . "'>" . phoneNumber($person) . "</a></td></tr>";
-	$html .= "<tr><td class='key'>Section</td><td>".sectionFromEmail($person, 1)."</td></tr>";
-	$html .= "<tr><td class='key'>Car</td><td>".rosterProp($member, "Car")."</td></tr>";
-	$html .= "<tr><td class='key'>Major</td><td>".getMemberAttribute('major', $person)."</td></tr>";
-	$html .= "<tr><td class='key'>Year at Tech</td><td>".getMemberAttribute('techYear', $person)."</td></tr>";
+	$html .= "<tr><td class='key'>Phone</td><td><a href='tel:" . $info["phone"] . "'>" . $info["phone"] . "</a></td></tr>";
+	$html .= "<tr><td class='key'>Section</td><td>" . $info["section"] . "</td></tr>";
+	$html .= "<tr><td class='key'>Car</td><td>" . $info["car"] . "</td></tr>";
+	$html .= "<tr><td class='key'>Major</td><td>" . $info["major"] . "</td></tr>";
+	$html .= "<tr><td class='key'>Year at Tech</td><td>" . $info["techYear"] . "</td></tr>";
 	$activeSemesters = '';
-	foreach (query("select `semester`.`semester` from `activeSemester`, `semester` where `activeSemester`.`member` = ? and `activeSemester`.`semester` = `semester`.`semester` order by `semester`.`beginning` desc", [$person], QALL) as $row)
-		$activeSemesters .= "<span class='label'>" . $row['semester'] . "</span> ";
 	if (hasPermission("view-user-private-details"))
 	{
+		foreach ($info["activeSemesters"] as $semester) $activeSemesters .= "<span class='label'>$semester</span> ";
 		$html .= "<tr><td class='key'>Active</td><td>$activeSemesters</td></tr>";
 		$html .= "</table></td><td style='width: 40%; vertical-align: top'><table>";
-		$html .= "<tr><td class='key'>Enrollment</td><td>" . rosterProp($member, "Enrollment") . "</td></tr>";
-		$html .= "<tr><td class='key'>Gigs</td><td>" . rosterProp($member, "Gigs") . "</td></tr>";
-		$html .= "<tr><td class='key'>Score</td><td>" . rosterProp($member, "Score") . "</td></tr>";
+		$html .= "<tr><td class='key'>Enrollment</td><td>" . $info["enrollment"] . "</td></tr>";
+		$html .= "<tr><td class='key'>Gigs</td><td>" . $info["gigs"] . "</td></tr>";
+		$html .= "<tr><td class='key'>Score</td><td>" . $info["score"] . "</td></tr>";
 		$html .= "<tr><td class='key'>Actions</td></tr>";
 		if (hasPermission("view-transactions"))
 		{
-			$html .= "<tr><td class='key'>Balance</td><td>" . rosterProp($member, "Balance") . "</td></tr>";
-			$html .= "<tr><td class='key'>Dues</td><td>" . rosterProp($member, "Dues") . "</td></tr>";
-			$html .= "<tr><td class='key'>Tie</td><td>" . rosterProp($member, "Tie") . "</td></tr>";
+			$html .= "<tr><td class='key'>Balance</td><td>" . $info["Balance"] . "</td></tr>";
+			$html .= "<tr><td class='key'>Dues</td><td>" . $info["Dues"] . "</td></tr>";
+			//$html .= "<tr><td class='key'>Tie</td><td>" . rosterProp($member, "Tie") . "</td></tr>";
 		}
 		if (hasPermission("switch-user"))
 		{

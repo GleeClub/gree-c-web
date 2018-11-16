@@ -24,12 +24,12 @@ else if ($action == "upload")
 }
 else if ($action == "rmfile")
 {
-	if (! repertoire_delfile($id)) die("NODEL");
+	repertoire_delfile($id);
 	echo "OK";
 }
 else if ($action == "delete")
 {
-	if (! repertoire_delfile($id)) die("NODEL"); // Remove associated file
+	repertoire_delfile($id); // Remove associated file
 	query("delete from `songLink` where `id` = ?", [$id]);
 	echo "OK";
 }

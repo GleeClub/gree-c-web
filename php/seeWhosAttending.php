@@ -1,11 +1,10 @@
 <?php
 require_once('functions.php');
-$eventNo = $_POST['eventNo'];
 if (! $CHOIR) die("Choir is not set");
 
 $shouldHtml='<table class="every-other" width="100%"><tr><td><h3>Should Attend</h3></td></tr>';
 $shouldntHtml='<table class="every-other" width="100%"><tr><td><h3>Shouldn\'t Attend</h3></td></tr>';
-foreach(query("select `prefName`, `firstName`, `lastName`, `memberID`, `attends`.`confirmed` as `confirmed`. `shouldAttend`, `section` from `attends`, `member`, `activeSemester` where `eventNo` = ? and `memberID` = `email` and `activeSemester`.`semester` = ? and `activeSemester`.`member` = `member`.`email` and `activeSemester`.`choir` = ? order by `confirmed` desc, `section` asc, `lastName` asc, `firstName` asc", [$eventNo, $SEMESTER. $CHOIR], QALL) as $row)
+foreach(query("select `prefName`, `firstName`, `lastName`, `memberID`, `attends`.`confirmed` as `confirmed`, `shouldAttend`, `section` from `attends`, `member`, `activeSemester` where `eventNo` = ? and `memberID` = `email` and `activeSemester`.`semester` = ? and `activeSemester`.`member` = `member`.`email` and `activeSemester`.`choir` = ? order by `confirmed` desc, `section` asc, `lastName` asc, `firstName` asc", [$_POST["eventNo"], $SEMESTER, $CHOIR], QALL) as $row)
 {
 	$section = $row['section'];
 	$prefName = $row['prefName'];

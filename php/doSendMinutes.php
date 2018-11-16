@@ -1,9 +1,9 @@
 <?php
 require_once('functions.php');
 if (! $CHOIR) die("Choir not set");
-$row = query("select `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
+$row = query("select `name`, `admin` from `choir` where `id` = ?", [$CHOIR], QONE);
 if (! $row) die("Invalid choir");
-$recipient = $row['admin'];
+$recipient = $row["name"] . " Officers <" . $row['admin'] . ">";
 $prefix = "<html><head></head><body>";
 $suffix = "</body></html>";
 $headers = 'Content-type:text/html; charset=utf-8' . "\n" .

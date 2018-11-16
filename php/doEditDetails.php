@@ -50,7 +50,7 @@ $description = $_POST['description'];
 $defaultAttend = isset($_POST['defaultAttend']) ? "true" : "false";
 
 query(
-	"update `event` set `name` = ?, `callTime` ?, `releaseTime` = ?, `points` = ?, `comments` = ?, `type` = ?, `location` = ?, `semester` = ?, `gigcount` = ?, `defaultAttend` = ? where `eventNo` = ?",
+	"update `event` set `name` = ?, `callTime` = ?, `releaseTime` = ?, `points` = ?, `comments` = ?, `type` = ?, `location` = ?, `semester` = ?, `gigcount` = ?, `defaultAttend` = ? where `eventNo` = ?",
 	[$name, $call, $done, $points, $comments, $type, $location, $semester, $gigcount, $defaultAttend, $id]
 );
 if ($type == 'volunteer' || $type == 'tutti') query(

@@ -3,12 +3,23 @@ require_once('functions.php');
 
 function member_fields($email)
 {
+	global $SEMESTER, $CHOIR;
 	$fieldnames = array('firstName', 'prefName', 'lastName', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
 	$ret = array();
 	$member = query("select * from `member` where `email` = ?", [$email], QONE);
 	if (! $member) die("No such member");
 	foreach ($fieldnames as $field) $ret[$field] = $member[$field];
-	$ret["registration"] = enrollment($email);
+	$result = query("select `enrollment`, `section` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$email, $SEMESTER, $CHOIR], QONE);
+	if (! $result)
+	{
+		$ret["registration"] = "inactive";
+		$ret["section"] = "";
+	}
+	else
+	{
+		$ret["registration"] = $result["enrollment"];
+		$ret["section"] = $result["section"];
+	}
 	return $ret;
 }
 
@@ -93,7 +104,7 @@ function tie_form($memberID)
 	$tie = 0;
 	$result = query("select `tie` from `tieBorrow` where `member` = ? and `dateIn` is null", [$memberID], QONE);
 	if ($result) $tie = $result['tie'];
-	$head = fullNameFromEmail($memberID) . ' ';
+	$head = memberName($memberID, "real") . ' ';
 	$form = '';
 	if ($tie == 0)
 	{
@@ -126,8 +137,9 @@ function active_semesters($memberID)
 	{
 		$activebtn = 0;
 		$semester = $result['semester'];
-		$active = query("select `enrollment` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$memberID, $semester, $CHOIR], QONE);
+		$active = query("select `enrollment`, `section` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$memberID, $semester, $CHOIR], QONE);
 		$enrollment = "inactive";
+		$section = $active ? $active["section"] : 0;
 		if ($active)
 		{
 			$enrollment = $active['enrollment'];
@@ -139,15 +151,16 @@ function active_semesters($memberID)
 			"<button class='btn btn-small semesterbutton" . ($activebtn == 0 ? ' active' : '') . "' data-val='0'>Inactive</button>" .
 			"<button class='btn btn-small semesterbutton" . ($activebtn == 1 ? ' active' : '') . "' data-val='1'>Club</button>" .
 			"<button class='btn btn-small semesterbutton" . ($activebtn == 2 ? ' active' : '') . "' data-val='2'>Class</button>" .
-			"</div></td><td>" . dropdown(sections(), "section", $active ? sectionFromEmail($memberID, false, $semester) : 0, ! hasPermission("edit-user") && ! $active) . "</td>" .
-			"<td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, 0, $semester) . "</span></td></tr>";
-		else $table .= "<tr data-semester='$semester'><td>$semester</td><td>$enrollment</td><td>" . ($active ? sectionFromEmail($memberID, false, $semester) : 0) . "</td><td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, 0, $semester) . "</span></td></tr>";
+			"</div></td><td>" . dropdown(sections(), "section", $section, ! hasPermission("edit-user") || ! $active) . "</td>" .
+			"<td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, $semester)["finalScore"] . "</span></td></tr>";
+		else $table .= "<tr data-semester='$semester'><td>$semester</td><td>$enrollment</td><td>$section</td><td>" . ($active ? "<span>" : "<span style='color: gray'>") . attendance($memberID, $semester)["finalScore"] . "</span></td></tr>";
 	}
 	$table .= "</table>";
 	return $table;
 }
 
 $denied = "You do not have access to this functionality.";
+if (! isset($_POST['email'])) die("Missing email parameter");
 
 switch ($_POST['tab'])
 {
@@ -165,7 +178,7 @@ switch ($_POST['tab'])
 		break;
 	case 'attendance':
 		if (! hasPermission("view-attendance")) die($denied);
-		echo attendance($_POST['email'], 1);
+		echo attendanceTable($_POST['email'], true);
 		echo "<div style='text-align: right'><a href='php/memberAttendance.php?id=" . $_POST['email'] . "'>Print view</a></div>";
 		break;
 	case 'tie':
@@ -177,10 +190,7 @@ switch ($_POST['tab'])
 		echo active_semesters($_POST['email']);
 		break;
 	case 'col':
-		if (! isset($_POST['email'])) die("BAD_ACTION");
-		$target = query("select * from `member` where `email` = ?", [$_POST["email"]], QONE);
-		if (! $target) die("Member not found");
-		echo rosterProp($target, $_POST["col"]);
+		echo memberInfo($_POST['email'])[$_POST["col"]];
 		break;
 	default:
 		echo "???";

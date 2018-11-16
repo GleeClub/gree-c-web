@@ -55,47 +55,117 @@ function radio($options, $name, $selected = '', $disabled = 0)
 	return $ret;
 }
 
-// First "Pref" Last if pref exists && pref != first
-function completeNameFromEmail($email) {
-	if ($email == "") return "";
-	$res = query("select `firstName`, `lastName`, `prefName` from `member` where `email` = ?", [$email], QONE);
-	if (! $res) return "";
-	if (! empty($res['prefName']) && $res['firstName'] != $res['prefName'])
-		return $res['firstName'] . ' "' . $res['prefName'] . '" ' . $res['lastName'];
+function memberName($email, $kind = "full", $member = null)
+{
+	if (! $member) $member = query("select `firstName`, `lastName`, `prefName` from `member` where `email` = ?", [$email], QONE);
+	$first = $member["firstName"];
+	$pref = $member["prefName"];
+	$last = $member["lastName"];
+	$usePref = ($pref) && ($first != $pref);
+	switch ($kind)
+	{
+	case "first": return $first;
+	case "pref":
+		if ($usePref) return $pref;
+		return $first;
+	case "last": return $last;
+	case "full": // Pref Last
+		if ($usePref) return "$pref $last";
+		return "$first $last";
+	case "complete": // First "Pref" Last
+		if ($usePref) return "$first \"$pref\" $last";
+		return "$first $last";
+	case "real": // First Last
+		return "$first $last";
+	}
+}
+
+// TODO Try to optimize this -- since it's called on each member for the roster, we want to use as few queries as possible.
+// TODO Ensure that all queries are restricted to the current $CHOIR
+function memberInfo($member)
+{
+	global $USER, $SEMESTER, $CHOIR;
+	$ret = [];
+	$info = query("select * from `member` where `email` = ?", [$member], QONE);
+	if (! $info) err("Invalid member");
+	$ret["positions"] = positions($member); // TODO
+	$ret["name"] = memberName($email, "full", $info);
+	if ($info["about"] == "") $ret["quote"] = "I don't have a quote";
+	else $ret["quote"] = $info["about"];
+	if ($info["picture"] == "") $ret["picture"] = "http://lorempixel.com/g/256/256";
+	else $ret["picture"] = $info["picture"];
+	$ret["email"] = $info["email"];
+	$ret["phone"] = $info["phone"];
+	$ret["location"] = $info["location"];
+	$ret["car"] = $info["passengers"];
+	if ($info["passengers"] == 0) $ret["car"] = "No";
+	else $ret["car"] = $info["passengers"] . " passengers";
+	$ret["major"] = $info["major"];
+	$ret["techYear"] = $info["techYear"];
+	$active = query("select `activeSemester`.`enrollment`, `sectionType`.`name` as `section` from `activeSemester`, `sectionType` where `activeSemester`.`member` = ? and `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ? and `sectionType`.`id` = `activeSemester`.`section`", [$member, $SEMESTER, $CHOIR], QONE);
+	$ret["section"] = $active ? $active["section"] : "None";
+	if ($USER == $member || hasPermission("view-user-private-details"))
+	{
+		$semesters = [];
+		//foreach (query("select `semester`.`semester` from `activeSemester`, `semester` where `activeSemester`.`member` = ? and `activeSemester`.`semester` = `semester`.`semester` order by `semester`.`beginning` desc", [$member], QALL) as $row)
+		//	$semesters[] = $row["semester"];
+		//$ret["activeSemesters"] = $semesters;
+		$ret["enrollment"] = ucfirst($active ? $active["enrollment"] : "inactive");
+		$attendance = attendance($member);
+		$ret["hometown"] = $info["hometown"];
+		$ret["gigs"] = $attendance["gigCount"];
+		$ret["score"] = $attendance["finalScore"];
+	}
+	if ($USER == $member || hasPermission("view-transactions"))
+	{
+		$ret["balance"] = intval(query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ?", [$member], QONE)["balance"]);
+		$ret["dues"] = intval(query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ? and `type` = 'dues' and `semester` = ?", [$member, $SEMESTER], QONE)["balance"]);
+	}
+	return $ret;
+}
+
+function listMembers($conditions = ["active"])
+{
+	global $SEMESTER, $CHOIR;
+	$condqueries = array(
+	"active" => array(
+		"exists (select * from `activeSemester` where `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ? and `activeSemester`.`member` = `member`.`email`)",
+		[$SEMESTER, $CHOIR]
+	),
+	"inactive" => array(
+		"not exists (select * from `activeSemester` where `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ? and `activeSemester`.`member` = `member`.`email`)",
+		[$SEMESTER, $CHOIR]
+	),
+	"class" => array(
+		"(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ? and `activeSemester`.`member` = `member`.`email`) = 'class'",
+		[$SEMESTER, $CHOIR]
+	),
+	"club" => array(
+		"(select `enrollment` from `activeSemester` where `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ? and `activeSemester`.`member` = `member`.`email`) = 'club'",
+		[$SEMESTER, $CHOIR]
+	),
+	"dues" => array(
+		"(select sum(`transaction`.`amount`) from `transaction` where `transaction`.`semester` = ? and `transaction`.`type` = 'dues' and `transaction`.`memberID` = `member`.`email`) < 0",
+		[$SEMESTER]
+	),
+	);
+	if (count($conditions) == 0) $res = query("select `email` from `member`", [], QALL);
 	else
-		return $res['firstName'] . " " . $res['lastName'];
-}
-
-function fullNameFromEmail($email) {
-	if ($email == "") return "";
-	return firstNameFromEmail($email) . " " . lastNameFromEmail($email);
-}
-
-function firstNameFromEmail($email){
-	if ($email == "") return "";
-	$res = query("select `firstName` from `member` where `email` = ?", [$email], QONE);
-	if (! $res) return "";
-	return $res["firstName"];
-}
-
-function prefNameFromEmail($email){
-	if ($email == "") return "";
-	$res = query("select `firstName`, `prefName` from `member` where `email` = ?", [$email], QONE);
-	if (! $res) return "";
-	if ($res["prefName"] == '') return $res["firstName"];
-	return $res["prefName"];
-}
-
-function lastNameFromEmail($email){
-	if ($email == "") return "";
-	$res = query("select `lastName` from `member` where `email` = ?", [$email], QONE);
-	if (! $res) return "";
-	return $res["lastName"];
-}
-
-function prefFullNameFromEmail($email){
-	if ($email == "") return "";
-	return prefNameFromEmail($email) . " " . lastNameFromEmail($email);
+	{
+		$conds = [];
+		$vars = [];
+		foreach ($conditions as $cond)
+		{
+			$query = $condqueries[$cond];
+			if (! $query) die("Invalid member filter \"$cond\"");
+			$conds[] = $query[0];
+			foreach ($query[1] as $var) $vars[] = $var;
+		}
+		$res = query("select * from `member` where " . implode(" and ", $conds), $vars, QALL);
+	}
+	$ret = [];
+	foreach ($res as $row) $ret[$row["email"]] = memberName($row["email"], "full", $row);
+	return $ret;
 }
 
 function positions($email)
@@ -128,34 +198,14 @@ function getPosition($position = "Member")
 	return $ret;
 }
 
-function profilePic($email)
-{
-	$default = "http://lorempixel.com/g/256/256";
-	if ($email == "") return $default;
-	$res = query("select `picture` from `member` where `email` = ?", [$email], QONE);
-	if (! $res) return $default;
-	$picture = $res["picture"];
-	if ($picture == "") return $default;
-	else return $picture;
-}
-
-function sectionFromEmail($email, $friendly = 0, $semester = "")
+function sectionFromEmail($email, $friendly = 0, $semester = "") // TODO Delete
 {
 	global $SEMESTER, $CHOIR;
 	if ($semester == "") $semester = $SEMESTER;
-	if ($email == "") return ($friendly ? "" : 0);
-	$result = query("select `sectionType`.`id`, `sectionType`.`name` from `activeSemester`, `sectionType` where `activeSemester`.`member` = ? and `activeSemester`.`section` = `sectionType`.`id` and `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ?", [$email, $semester, $choir], QONE);
-	if (! $result) return ($friendly ? "" : 0);
+	if ($email == "") return ($friendly ? "None" : 0);
+	$result = query("select `sectionType`.`id`, `sectionType`.`name` from `activeSemester`, `sectionType` where `activeSemester`.`member` = ? and `activeSemester`.`section` = `sectionType`.`id` and `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ?", [$email, $semester, $CHOIR], QONE);
+	if (! $result) return ($friendly ? "None" : 0);
 	return $friendly ? $result["name"] : $result["id"];
-}
-
-function enrollment($email, $semester = "")
-{
-	global $SEMESTER, $CHOIR;
-	if ($semester == "") $semester = $SEMESTER;
-	$result = query("select `enrollment` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$email, $semester, $choir], QONE);
-	if (! $result) return "inactive";
-	return $result["enrollment"];
 }
 
 function hasPermission($perm, $eventType = "any")
@@ -163,8 +213,8 @@ function hasPermission($perm, $eventType = "any")
 	global $USER, $CHOIR;
 	$allowed = [];
 	$basesql = "select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = ? and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = ?";
-	if ($eventType == "any") $query = query($basesql, [$perm, $choir], QALL);
-	else $query = query($basesql . " and (`rolePermission`.`eventType` = ? or `rolePermission`.`eventType` is null)", [$perm, $choir, $eventType], QALL);
+	if ($eventType == "any") $query = query($basesql, [$perm, $CHOIR], QALL);
+	else $query = query($basesql . " and (`rolePermission`.`eventType` = ? or `rolePermission`.`eventType` is null)", [$perm, $CHOIR, $eventType], QALL);
 	foreach ($query as $row) $allowed[] = $row["roleName"];
 	if (in_array("Any", $allowed)) return true;
 	if (! $USER) return false;
@@ -186,6 +236,8 @@ function hasEventTypePermission($perm, $type = "any", $sect = 0)
 			return true; // TODO
 		case "view-private":
 			return hasPermission("view-event-private-details", $type);
+		case "edit-setlist":
+			return hasPermission($perm, $type);
 		case "create":
 		case "modify":
 		case "delete":
@@ -202,35 +254,15 @@ function hasEventTypePermission($perm, $type = "any", $sect = 0)
 function hasEventPermission($perm, $event)
 {
 	global $USER;
-	$ev = query("select `section`, `type` from `event` where `eventNo` = ?", $event, QONE);
+	$ev = query("select `section`, `type` from `event` where `eventNo` = ?", [$event], QONE);
 	if (! $ev) die("Permission check failed: no matching event");
 	return hasEventTypePermission($perm, $ev["type"], $ev["section"]);
 }
 
-function getMemberAttribute($attribute, $email)
-{
-	$valid = [];
-	foreach (query("show columns from `member`", [], QALL) as $row) $valid[] = $row["Field"];
-	if (! in_array($attribute, $valid)) die("Invalid member attribute \"$attribute\"");
-	$res = query("select `$attribute` from `member` where `email` = ?", [$email], QONE);
-	if (! $res) die("No such member");
-	return $res[$attribute];
-}
-
-function members($cond = "")
-{
-	global $SEMESTER, $CHOIR;
-	$ret = array("" => "(nobody)");
-	$res = [];
-	if ($cond == "active") $res = query("select `member`.`firstName`, `member`.`lastName`, `member`.`email` from `member`, `activeSemester` where `member`.`email` = `activeSemester`.`member` and `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ? order by `member`.`lastName` asc", [$SEMESTER, $CHOIR], QALL);
-	else $res = query("select `firstName`, `lastName`, `email` from `member` order by `lastName` asc", [], QALL);
-	foreach ($res as $row) $ret[$row["email"]] = $row["lastName"] . ", " . $row["firstName"];
-	return $ret;
-}
-
 function memberDropdown($member = "")
 {
-	return dropdown(members(), "member", $member);
+	$nobody = array("" => "(nobody)");
+	return dropdown($nobody + listMembers(), "member", $member);
 	//return typeahead(members(), "member", $member);
 }
 
@@ -292,28 +324,16 @@ function choirname($choir)
 // Delete the file with a given ID from the repertoire repository
 function repertoire_delfile($id)
 {
-	global $docroot, $musicdir;
+	global $docroot_external, $musicdir;
 	$res = query("select `songLink`.`target`, `mediaType`.`storage` from `songLink`, `mediaType` where `songLink`.`id` = ? and `mediaType`.`typeid` = `songLink`.`type`", [$id], QONE);
-	if (! $res) return true;
+	if (! $res) return;
 	$file = $res["target"];
-	if ($file == "") return true;
-	if ($res["storage"] != "local") return true;
-	if (strpos($file, "/") !== false) return false;
-	return unlink($docroot . $musicdir . "/" . $file);
-}
-
-function loginBlock(){
-$html = '
-	<div class="span3 block">
-		<form class="form-inline" action="php/checkLogin.php" method="post">
-		  <input type="text" class="input-medium" id="signInEmail" placeholder="gburdell3@gatech.edu" name="email" />
-		  <input type="password" class="input-medium" id="signInPassword" placeholder="password" name="password" />
-		  <button type="submit" value="Sign In" class="btn">Sign in</button>
-		</form>
-		<a href="#forgotPassword">Forgot Password?</a>
-	</div>
-';
-echo $html;
+	if ($file == "") return;
+	if ($res["storage"] != "local") return;
+	if (strpos($file, "/") !== false) die("Bad path in file");
+	$path = $docroot_external . $musicdir . "/" . $file;
+	if (! file_exists($path)) return;
+	if (! unlink($path)) die("Unlink failed");
 }
 
 function todoBlock($userEmail, $form, $list)
@@ -321,14 +341,13 @@ function todoBlock($userEmail, $form, $list)
 	$html = '';
 	if ($form)
 	{
-		if(hasPermission("add-multi-todo"))
+		if (hasPermission("add-multi-todo"))
 		{
 			$html .= "<p>
 				Names: <input id='multiTodo'>
 				Todo: <br /><input id='todoText'>
 				<br /><button class='btn' id='multiTodoButton'>Add Todo</button>
 			</p>";
-
 		}
 		else
 		{

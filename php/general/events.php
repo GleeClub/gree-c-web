@@ -1,7 +1,8 @@
 <?php
+require_once("vars.php");
 /**** Event functions ****/
 
-function nullcheck($result, $kind = "event")
+function evnullcheck($result, $kind = "event")
 {
 	if (! $result) die("Could not find matching $kind");
 	return $result;
@@ -15,19 +16,19 @@ function eventTypes()
 }
 
 function getEventDetails($eventNo){
-	return nullcheck(query("select * from `event` where `eventNo` = ?", [$eventNo], QONE));
+	return evnullcheck(query("select * from `event` where `eventNo` = ?", [$eventNo], QONE));
 }
 
 function getGigDetails($eventNo){
-	return nullcheck(query("select * from `gig` where `eventNo` = ?", [$eventNo], QONE), "gig");
+	return evnullcheck(query("select * from `gig` where `eventNo` = ?", [$eventNo], QONE), "gig");
 }
 
 function getEventType($id){
-	return nullcheck(query("select `name` from `eventType` where `id` = ?", [$id], QONE))["name"];
+	return evnullcheck(query("select `name` from `eventType` where `id` = ?", [$id], QONE))["name"];
 }
 
 function getEventName($eventNo){
-	return nullcheck(query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE))["name"];
+	return evnullcheck(query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE))["name"];
 }
 
 function getEventTypeLabelClass($number){
@@ -115,7 +116,7 @@ $calendar = "7nl6cu4fobeova68q4he7tmpuk@group.calendar.google.com";
 
 function get_gcal()
 {
-	global $application, $docroot;
+	global $application, $docroot, $gcal_secret_file;
 	$client = new Google_Client();
 	$client->setApplicationName($application);
 	$client->setAuthConfig("$docroot/secrets/$gcal_secret_file");
@@ -126,6 +127,7 @@ function get_gcal()
 
 function set_event_fields($event, $title, $desc, $location, $unixstart, $unixend, $tz)
 {
+	global $CHOIR;
 	$event->setSummary($title);
 	$event->setDescription($desc);
 	$event->setLocation($location);

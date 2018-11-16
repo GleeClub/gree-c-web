@@ -8,7 +8,8 @@ $note = $_POST['note'];
 $current = $_POST['current'];
 if (! $CHOIR) die("Choir is not set");
 if (! $USER || ! hasPermission("edit-repertoire")) die("UNAUTHORIZED");
-if ($action == "add") echo query("insert into `song` (`choir`, `title`, `info`) values (?, ?, ?)", [$CHOIR, $title, $info], QID);
+if ($action == "add")
+	echo query("insert into `song` (`choir`, `title`, `info`) values (?, ?, ?)", [$CHOIR, $title, $info], QID);
 else if ($action == "delete")
 {
 	foreach(query("select `id` from `songLink` where `song` = ?", [$id], QALL) as $result) repertoire_delfile($result["id"]);
@@ -23,4 +24,5 @@ else if ($action == "key")
 else if ($action == "pitch")
 	query("update `song` set `pitch` = ? where `id` = ?", [$note, $id]);
 else echo "Unknown action \"$action\"";
+echo "OK";
 ?>

@@ -7,11 +7,10 @@ if (! hasPermission("view-users")) die("Not authorized");
 echo "<br><br>";
 	//<div class='btn-group'><button class='btn filter active' data-toggle='button' data-cond='b2'>B2</button><button class='btn filter active' data-toggle='button' data-cond='b1'>B1</button><button class='btn filter active' data-toggle='button' data-cond='t2'>T2</button><button class='btn filter active' data-toggle='button' data-cond='t1'>T1</button></div>
 echo "<span class='pull-left'><div class='btn-toolbar' style='display: inline-block' id='roster_filters'>
-	<div class='btn-group'><button class='btn filter' data-toggle='button' data-cond='inactive'>Inactive</button><button class='btn filter active' data-toggle='button' data-cond='club'>Club</button><button class='btn filter active' data-toggle='button' data-cond='class'>Class</button></div>
+	<div class='btn-group'><button class='btn filter active' data-toggle='button' data-cond='active'>Active</button><button class='btn filter' data-toggle='button' data-cond='club'>Club</button><button class='btn filter' data-toggle='button' data-cond='class'>Class</button></div>
 	<div class='btn-group'><button class='btn filter' data-toggle='button' data-cond='dues'>Dues unpaid</button></div>
-	</div><span class='spacer'></span><a href='php/memberTable.php?type=print'>Printable</a> &middot; <a href='php/memberTable.php?type=csv'>CSV</a>
+	</div><span class='spacer'></span><a class='tablelink' data-format='normal' href='php/memberTable.php'>Print</a> &middot; <a class='tablelink' data-format='csv' href='php/memberTable.php'>CSV</a>
 	</span>";
-	//</div><span class='spacer'></span><a href='#' class='fmt_tbl' data-format='print'>Printable</a> &middot; <a href='#' class='fmt_tbl' data-format='csv'>CSV</a>
 	//<div class='btn-group'><button class='btn filter' data-toggle='button' data-cond='fail'>Below 80%</button></div>
 echo "<span class='pull-right' id='roster_ops'>";
 if (hasPermission("edit-grading"))

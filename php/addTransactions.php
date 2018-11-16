@@ -33,7 +33,7 @@ if(isset($_POST['emails']))
 		query("insert into transaction (memberID, choir, amount, description, semester, type) values (?, ?, ?, ?, ?, ?)", [$email, $CHOIR, $amountArr[$count], $descriptionArr[$count], $semArr[$count], $typeArr[$count]]);
 		if ($sendArr[$count])
 		{
-			$name = fullNameFromEmail($email);
+			$name = memberName($email);
 			$msg = "Keep this receipt for your records.";
 			$msg .= "<br />Name: " . $name;
 			$msg .= "<br />Semester:  " . $semArr[$count];

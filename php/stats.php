@@ -1,18 +1,29 @@
 <?php
 //it would seem you cannot connect to the database from outside a function and inside a function
 require_once('functions.php');
-if(! $USER)
+if (! $USER)
 {
-	loginBlock();
-	exit(1);
+	$html = '
+		<div class="span3 block">
+			<form class="form-inline" action="php/checkLogin.php" method="post">
+			<input type="text" class="input-medium" id="signInEmail" placeholder="gburdell3@gatech.edu" name="email" />
+			<input type="password" class="input-medium" id="signInPassword" placeholder="password" name="password" />
+			<button type="submit" value="Sign In" class="btn">Sign in</button>
+			</form>
+			<a href="#forgotPassword">Forgot Password?</a>
+		</div>
+	';
+	echo $html;
+	die();
 }
 
 function user_money_table($memberID)
 {
 	global $CHOIR;
-	if (query("select * from `transaction` where `memberID` = ? and `choir` = ? and `resolved` = '0' order by time desc", [$memberID, $CHOIR], QCOUNT) == 0)
-		return "<span style='color: gray'>(No transactions)</span><br>";
+	$transactions = query("select * from `transaction` where `memberID` = ? and `choir` = ? and `resolved` = '0' order by time desc", [$memberID, $CHOIR], QALL);
+	if (count($transactions) == 0) return "<span style='color: gray'>(No transactions)</span><br>";
 	$html = "<table style='width: 100%'>";
+	foreach ($transactions as $transaction)
 	{
 		$time = $transaction['time'];
 		$amount = $transaction['amount'];
@@ -47,13 +58,13 @@ function user_money_table($memberID)
 
 function attendanceHistory($userEmail)
 {
-	return '<h2>Attendance History</h2><h3>Score: '. attendance($userEmail, 0) . '</h3><span style="color: gray; font-style: italic">Hover over a point change for explanation</span>' . attendance($userEmail, 2);
+	return '<h2>Attendance History</h2><h3>Score: '. attendance($userEmail)["finalScore"] . '</h3><span style="color: gray; font-style: italic">Hover over a point change for explanation</span>' . attendanceTable($userEmail);
 }
 
 function gigBlock($userEmail)
 {
 	global $SEMESTER;
-	$count = attendance($userEmail, 3);
+	$count = attendance($userEmail)["gigCount"];
 	$result = query("select `gigreq` from `semester` where `semester` = ?", [$SEMESTER], QONE);
 	if (! $result) die("Invalid semester");
 	$gigreq = $result['gigreq'];
@@ -70,23 +81,13 @@ function gigBlock($userEmail)
 function info($userEmail)
 {
 	global $SEMESTER, $CHOIR;
+	$info = memberInfo($userEmail);
 	$html = "";
-	$dues = query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ? and `type` = 'dues' and `semester` = ?", [$userEmail, $SEMESTER], QONE)["balance"];
-	if ($dues == '') $dues = 0;
-	$tie = query("select sum(`amount`) as `balance` from `transaction` where `memberID` = ? and `type` = 'deposit'", [$userEmail], QONE)["balance"];
-	if ($tie == '') $tie = 0;
 	$html .= "<table><tr><td>";
-	if ($dues >= 0) $html .= "<span class='color: green'><i class='icon-ok'></i></span>";
+	if ($info["dues"] >= 0) $html .= "<span class='color: green'><i class='icon-ok'></i></span>";
 	else $html .= "<span class='color: red'><i class='icon-remove'></i></span>";
-	$html .= "</td><td>Dues</td></tr><tr><td>";
-	if ($tie >= fee("tie")) $html .= "<span class='color: green'><i class='icon-ok'></i></span>";
-	else $html .= "<span class='color: red'><i class='icon-remove'></i></span>";
-	$html .= "</td><td>Tie Deposit</td></tr></table><br>";
-	$result = query("select `tie` from `tieBorrow` where `member` = ? and `dateIn` is null", [$userEmail], QONE);
-	if (! $result) $html .= "You do <b>not</b> have a tie checked out.";
-	else $html .= "You have tie <b>" . $result['tie'] . "</b> checked out.";
-	$html .= "<br>";
-	$balance = balance($userEmail);
+	$html .= "</td><td>Dues</td></tr></table><br>";
+	$balance = $info["balance"];
 	$choir = choirname($CHOIR);
 	if ($balance > 0) $html .= "$choir owes you <span style='font-weight: bold; color: blue'>\$$balance</span>.";
 	else if ($balance < 0) { $balance *= -1; $html .= "You owe $choir <span style='font-weight: bold; color: red'>\$$balance</span>."; }
@@ -108,7 +109,7 @@ function announcements($userEmail)
 		$timePosted = date( 'g:i a', $timestamp);
 		$op = $announcement['memberID'];
 		$mid = $announcement['announcementNo'];
-		$name = prefNameFromEmail($op);
+		$name = memberName($op, "pref");
 		$text = nl2br(htmlspecialchars($announcement["announcement"]));
 		if(hasPermission("edit-announcements")) $html .= "<div class='block' id='announce".$mid."'><p><b>$dayPosted $timePosted</b><i class='icon-remove archiveButton' onclick='archiveAnnouncement(".$mid.")' style='float: right'></i><br />$text<br /><small style='color:grey'>&mdash; $name</small></p></div>";
 		else $html .= "<div class='block'><p><b>$dayPosted $timePosted</b><br />".$announcement['announcement']."<br /><small style='color:grey'>&mdash;$name</small></p></div>";

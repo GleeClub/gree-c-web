@@ -9,7 +9,7 @@ foreach($carpools as $value){
 	if($id !== 'undefined'){
 		query("delete from `carpool` where `carpoolID` = ?", [$id]); //delete the driver
 		query("insert into `carpool` (`carpoolID`, `driver`, `eventNo`) values (?, ?, ?)", [$id, $driver, $eventNo]); //add the new driver
-		query("delete from `ridesIn` where `carpoolID` = ?", [$id]); //delete the ridesin
+		query("delete from `ridesin` where `carpoolID` = ?", [$id]); //delete the ridesin
 		query("insert into `ridesin` (`memberID`, `carpoolID`) values (?, ?)", [$driver, $id]); //add the driver to ridesin, if old driver
 	}
 	else{
