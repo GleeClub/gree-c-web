@@ -105,42 +105,42 @@ $choirname = choirname($CHOIR);
 	</div>
 	</div>
 	
-	<?php /* This is the prompt shown if the user's account is not confirmed */ ?>
-	<div class="modal hide fade" id='confirmModal'>
-		<div class="modal-header">
-		 	<button type="button" class="close" data-dismiss="modal">×</button>
-		    <h3>Confirm your account!</h3>
-		</div>
-		<div class="modal-body">
-			<p>Are you in <?php echo $choirname; ?> this semester?  If not, hit Close and you will still be able to view the site, but you won't be assessed dues or expected at events.  If you are returning, please verify the information below, then hit Confirm to confirm your account.</p>
-		<form class="form-horizontal">
-		    <div class="control-group">
-			<label class="control-label" style='font-weight: bold'>Registration:</label>
-			<div class="controls"><div class="btn-group" data-toggle="buttons-radio"><button type="button" class="btn" id="confirm_class">Class</button><button type="button" class="btn" id="confirm_club">Club</button></div></div>
-		    </div>
-		    <div class="control-group">
-			<label class="control-label" style='font-weight: bold'>Location:</label>
-			<div class="controls"><input type="text" id="confirm_location"></div>
-		    </div>
-		    <div class="control-group">
-			<label class="control-label" style='font-weight: bold'>Section:</label>
-			<div class="controls"><?php echo dropdown(sections(), "section"); ?></div>
-		    </div>
-		</form></div>
-		<div class="modal-footer">
-		    <a href="#" class="btn" style="color: inherit" data-dismiss="modal">Close</a>
-		    <a href="#" class="btn btn-primary" style="color: inherit" onclick="confirm_account()">Confirm</a>
-		</div>
-	</div>
-
 	<?php
 		if ($CHOIR && $USER != "")
 		{
 			$arr = query("select `location` from `member` where `email` = ?", [$USER], QONE);
-			if (! $arr) die("Invalid user");
+			if (! $arr) err("Invalid user");
 			$confirmed = query("select `member` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$USER, $SEMESTER, $CHOIR], QCOUNT) > 0;
 			if (! $confirmed)
 			{
+				?>
+				<div class="modal hide fade" id='confirmModal'>
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">×</button>
+						<h3>Confirm your account!</h3>
+					</div>
+					<div class="modal-body">
+						<p>Are you in <?php echo $choirname; ?> this semester?  If not, hit Close and you will still be able to view the site, but you won't be assessed dues or expected at events.  If you are returning, please verify the information below, then hit Confirm to confirm your account.</p>
+					<form class="form-horizontal">
+						<div class="control-group">
+						<label class="control-label" style='font-weight: bold'>Registration:</label>
+						<div class="controls"><div class="btn-group" data-toggle="buttons-radio"><button type="button" class="btn" id="confirm_class">Class</button><button type="button" class="btn" id="confirm_club">Club</button></div></div>
+						</div>
+						<div class="control-group">
+						<label class="control-label" style='font-weight: bold'>Location:</label>
+						<div class="controls"><input type="text" id="confirm_location"></div>
+						</div>
+						<div class="control-group">
+						<label class="control-label" style='font-weight: bold'>Section:</label>
+						<div class="controls"><?php echo dropdown(sections(), "section"); ?></div>
+						</div>
+					</form></div>
+					<div class="modal-footer">
+						<a href="#" class="btn" style="color: inherit" data-dismiss="modal">Close</a>
+						<a href="#" class="btn btn-primary" style="color: inherit" onclick="confirm_account()">Confirm</a>
+					</div>
+				</div>
+				<?php
 				$loc = addslashes($arr["location"]);
 				echo '<script>
 					$("#confirm_location").prop("value", "' . $loc . '");

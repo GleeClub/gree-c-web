@@ -24,7 +24,7 @@ if (isset($_POST["action"]))
 echo "<table class='table'><tr><th>Requested</th><th>Event</th><th>At</th><th>Contact</th><th>Comments</th><th>Action</th></tr>";
 foreach (query("select * from `gigreq` where `semester` = ? order by `timestamp` desc", [$SEMESTER], QALL) as $row)
 {
-	echo "<tr><td>" . $row["timestamp"] . "</td><td>" . $row["name"] . "</td><td>" . date("D, M j, Y", strtotime($row["startTime"])) . "<br>" . date("H:i A", strtotime($row["startTime"])). "<br>" . $row["location"] . "</td><td>" . $row["org"] . "<br>" . $row["cname"] . "<br><a href='tel:" . $row["cphone"] . "'>" . $row["cphone"] . "<br><a href='mailto:" . $row["cemail"] . "'>" . $row["cemail"] . "</a></td><td>" . $row["comments"] . "</td><td data-id='" . $row["id"] . "'>";
+	echo "<tr><td>" . $row["timestamp"] . "</td><td>" . $row["name"] . "</td><td>" . date("D, M j, Y", strtotime($row["startTime"])) . "<br>" . date("h:i A", strtotime($row["startTime"])). "<br>" . $row["location"] . "</td><td>" . $row["org"] . "<br>" . $row["cname"] . "<br><a href='tel:" . $row["cphone"] . "'>" . $row["cphone"] . "<br><a href='mailto:" . $row["cemail"] . "'>" . $row["cemail"] . "</a></td><td>" . $row["comments"] . "</td><td data-id='" . $row["id"] . "'>";
 	if ($row["status"] == "pending") echo "<button type='button' class='btn btn-success event-create'>Create Event</button>&nbsp;<button type='button' class='btn btn-danger event-dismiss'>Dismiss</button>";
 	else if ($row["status"] == "accepted")
 	{

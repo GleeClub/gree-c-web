@@ -211,6 +211,7 @@ function sectionFromEmail($email, $friendly = 0, $semester = "") // TODO Delete
 function hasPermission($perm, $eventType = "any")
 {
 	global $USER, $CHOIR;
+	if (! $CHOIR) return false;
 	$allowed = [];
 	$basesql = "select `role`.`name` as `roleName` from `role`, `rolePermission` where `rolePermission`.`permission` = ? and `rolePermission`.`role` = `role`.`id` and `role`.`choir` = ?";
 	if ($eventType == "any") $query = query($basesql, [$perm, $CHOIR], QALL);

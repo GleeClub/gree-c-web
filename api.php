@@ -14,19 +14,10 @@ function raw_reply($msg, $type = "text/plain", $attach = null)
 	exit(0);
 }
 
-function json_error($err)
+function reply($status, $arr = array())
 {
-	echo "{ \"status\": \"internal_error\", \"message\": \"JSON encoding error: $err\"}";
-}
-
-function utf8ize($mixed) // https://stackoverflow.com/questions/10199017/how-to-solve-json-error-utf8-error-in-php-json-decode
-{
-	if (is_array($mixed))
-		foreach ($mixed as $key => $value)
-			$mixed[$key] = utf8ize($value);
-	else if (is_string($mixed))
-		return utf8_encode($mixed);
-	return $mixed;
+	$arr["status"] = $status;
+	json_reply($arr);
 }
 
 function fold($str, $w, $sep)
@@ -39,38 +30,6 @@ function fold($str, $w, $sep)
 	}
 	$ret .= $str;
 	return $ret;
-}
-
-function reply($status, $arr = array())
-{
-	$arr["status"] = $status;
-	$ret = json_encode(utf8ize($arr));
-	switch (json_last_error())
-	{
-		case JSON_ERROR_NONE: echo($ret); break;
-		case JSON_ERROR_DEPTH: json_error("DEPTH"); break;
-		case JSON_ERROR_STATE_MISMATCH: json_error("STATE_MISMATCH"); break;
-		case JSON_ERROR_CTRL_CHAR: json_error("CTRL_CHAR"); break;
-		case JSON_ERROR_SYNTAX: json_error("SYNTAX"); break;
-		case JSON_ERROR_UTF8: json_error("UTF8"); break;
-		case JSON_ERROR_RECURSION: json_error("RECURSION"); break;
-		case JSON_ERROR_INF_OR_NAN: json_error("INF_OR_NAN"); break;
-		case JSON_ERROR_UNSUPPORTED_TYPE: json_error("UNSUPPORTED_TYPE"); break;
-		case JSON_ERROR_INVALID_PROPERTY_NAME: json_error("INVALID_PROPERTY_NAME"); break;
-		case JSON_ERROR_UTF16: json_error("UTF16"); break;
-		default: json_error("Unknown"); break;
-	}
-	exit(0);
-}
-
-function err($msg)
-{
-	reply("error", array("message" => $msg));
-}
-
-function internal_err($msg)
-{
-	reply("internal_error", array("message" => $msg));
 }
 
 function rowcast($res, $ints = [], $bools = []) // Ick.  This should be moved into the database.
@@ -154,12 +113,12 @@ case "gigreq":
 	$choirinfo = query("select `admin` from `choir` where `id` = ?", [$CHOIR], QONE);
 	if (! $choirinfo) err("Invalid choir");
 	$recipient = $choirinfo["admin"];
-	if (! mail($recipient, "New Gig Request", $message)) internal_err("Error sending notification mail");
+	if (! mail($recipient, "New Gig Request", $message)) err("Error sending notification mail", "Call to mail() failed in gig request via API");
 	reply("ok");
 case "calendar":
 	$id = get("event");
 	$event = query("select unix_timestamp(`gig`.`performanceTime`) as `start`, unix_timestamp(`event`.`releaseTime`) as `end`, `event`.`name` as `summary`, `gig`.`summary` as `description`, `event`.`location` as `location` from `event`, `gig` where `event`.`eventNo` = $id and `gig`.`eventNo` = ? and `event`.`choir` = ? and `gig`.`public` = 1", [$id, $CHOIR], QONE);
-	if (! $event) internal_err("Failed to retrieve event");
+	if (! $event) err("The event you requested does not appear to exist");
 	$timefmt = "Ymd\\THis\\Z";
 	$now = gmdate($timefmt);
 	$cal = array("UID" => "$now@$domain", "DTSTAMP" => "$now", "DTSTART" => gmdate($timefmt, $event["start"]), "DTEND" => gmdate($timefmt, $event["end"]), "SUMMARY" => $event["summary"], "DESCRIPTION" => $event["description"], "LOCATION" => $event["location"]);
@@ -231,10 +190,10 @@ case "carpools":
 	reply("ok", array("carpools" => $ret));
 case "updateCarpools":
 case "setlist":
-	internal_err("Unimplemented");
+	err("Unimplemented");
 default:
 	err("Unknown action \"$action\"");
 }
 
-internal_err("Missing reply");
+err("", "Control flow reached the end of api.php without a reply() call");
 ?>
