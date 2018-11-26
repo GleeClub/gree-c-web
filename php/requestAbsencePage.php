@@ -6,7 +6,7 @@ if(isset($_POST['eventNo'])){
 
 	//get the event name
 	$event = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
-	if (! $event) die("No such event");
+	if (! $event) err("No such event");
 	$eventName = $event["name"];
 
 	//make a drop down of possible replacements

@@ -7,7 +7,7 @@ function member_fields($email)
 	$fieldnames = array('firstName', 'prefName', 'lastName', 'email', 'phone', 'picture', 'passengers', 'onCampus', 'location', 'about', 'major', 'minor', 'techYear', 'hometown', 'gChat', 'twitter', 'gatewayDrug', 'conflicts');
 	$ret = array();
 	$member = query("select * from `member` where `email` = ?", [$email], QONE);
-	if (! $member) die("No such member");
+	if (! $member) err("No such member");
 	foreach ($fieldnames as $field) $ret[$field] = $member[$field];
 	$result = query("select `enrollment`, `section` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$email, $SEMESTER, $CHOIR], QONE);
 	if (! $result)
@@ -44,7 +44,7 @@ function member_edit($email)
 function basic_money_table($memberID, $resolved)
 {
 	global $CHOIR;
-	if (! $CHOIR) die("Choir is not set");
+	if (! $CHOIR) err("Choir is not set");
 	$transactions = query("select * from `transaction` where `memberID` = ? and `choir` = ? and `resolved` = ? order by `time` desc", [$memberID, $CHOIR, $resolved], QALL);
 	if (count($transactions) == 0) return "<span style='color: gray'>(No transactions)</span><br>";
 	$html = "<table>";
@@ -66,7 +66,7 @@ function basic_money_table($memberID, $resolved)
 		else $html.="<td class='center' style='color: red'>$amount</td>";
 		$html .= "<td>";
 		$result = query("select `name` from `transacType` where `id` = ?", [$type], QONE);
-		if (! $result) die("Invalid transaction type");
+		if (! $result) err("Invalid transaction type");
 		$typename = $result['name'];
 		if ($type == 'dues' || $type == 'deposit')
 		{
@@ -131,7 +131,7 @@ function tie_form($memberID)
 function active_semesters($memberID)
 {
 	global $CHOIR;
-	if (! $CHOIR) die("Choir is not set");
+	if (! $CHOIR) err("Choir is not set");
 	$table = "<style>table.semesters { width: auto; } table.semesters td { padding: 2px 10px; } select.section { margin-bottom: 0px; width: 10em; }</style><table class='semesters'><tr><th>Semester</th><th>Status</th><th>Section</th><th>Score</th></tr>";
 	foreach (query("select `semester` from `semester` order by `beginning` asc", [], QALL) as $result)
 	{
@@ -145,7 +145,7 @@ function active_semesters($memberID)
 			$enrollment = $active['enrollment'];
 			if ($enrollment == "club") $activebtn = 1;
 			else if ($enrollment == "class") $activebtn = 2;
-			else die("Invalid enrollment state");
+			else err("Invalid enrollment state");
 		}
 		if (hasPermission("edit-user")) $table .= "<tr data-semester='$semester'><td>$semester</td><td><div class='btn-group' data-toggle='buttons-radio'>" .
 			"<button class='btn btn-small semesterbutton" . ($activebtn == 0 ? ' active' : '') . "' data-val='0'>Inactive</button>" .
@@ -160,33 +160,33 @@ function active_semesters($memberID)
 }
 
 $denied = "You do not have access to this functionality.";
-if (! isset($_POST['email'])) die("Missing email parameter");
+if (! isset($_POST['email'])) err("Missing email parameter");
 
 switch ($_POST['tab'])
 {
 	case 'details':
-		if (! hasPermission("view-user-private-details")) die($denied);
+		if (! hasPermission("view-user-private-details")) err($denied);
 		echo member_details($_POST['email']);
 		break;
 	case 'details_edit':
-		if (! hasPermission("edit-user")) die($denied);
+		if (! hasPermission("edit-user")) err($denied);
 		echo member_edit($_POST['email']);
 		break;
 	case 'money':
-		if (! hasPermission("view-transactions")) die($denied);
+		if (! hasPermission("view-transactions")) err($denied);
 		echo money_table($_POST['email']);
 		break;
 	case 'attendance':
-		if (! hasPermission("view-attendance")) die($denied);
+		if (! hasPermission("view-attendance")) err($denied);
 		echo attendanceTable($_POST['email'], true);
 		echo "<div style='text-align: right'><a href='php/memberAttendance.php?id=" . $_POST['email'] . "'>Print view</a></div>";
 		break;
 	case 'tie':
-		if (! hasPermission("view-ties")) die($denied);
+		if (! hasPermission("view-ties")) err($denied);
 		echo tie_form($_POST['email']);
 		break;
 	case 'semesters':
-		if (! hasPermission("view-users")) die($denied);
+		if (! hasPermission("view-users")) err($denied);
 		echo active_semesters($_POST['email']);
 		break;
 	case 'col':

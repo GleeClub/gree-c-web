@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-if (! $CHOIR) die("Choir is not set");
+if (! $CHOIR) err("Choir is not set");
 
 $shouldHtml='<table class="every-other" width="100%"><tr><td><h3>Should Attend</h3></td></tr>';
 $shouldntHtml='<table class="every-other" width="100%"><tr><td><h3>Shouldn\'t Attend</h3></td></tr>';

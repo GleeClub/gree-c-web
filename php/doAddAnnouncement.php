@@ -1,10 +1,10 @@
 <?php
 require_once('functions.php');
 
-if (! $USER) die("Access denied");
-if (! $CHOIR) die("Choir not set");
+if (! $USER) err("Access denied");
+if (! $CHOIR) err("Choir not set");
 $row = query("select `name`, `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
-if (! $row) die("Choir is invalid");
+if (! $row) err("Choir is invalid");
 $sender = $row["name"] . " Officers <" . $row["admin"] . ">";
 $recipient = $row["name"] . " <" . $row["list"] . ">";
 

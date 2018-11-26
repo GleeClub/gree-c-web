@@ -7,7 +7,7 @@ if (! $email) $email = "";
 if (isset($_POST["user"]))
 {
 	$email = $_POST["user"];
-	if (! hasPermission("edit-user") && $email != $user) die("You do not have permission to change someone else's settings.");
+	if (! hasPermission("edit-user") && $email != $user) err("You do not have permission to change someone else's settings.");
 }
 
 $permitted = array("firstName", "prefName", "lastName", "email", "password", "phone", "picture", "passengers", "onCampus", "location", "about", "major", "minor", "hometown", "techYear", "gChat", "twitter", "gatewayDrug", "conflicts");
@@ -15,11 +15,11 @@ $required = array("firstName", "lastName", "email", "phone", "passengers", "onCa
 if (! $user) array_push($required, "choir", "password", "password2", "section");
 if (isset($_POST["onCampus"])) $_POST["onCampus"] = "1";
 else $_POST["onCampus"] = "0";
-foreach ($required as $field) if (! isset($_POST[$field]) || $_POST[$field] == "") die("Missing value for property \"$field\".");
+foreach ($required as $field) if (! isset($_POST[$field]) || $_POST[$field] == "") err("Missing value for property \"$field\".");
 
 $newemail = $_POST["email"];
 $validEmail = "/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._-]+)+$/";
-if (! preg_match($validEmail, $_POST["email"])) die("Invalid email");
+if (! preg_match($validEmail, $_POST["email"])) err("Invalid email");
 $newsect = $_POST["section"];
 $active = 1; // 1 if the user is active this semester
 $oldsect = 0;
@@ -29,29 +29,29 @@ if ($user)
 	if (! $res) $active = 0;
 	else $oldsect = $res["section"];
 }
-if (query("select * from `member` where `email` = ? and `email` != ?", [$newemail, $email], QCOUNT) > 0) die("That email address is already in use");
+if (query("select * from `member` where `email` = ? and `email` != ?", [$newemail, $email], QCOUNT) > 0) err("That email address is already in use");
 
 if (isset($_POST["password"]) && $_POST["password"] != "")
 {
-	if ($_POST["password"] != $_POST["password2"]) die("Passwords do not match");
+	if ($_POST["password"] != $_POST["password2"]) err("Passwords do not match");
 	$_POST["password"] = md5($_POST["password"]);
 }
 else unset($_POST["password"]);
 
-if (! preg_match("/[0-9]{9,14}/", $_POST["phone"])) die("Invalid phone number (proper format is just 10 digits)");
-if (! preg_match("/[0-9]{1,2}/", $_POST["passengers"])) die("Invalid number of passengers (must be an integer; 0 if you don't have a car)");
+if (! preg_match("/[0-9]{9,14}/", $_POST["phone"])) err("Invalid phone number (proper format is just 10 digits)");
+if (! preg_match("/[0-9]{1,2}/", $_POST["passengers"])) err("Invalid number of passengers (must be an integer; 0 if you don't have a car)");
 
 $reg = $_POST["registration"];
 if (! $user) $choir = $_POST["choir"];
 else $choir = $CHOIR;
-if ($reg != "class" && $reg != "club") die("Invalid registration");
+if ($reg != "class" && $reg != "club") err("Invalid registration");
 
 function check($msg)
 {
 	global $DB;
 	if (! $msg) return;
 	$DB->rollback();
-	die($msg);
+	err($msg);
 }
 $keys = [];
 $vals = [];

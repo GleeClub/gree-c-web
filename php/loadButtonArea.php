@@ -1,18 +1,18 @@
 <?php
 require_once('functions.php');
 
-if (! isset($_POST['eventNo'])) die("Missing event ID");
+if (! isset($_POST['eventNo'])) err("Missing event ID");
 $eventNo = $_POST['eventNo'];
 
 //get the event type
 $event = query("select *, unix_timestamp(`callTime`) as `call` from `event` where `eventNo` = ?", [$eventNo], QONE);
-if (! $event) die("That event does not exist");
+if (! $event) err("That event does not exist");
 $type = $event["type"];
 
 //determine whether the user said they were attending or not attending
 $attending = $_POST['attending'];
 
-if ($type != "volunteer" && $attending != 1) die("You can only confirm not attending for volunteer events.");
+if ($type != "volunteer" && $attending != 1) err("You can only confirm not attending for volunteer events.");
 
 if ($event["call"] < time() + 86400 && $attending != 1)
 {

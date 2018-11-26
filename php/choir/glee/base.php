@@ -2,14 +2,14 @@
 function attendance($member, $semester = "")
 {
 	global $SEMESTER, $CHOIR;
-	if ($semester == '') $semester = $SEMESTER;
-	if (! $CHOIR) die("No choir selected");
+	if ($semester == "") $semester = $SEMESTER;
+	if (! $CHOIR) err("No choir selected");
 
 	$retarr = [];
 	$score = 100;
 	$gigcount = 0;
 	$result = query("select `gigreq` from `semester` where `semester` = ?", [$semester], QONE);
-	if (! $result) die("Invalid semester");
+	if (! $result) err("Invalid semester");
 	$gigreq = $result['gigreq'];
 
 	$query = query("select `attends`.`eventNo`, `attends`.`shouldAttend`, `attends`.`didAttend`, `attends`.`minutesLate`, `attends`.`confirmed`, UNIX_TIMESTAMP(`event`.`callTime`) as `call`, UNIX_TIMESTAMP(`event`.`releaseTime`) as `release`, `event`.`name`, `event`.`type`, `eventType`.`name` as `typeName`, `event`.`points`, `event`.`gigcount` from `attends`, `event`, `eventType` where `attends`.`memberID` = ? and `event`.`eventNo` = `attends`.`eventNo` and `event`.`releaseTime` <= (current_timestamp - interval 1 day) and `event`.`type` = `eventType`.`id` and `event`.`semester` = ? and `event`.`choir` = ? order by `event`.`callTime` asc", [$member, $semester, $CHOIR], QALL);
@@ -142,11 +142,11 @@ function attendance($member, $semester = "")
 
 			$retarr[] = array("eventNo" => $event["eventNo"], "name" => $event["name"], "date" => $call, "type" => $type, "typeName" => $event["typeName"], "shouldAttend" => $shouldAttend, "didAttend" => $didAttend, "late" => $minutesLate, "pointChange" => $pointChange, "partialScore" => $score, "explanation" => $tip, "gigCount" => $curgig);
 		}
-		if ($sectDiff != 0) die("Error: sectional offset was $sectDiff");
+		if ($sectDiff != 0) err("Internal error calculating attendance", "Sectional offset was $sectDiff");
 	}
 	// Multiply the top half of the score by the fraction of volunteer gigs attended, if enabled
 	$result = query("select `gigCheck` from `variables`", [], QONE);
-	if (! $result) die("Could not retrieve variables");
+	if (! $result) err("Internal error calculating attendance", "Could not retrieve variables");
 	if ($result['gigCheck']) $score *= 0.5 + min(floatval($gigcount) * 0.5 / $gigreq, 0.5);
 	// Bound the final score between 0 and 100
 	if ($score > 100) $score = 100;

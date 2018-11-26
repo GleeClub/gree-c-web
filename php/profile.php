@@ -55,7 +55,7 @@ button.action
 
 <?php
 require_once('functions.php');
-if (! $USER) die("You must be logged in to view member profiles.");
+if (! $USER) err("You must be logged in to view member profiles.");
 $email = $_GET['person'];
 
 function basic_info($person)

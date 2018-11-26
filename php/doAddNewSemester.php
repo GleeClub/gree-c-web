@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! $USER || ! hasPermission("edit-semester")) die("DENIED");
+if (! $USER || ! hasPermission("edit-semester")) err("DENIED");
 $name = $_POST['name'];
 $sDD = $_POST['sDD'];
 $sMM = $_POST['sMM'];

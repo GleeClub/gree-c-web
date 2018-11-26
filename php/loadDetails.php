@@ -10,7 +10,7 @@ function isgig($event)
 function uniform($id) # FIXME Use the values stored in the database rather than rewriting them!
 {
 	$res = query("select `uniform`.`name` as `uniform` from `gig`, `uniform` where `gig`.`eventNo` = ? and `gig`.`uniform` = `uniform`.`id`", [$id], QONE);
-	if (! $res) die("No such gig");
+	if (! $res) err("No such gig");
 	$uni = $res['uniform'];
 	$background = '#aaa';
 	$html = '';
@@ -42,7 +42,7 @@ function uniform($id) # FIXME Use the values stored in the database rather than 
 }
 
 $event = query("select * from `event` where eventNo = ?", [$eventNo], QONE);
-if (! $event) die("The requested event could not be found: $eventNo.");
+if (! $event) err("The requested event could not be found: $eventNo.");
 $attends = query("select `shouldAttend`, `confirmed` from `attends` where `eventNo` = ? and `memberID` = ?", [$eventNo, $USER], QONE);
 if (! $attends)
 {

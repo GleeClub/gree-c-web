@@ -7,7 +7,7 @@ $myusername = $_POST['email'];
 $mypassword = $_POST['password'];
 
 
-if (query("select * from `member` where `email` = ? and `password` = md5(?)", [$myusername, $mypassword], QCOUNT) != 1) die("Wrong email or password");
+if (query("select * from `member` where `email` = ? and `password` = md5(?)", [$myusername, $mypassword], QCOUNT) != 1) err("Wrong email or password");
 // Register $myusername, $mypassword and redirect to file "login_success.php"
 //session_register("myusername");
 setcookie('email', cookie_string($myusername), time() + 60*60*24*120, '/', false, false);

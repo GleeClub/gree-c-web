@@ -1,22 +1,22 @@
 <?php
 require_once('functions.php');
 
-if (! hasPermission("process-gig-requests")) die("You do not have permission to access this page");
-if (! $CHOIR) die("Choir is not set");
+if (! hasPermission("process-gig-requests")) err("You do not have permission to access this page");
+if (! $CHOIR) err("Choir is not set");
 
 if (isset($_POST["action"]))
 {
-	if (! isset($_POST["id"])) die("Gig request ID not set");
+	if (! isset($_POST["id"])) err("Gig request ID not set");
 	$id = $_POST["id"];
 	if ($_POST["action"] == "accept")
 	{
-		if (! isset($_POST["event"])) die("Event number not set");
+		if (! isset($_POST["event"])) err("Event number not set");
 		$event = $_POST["event"];
 		query("update `gigreq` set `status` = 'accepted', `eventNo` = ? where `id` = ?", [$event, $id]);
 	}
 	else if ($_POST["action"] == "dismiss") query("update `gigreq` set `status` = 'dismissed' where `id` = ?", [$id]);
 	else if ($_POST["action"] == "restore") query("update `gigreq` set `status` = 'pending', `eventNo` = null where `id` = ?", [$id]);
-	else die("Unknown action \"" . $_POST["action"] . "\"");
+	else err("Unknown action \"" . $_POST["action"] . "\"");
 	echo "OK";
 	exit(0);
 }
@@ -33,7 +33,7 @@ foreach (query("select * from `gigreq` where `semester` = ? order by `timestamp`
 		echo "&nbsp;<button type='button' class='btn event-restore'>Reopen Request</button>";
 	}
 	else if ($row["status"] == "dismissed") echo "<button type='button' class='btn event-restore'>Reopen Request</a>";
-	else die("Unrecognized request status " . $row["status"]);
+	else err("Unrecognized request status " . $row["status"]);
 	echo "</td></tr>";
 }
 echo "</table>";

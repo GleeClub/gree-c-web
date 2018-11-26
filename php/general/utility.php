@@ -157,7 +157,7 @@ function listMembers($conditions = ["active"])
 		foreach ($conditions as $cond)
 		{
 			$query = $condqueries[$cond];
-			if (! $query) die("Invalid member filter \"$cond\"");
+			if (! $query) err("Invalid member filter \"$cond\"");
 			$conds[] = $query[0];
 			foreach ($query[1] as $var) $vars[] = $var;
 		}
@@ -248,7 +248,7 @@ function hasEventTypePermission($perm, $type = "any", $sect = 0)
 			if (hasPermission($perm, $type)) return true;
 			if (sectionFromEmail($USER) != $sect) return false;
 			return hasPermission("$perm-own-section", $type);
-		default: die("Unknown event permission $perm");
+		default: err("Failed to check permissions", "Unknown event permission $perm");
 	}
 }
 
@@ -256,7 +256,7 @@ function hasEventPermission($perm, $event)
 {
 	global $USER;
 	$ev = query("select `section`, `type` from `event` where `eventNo` = ?", [$event], QONE);
-	if (! $ev) die("Permission check failed: no matching event");
+	if (! $ev) err("Failed to check permissions", "Permission check failed: no matching event");
 	return hasEventTypePermission($perm, $ev["type"], $ev["section"]);
 }
 
@@ -331,10 +331,10 @@ function repertoire_delfile($id)
 	$file = $res["target"];
 	if ($file == "") return;
 	if ($res["storage"] != "local") return;
-	if (strpos($file, "/") !== false) die("Bad path in file");
+	if (strpos($file, "/") !== false) err("Failed to delete file", "Bad path in file $file");
 	$path = $docroot_external . $musicdir . "/" . $file;
 	if (! file_exists($path)) return;
-	if (! unlink($path)) die("Unlink failed");
+	if (! unlink($path)) err("Failed to delete file", "Unlink failed");
 }
 
 function todoBlock($userEmail, $form, $list)

@@ -20,7 +20,7 @@ if (hasPermission("view-user-private-details")) array_push($cols, "gigs", "score
 if (! isset($_GET["format"]) || $_GET["format"] == "normal")
 {
 	$gigreq = query("select `gigreq` from `semester` where `semester` = ?", [$SEMESTER], QONE);
-	if (! $gigreq) die("Bad semester");
+	if (! $gigreq) err("Bad semester");
 	$gigreq = $gigreq["gigreq"];
 
 	echo '<style>
@@ -104,5 +104,5 @@ else if ($_GET["format"] == "csv")
 		$i++;
 	}
 }
-else die("Unknown format \"" . $_GET["format"] . "\"");
+else err("Unknown format \"" . $_GET["format"] . "\"");
 ?>

@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! isset($USER) || ! hasPermission("edit-grading")) die("ACCESS_DENIED");
+if (! isset($USER) || ! hasPermission("edit-grading")) err("ACCESS_DENIED");
 
 $action = $_POST['action'];
 if ($action == 'gigcheck')
@@ -12,10 +12,10 @@ if ($action == 'gigcheck')
 else if ($action == 'gigreq')
 {
 	$num = $_POST['value'];
-	if (! isset($_POST["value"])) die("MISSING_PARAM");
+	if (! isset($_POST["value"])) err("MISSING_PARAM");
 	query("update `semester` set `gigreq` = ? where `semester` = ?", [$num, $SEMESTER]);
 	echo "OK";
 }
-else die("BAD_ACTION");
+else err("BAD_ACTION");
 ?>
 

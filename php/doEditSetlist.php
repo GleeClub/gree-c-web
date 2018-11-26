@@ -4,13 +4,13 @@ $action = $_POST["action"];
 $event = $_POST["event"];
 $song = $_POST["song"];
 $order = $_POST["order"];
-if (! hasEventPermission("edit-setlist", $event)) die("DENIED");
+if (! hasEventPermission("edit-setlist", $event)) err("DENIED");
 if ($action == "add")
 {
 	$next = query("select max(`order`) as `num` from `gigSong` where `event` = ?", [$event], QONE)["num"] + 1; // FIXME Won't work if gigSong table is empty?
 	query("insert into `gigSong` (`event`, `song`, `order`) values (?, ?, ?)", [$event, $song, $next]);
 	$row = query("select `title`, `key`, `pitch` from `song` where `id` = ?", [$song], QONE);
-	if (! $row) die("Song not found");
+	if (! $row) err("Song not found");
 	echo "<tr id='song$next'><td class='delcol' style='display: table-cell'><a href='#' class='set_del'><i class='icon-remove'></i></a></td><td>$next</td><td><a href='#song:$song'>" . $row['title'] . "</a></td><td>" . $row['key'] . "</td><td>" . $row['pitch'] . "</td></tr>";
 }
 else if ($action == "remove")
@@ -37,5 +37,5 @@ else if ($action == "arrange")
 	query($sql, $vars);
 	echo "OK";
 }
-else die("BAD_ACTION");
+else err("BAD_ACTION");
 ?>

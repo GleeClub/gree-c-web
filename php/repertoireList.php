@@ -1,6 +1,6 @@
 <div class="span3 block" id=repertoire_list><?php
 require_once('functions.php');
-if (! $CHOIR) die("Not logged in"); # FIXME
+if (! $CHOIR) err("Not logged in"); # FIXME
 $results = query("select `id`, `title` from `song` where `current` = 1 and `choir` = ? order by `title` asc", [$CHOIR], QALL);
 if ($USER && hasPermission("edit-repertoire")) echo "<div style=\"padding-top: 5px\"><button class=btn style=\"padding: 5px; width: 100%\" id=repertoire_add>Add Song...</button></div>";
 echo "<style>td.repertoire_head { font-size: 12pt; font-weight: bold; }</style>";

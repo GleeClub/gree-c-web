@@ -1,12 +1,12 @@
 <?php
 require_once('./functions.php');
 
-if (! hasPermission("edit-transaction")) die("DENIED");
+if (! hasPermission("edit-transaction")) err("DENIED");
 
 $id = $_POST['id'];
 $action = $_POST['action'];
 if (! isset($id))
-	die("NO_ID");
+	err("NO_ID");
 if ($action == 'remove')
 	query("delete from `transaction` where `transactionID` = ?", [$id]);
 else if ($action == 'resolve')

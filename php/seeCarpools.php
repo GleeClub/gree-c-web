@@ -78,7 +78,7 @@ foreach (query("select * from `carpool` where `eventNo` = ?", [$eventNo], QALL) 
 		}
 	}
 	$event = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
-	if (! $event) die("No such event exists");
+	if (! $event) err("No such event exists");
 	$html .= '</div>';//end passengers div
 	$html .= '<div style="display: inline-block; width: 100%"><a href="mailto:' . rawurlencode($emails) . '?subject=' . rawurlencode('Carpool for ' . $event['name']) . '" class="btn pull-right"><i class="icon-envelope"></i>&nbsp;Mail this carpool</a></div>';
 	$html .= "</div>";//end carpool div

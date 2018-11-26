@@ -1,6 +1,6 @@
 <?
 require_once('functions.php');
-if (! hasPermission("view-ties")) die("DENIED");
+if (! hasPermission("view-ties")) err("DENIED");
 
 function tietable($query)
 {

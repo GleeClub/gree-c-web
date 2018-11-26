@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! hasPermission("view-transactions")) die("Access denied");
+if (! hasPermission("view-transactions")) err("Access denied");
 
 function transacTypes()
 {
@@ -38,7 +38,7 @@ case 'row':
 	echo "<tr class='trans_row'><td>" . memberDropdown() . "</td><td>" . transacTypes() . "</td><td>" . semesterDropdown() . "</td><td><input type='text' class='amount' data-amount-dues='$dues' data-amount-deposit='$deposit' placeholder='Amount' style='width: 60px'></input></td><td><input type='text' class='description' placeholder='Description' maxlength='500'></input></td><td><input type='checkbox' class='receipt'> Send receipt</td><td><button type='button' class='btn cancel'><i class='icon-remove'></i></button></td></tr>";
 	break;
 default:
-	die("Unknown action $_POST[action]");
+	err("Unknown action $_POST[action]");
 }
 
 ?>

@@ -3,7 +3,7 @@
 require_once('functions.php');
 echo "<div id='roster_table' style='width: 100%'><img style='width: 28px; height: 28px; display: block; margin: 0px auto' src='/images/loading.gif'></div>";
 
-if (! hasPermission("view-users")) die("Not authorized");
+if (! hasPermission("view-users")) err("Not authorized");
 echo "<br><br>";
 	//<div class='btn-group'><button class='btn filter active' data-toggle='button' data-cond='b2'>B2</button><button class='btn filter active' data-toggle='button' data-cond='b1'>B1</button><button class='btn filter active' data-toggle='button' data-cond='t2'>T2</button><button class='btn filter active' data-toggle='button' data-cond='t1'>T1</button></div>
 echo "<span class='pull-left'><div class='btn-toolbar' style='display: inline-block' id='roster_filters'>
@@ -16,11 +16,11 @@ echo "<span class='pull-right' id='roster_ops'>";
 if (hasPermission("edit-grading"))
 {
 	$result = query("select `gigreq` from `semester` where `semester` = ?", [$SEMESTER], QONE);
-	if (! $result) die("Bad semester");
+	if (! $result) err("Bad semester");
 	$gigreq = $result['gigreq'];
 	echo "Volunteer gig requirement:  <input type='text' id='gigreq' style='width: 20px; margin-bottom: 0px' value='$gigreq'><button class='btn' onclick='setGigReq($(\"#gigreq\").attr(\"value\"))'>Go</button><span class='spacer'></span><div style='display: inline-block'><input type='checkbox' style='margin-top: -16px' name='gigcheck' onclick='setGigCheck($(this).attr(\"checked\"))'";
 	$result = query("select `gigCheck` from `variables`", [], QONE);
-	if (! $result) die("Missing variables");
+	if (! $result) err("Missing variables");
 	if ($result['gigCheck']) echo " checked";
 	echo "> <div style='display: inline-block'>Include gig requirement<br>in grade calculation</div></div>";
 }

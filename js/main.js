@@ -712,7 +712,7 @@ function loadUniformActions()
 		var row = $(this).parent().parent();
 		$.post("php/admin.php", { type : "uniform", action : "add", id : id, name : name, desc : desc }, function(data) {
 			var res = data.split("\n");
-			if (res[0] != "OK") alert(res[1]);
+			if (res[0] != "OK") alert(data);
 			else
 			{
 				row.replaceWith(res[1]);
@@ -2192,7 +2192,7 @@ function loadSong(songid, canEdit)
 						$('#spinner').css('display', 'inline');
 						$.post('php/doEditLink.php', { action : "new", type : section, song : songid }, function(data) {
 							$('#spinner').css('display', 'none');
-							if (data == 'FAIL') alert("Error:  " + data);
+							if (! /^\d+$/.test(data)) alert("Error:  " + data);
 							else
 							{
 								$('#block_' + section).append("<div id=\"file_" + data + "\"><span class=\"link_actions\"><a class=\"rep_remove\"><i class=\"icon-remove\"></i></a> <a class=\"rep_rename\"><i class=\"icon-pencil\"></i></a></span> <span class=\"link_main\"><a name=\"null\" href=\"#\" target=\"_blank\"></a></span></div>");

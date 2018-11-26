@@ -6,7 +6,7 @@
 	$arr = explode(" ", $email);
 	$email = $arr[0];
 	$time = intval($arr[1]);
-	if (time() - $time > 1800) die("Link has expired, please request a reset again.");
+	if (time() - $time > 1800) err("Link has expired, please request a reset again.");
 	if ($p1 == $p2) {
 		$pass = md5($p1);
 		query("update `member` set `password` = ? where `email` = ?", [$pass, $email]);

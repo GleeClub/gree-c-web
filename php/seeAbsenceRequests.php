@@ -1,7 +1,7 @@
 <?php
 
 require_once('./functions.php');
-if (! hasPermission("process-absence-requests")) die("You don't have permission to do this.");
+if (! hasPermission("process-absence-requests")) err("You don't have permission to do this.");
 
 $style = "
 <style>
@@ -63,7 +63,7 @@ foreach ($requests as $request)
 	if($request["replacement"]!="")
 	{
 		$result = query("select  `member`.`firstName`, `member`.`lastName` from  `member` where `member`.`email` = ?", [$request["replacement"]], QONE);
-		if (! $result) die("Replacement is not a valid member");
+		if (! $result) err("Replacement is not a valid member");
 		$replacement = $result["firstName"] . " " . $result["lastName"];
 	}
 

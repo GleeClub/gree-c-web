@@ -3,7 +3,7 @@
 
 function cpnullcheck($res)
 {
-	if (! $res) die("No such member");
+	if (! $res) err("No such member");
 	return $res;
 }
 

@@ -50,16 +50,16 @@ function absenceEmail($recipient, $state, $event)
 	</body>
 	</html>
 	';
-	if (! $CHOIR) die("Choir not set");
+	if (! $CHOIR) err("Choir not set");
 	$info = query("select `name`, `admin` from `choir` where `id` = ?", [$CHOIR], QONE);
-	if (! $info) die("Invalid choir");
+	if (! $info) err("Invalid choir");
 	$sender = $info["name"] . " Officers <" . $info["admin"] . ">";
 	$headers = "Content-type: text/html\r\nX-Mailer: PHP/".phpversion()."\r\nReply-To: $sender";
 	mail($recipient, $subject, $message, $headers);
 }
 
-if (! hasPermission("process-absence-requests")) die("<td align='center' colspan='7' class='data'>You don't have permission to do this.</td>");
-if (! isset($_POST['eventNo'])) die("<td align='center' colspan='7' class='data' style='font-weight:bold'>Something went wrong. :0</td>");
+if (! hasPermission("process-absence-requests")) err("<td align='center' colspan='7' class='data'>You don't have permission to do this.</td>");
+if (! isset($_POST['eventNo'])) err("<td align='center' colspan='7' class='data' style='font-weight:bold'>Something went wrong. :0</td>");
 
 $eventNo = $_POST["eventNo"];
 $email = $_POST["email"];
@@ -79,7 +79,7 @@ else if ($action == "deny")
 else if ($action == "toggle")
 {
 	$reqstate = query("select `state` from `absencerequest` where `memberID` = ? and `eventNo` = ?", [$email, $eventNo], QONE);
-	if (! $reqstate) die("Could not find absence request");
+	if (! $reqstate) err("Could not find absence request");
 	if ($reqstate["state"] == "confirmed")
 	{
 		$state = "denied";
@@ -98,12 +98,12 @@ query("update `attends` set `shouldAttend` = ?, `confirmed` = ? where `memberID`
 
 // Notify the requester
 $evname = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
-if (! $evname) die("Could not find event");
+if (! $evname) err("Could not find event");
 absenceEmail($email, $state, $evname["name"]);
 
 //get the updated information to plug back into the row
 $request = query("select  `absencerequest`.`eventNo` ,  `absencerequest`.`time` ,  `absencerequest`.`reason` ,  `absencerequest`.`replacement` ,  `absencerequest`.`memberID` ,  `absencerequest`.`state` ,  `event`.`callTime` , `event`.`name` ,  `member`.`firstName` ,  `member`.`lastName` from  `absencerequest` ,  `member` ,  `event` where  `absencerequest`.`eventNo` = ? and `event`.`eventNo` = ? and `absencerequest`.`memberID` = ? and `member`.`email` = ?", [$eventNo, $eventNo, $email, $email], QONE);
-if (! $request) die("Could not find absence request");
+if (! $request) err("Could not find absence request");
 
 $eventNo = $request["eventNo"];
 $time = $request["time"];

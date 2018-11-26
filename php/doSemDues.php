@@ -8,7 +8,7 @@ if (! hasPermission("edit-transaction"))
 }
 
 $type = $_POST["type"];
-if (! $CHOIR) die("Choir is not set");
+if (! $CHOIR) err("Choir is not set");
 if ($type == "dues")
 {
 	$dues = -1 * fee("dues");
@@ -30,6 +30,6 @@ else if ($type == "late")
 		query("insert into `transaction` (`memberID`, `choir` `amount`, `description`, `semester`, `type`) values (?, ?, ?, ?, ?, ?)", [$member, $CHOIR, $fee, "Late fee", $SEMESTER, "dues"]);
 	}
 }
-else die("Bad request type");
+else err("Bad request type");
 echo "OK";
 ?>

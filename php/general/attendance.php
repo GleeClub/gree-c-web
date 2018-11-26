@@ -40,7 +40,7 @@ function getSingleEventAttendanceRow($eventNo, $memberID)
 	if (! $member)
 	{
 		$member = query("select * from `member` where `email` = ?", [$memberID], QONE);
-		if (! $member) die("No such member exists");
+		if (! $member) err("No such member exists");
 		$firstName = $member['firstName'];
 		$lastName = $member['lastName'];
 		$shouldAttend = 0;

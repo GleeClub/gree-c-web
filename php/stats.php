@@ -14,7 +14,7 @@ if (! $USER)
 		</div>
 	';
 	echo $html;
-	die();
+	err();
 }
 
 function user_money_table($memberID)
@@ -33,7 +33,7 @@ function user_money_table($memberID)
 		$sem = $transaction['semester'];
 		$time = strftime("%b %d, %Y", strtotime($time));
 		$result = query("select `name` from `transacType` where `id` = ?", [$type], QONE);
-		if (! $result) die("Bad transaction type");
+		if (! $result) err("Bad transaction type");
 		$typename = $result['name'];
 		$desc = '';
 		if ($type == 'dues' || $type == 'deposit')
@@ -66,7 +66,7 @@ function gigBlock($userEmail)
 	global $SEMESTER;
 	$count = attendance($userEmail)["gigCount"];
 	$result = query("select `gigreq` from `semester` where `semester` = ?", [$SEMESTER], QONE);
-	if (! $result) die("Invalid semester");
+	if (! $result) err("Invalid semester");
 	$gigreq = $result['gigreq'];
 	if ($count < $gigreq) $precentProgress = floor(100 * $count / $gigreq);
 	else $precentProgress = 100;

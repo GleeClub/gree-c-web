@@ -1,10 +1,10 @@
 <?php
 require_once('functions.php');
-if (! hasPermission("edit-user")) die("DENIED");
+if (! hasPermission("edit-user")) err("DENIED");
 
 $member = $_POST['email'];
 $semester = $_POST['semester'];
-if (! $CHOIR) die("No choir currently selected");
+if (! $CHOIR) err("No choir currently selected");
 $wasactive = query("select `member` from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$member, $semester, $CHOIR], QCOUNT) > 0;
 if (isset($_POST['confirmed']))
 {
@@ -19,18 +19,18 @@ if (isset($_POST['confirmed']))
 	}
 	//if ($value == '1') $query = "insert into `activeSemester` (`member`, `semester`) values ('$member', '$semester')";
 	//else if ($value == '0') $query = "delete from `activeSemester` where `member` = '$member' and `semester` = '$semester'";
-	else die("BAD_VALUE $value");
+	else err("BAD_VALUE $value");
 }
 if (isset($_POST['section']))
 {
 	$section = $_POST['section'];
-	if (! $wasactive) die("Can't change section for inactive semester");
+	if (! $wasactive) err("Can't change section for inactive semester");
 	$DB->begin_transaction();
 	$err = updateSection($member, $semester, $CHOIR, $section);
 	if ($err)
 	{
 		$DB->rollback();
-		die("Error changing section: " . $err);
+		err("Error changing section: " . $err);
 	}
 	$DB->commit();
 }

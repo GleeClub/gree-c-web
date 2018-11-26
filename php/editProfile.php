@@ -15,7 +15,7 @@ $userinfo = array();
 if ($USER)
 {
 	$userinfo = query("select * from `member` where `email` = ?", [$USER], QONE);
-	if (! $userinfo) die("Invalid user");
+	if (! $userinfo) err("Invalid user");
 	$row = query("select `enrollment` from `activeSemester` where `member` = ? and `semester` = ?", [$USER, $SEMESTER], QONE);
 	if (! $row) $userinfo["registration"] = "inactive";
 	else $userinfo["registration"] = $row["enrollment"];

@@ -16,7 +16,7 @@ require_once('./functions.php');
 }*/
 
 $treasurerEmail = getPosition("Treasurer")[0];
-if (! $CHOIR) die("Choir is not set");
+if (! $CHOIR) err("Choir is not set");
 if(isset($_POST['emails']))
 {
 	$emailArr = json_decode($_POST['emails']);
@@ -38,7 +38,7 @@ if(isset($_POST['emails']))
 			$msg .= "<br />Name: " . $name;
 			$msg .= "<br />Semester:  " . $semArr[$count];
 			$result = query("select `name` from `transacType` where `id` = ?", [$typeArr[$count]], QONE);
-			if (! $result) die("Could not find matching transaction type");
+			if (! $result) err("Could not find matching transaction type");
 			$msg .= "<br />Category:  " . $result['name'];
 			$msg .= "<br />Amount: " . $amountArr[$count];
 			$msg .= "<br />Description: " . $descriptionArr[$count];

@@ -1,8 +1,8 @@
 <?php
 require_once('functions.php');
-if (! $USER) die("You must be logged in to view repertoire.");
+if (! $USER) err("You must be logged in to view repertoire.");
 $result = query("select * from `song` where `id` = ?", [$_POST["id"]], QONE);
-if (! $result) die("Bad song ID");
+if (! $result) err("Bad song ID");
 $title = $result['title'];
 $desc = $result['info'];
 $key = $result['key'];

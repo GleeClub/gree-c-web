@@ -16,21 +16,21 @@ function gcalUpdate($id, $title, $location, $desc, $unixstart, $unixend)
 $id = $_POST['id'];
 $name = $_POST['name'];
 $type = $_POST['type'];
-if (! hasEventPermission("modify", $id)) die("Access denied");
+if (! hasEventPermission("modify", $id)) err("Access denied");
 
-#if ($type < 0 || $type > 4) die("Bad event type"); # TODO
-if (! valid_date($_POST['calldate'])) die("Bad call date");
-if (! valid_date($_POST['donedate'])) die("Bad done date");
-if (! valid_time($_POST['calltime'])) die("Bad call time");
-if (! valid_time($_POST['donetime'])) die("Bad done time");
+#if ($type < 0 || $type > 4) err("Bad event type"); # TODO
+if (! valid_date($_POST['calldate'])) err("Bad call date");
+if (! valid_date($_POST['donedate'])) err("Bad done date");
+if (! valid_time($_POST['calltime'])) err("Bad call time");
+if (! valid_time($_POST['donetime'])) err("Bad done time");
 $perftime = $_POST['perftime'];
 if ($perftime == '') $perftime = $_POST['calltime'];
-if (! valid_time($perftime)) die("Badd performance time");
+if (! valid_time($perftime)) err("Badd performance time");
 $unixcall = strtotime($_POST['calldate'] . ' ' . $_POST['calltime']);
 $unixperf = strtotime($_POST['calldate'] . ' ' . $perftime);
 $unixdone = strtotime($_POST['donedate'] . ' ' . $_POST['donetime']);
-if ($unixcall > $unixdone) die("Event must start before it ends");
-if (($type == 'volunteer' || $type == 'tutti') && ($unixperf < $unixcall || $unixperf > $unixdone)) die("Performance time must be between start and end");
+if ($unixcall > $unixdone) err("Event must start before it ends");
+if (($type == 'volunteer' || $type == 'tutti') && ($unixperf < $unixcall || $unixperf > $unixdone)) err("Performance time must be between start and end");
 $call = date("Y-m-d H:i:s", $unixcall);
 $perf = date("Y-m-d H:i:s", $unixperf);
 $done = date("Y-m-d H:i:s", $unixdone);

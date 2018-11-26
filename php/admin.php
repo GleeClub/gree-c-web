@@ -1,8 +1,8 @@
 <?php
 require_once('functions.php');
 
-if (! hasPosition($USER, "President") && ! hasPosition($USER, "Webmaster")) die("You do not have permission to access this page");
-if (! $CHOIR) die("Choir is not set");
+if (! hasPosition($USER, "President") && ! hasPosition($USER, "Webmaster")) err("You do not have permission to access this page");
+if (! $CHOIR) err("Choir is not set");
 
 function uniformRow($id, $name, $desc)
 {
@@ -16,7 +16,7 @@ if (isset($_POST["type"]))
 	{
 		$name = $_POST['name'];
 		$url = $_POST['url'];
-		if (preg_match("[^A-Za-z0-9 _-]")) die("Permitted characters in name: A-Z a-z 0-9 underscore hyphen space");
+		if (preg_match("[^A-Za-z0-9 _-]")) err("Permitted characters in name: A-Z a-z 0-9 underscore hyphen space");
 		if ($_POST['action'] == "delete")
 			query("delete from `gdocs` where `name` = ? and `choir` = ?", [$name, $choir]);
 		else if (query("select * from `gdocs` where `name` = ?", [$name], QCOUNT) > 0)
@@ -32,7 +32,7 @@ if (isset($_POST["type"]))
 	}
 	else if ($_POST["type"] == "perm")
 	{
-		#if (! hasPermission("edit-permissions")) die("Error: You cannot edit permissions");
+		#if (! hasPermission("edit-permissions")) err("Error: You cannot edit permissions");
 		$role = $_POST["role"];
 		$perm = $_POST["perm"];
 		$evtype = false;
@@ -55,16 +55,16 @@ if (isset($_POST["type"]))
 	}
 	else if ($_POST["type"] == "uniform")
 	{
-		#if (! hasPermission("edit-uniforms")) die("Error: You cannot edit uniforms");
+		#if (! hasPermission("edit-uniforms")) err("Error: You cannot edit uniforms");
 		$action = $_POST["action"];
-		if (! isset($_POST["id"])) die("Missing event ID");
+		if (! isset($_POST["id"])) err("Missing event ID");
 		$id = $_POST["id"];
 		$name = $_POST["name"];
 		$desc = $_POST["desc"];
 		if ($action == "add")
 		{
-			if (! isset($_POST["name"])) die("Missing name parameter");
-			if (! isset($_POST["desc"])) die("Missing desc parameter");
+			if (! isset($_POST["name"])) err("Missing name parameter");
+			if (! isset($_POST["desc"])) err("Missing desc parameter");
 			query("insert into `uniform` (`id`, `choir`, `name`, `description`) values (?, ?, ?, ?)", [$id, $CHOIR, $name, $desc]);
 			echo "OK\n" . uniformRow($id, $name, $desc);
 			exit(0);
@@ -73,13 +73,13 @@ if (isset($_POST["type"]))
 			query("delete from `uniform` where `choir` = ? and `id` = ?", [$CHOIR, $id]);
 		else if ($action == "edit")
 		{
-			if (! isset($_POST["name"])) die("Missing name parameter");
-			if (! isset($_POST["desc"])) die("Missing desc parameter");
+			if (! isset($_POST["name"])) err("Missing name parameter");
+			if (! isset($_POST["desc"])) err("Missing desc parameter");
 			query("update `uniform` set `name` = ?, `description` = ? where `choir` = ? and `id` = ?", [$name, $desc, $CHOIR, $id]);
 		}
-		else die("Invalid action " . $action);
+		else err("Invalid action " . $action);
 	}
-	else die("Invalid update type " . $_POST["type"]);
+	else err("Invalid update type " . $_POST["type"]);
 	echo "OK";
 	exit(0);
 } ?>

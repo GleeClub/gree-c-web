@@ -4,7 +4,7 @@ require_once("vars.php");
 
 function evnullcheck($result, $kind = "event")
 {
-	if (! $result) die("Could not find matching $kind");
+	if (! $result) err("Could not find matching $kind");
 	return $result;
 }
 
@@ -47,7 +47,7 @@ function buttonArea($eventNo, $typeid)
 {
 	global $USER;
 	$callTime = query("select `callTime` from `event` where `eventNo` = ?", [$eventNo], QONE);
-	if (! $callTime) die("Invalid event ID");
+	if (! $callTime) err("Invalid event ID");
 	$soon = 0;
 	if (strtotime($callTime["callTime"]) < time() + 86400) $soon = 1;
 	

@@ -41,7 +41,7 @@ function eventEmail($eventNo)
 	GLOBAL $BASEURL, $CHOIR;
 
 	$eventResults = query("select `event`.`name` as `eventName`, `event`.`callTime`, `event`.`releaseTime`, `event`.`comments`, `event`.`location`, `uniform`.`name` as `uniformName`, `eventType`.`name` as `eventTypeName` from `event`, `gig`, `uniform`, `eventType` where `event`.`eventNo` = ? and `gig`.`eventNo` = `event`.`eventNo` and `uniform`.`id` = `gig`.`uniform` and `eventType`.`id` = `event`.`type`", [$eventNo], QONE);
-	if (! $eventResults) die("Bad event ID");
+	if (! $eventResults) err("Bad event ID");
 	$eventName = $eventResults['eventName'];
 	$typeName = $eventResults['eventTypeName'];
 	$eventTime = $eventResults['callTime'];
@@ -57,9 +57,9 @@ function eventEmail($eventNo)
 	$redirectURL = "$BASEURL/php/fromEmail.php";
 	$eventUrl = "$BASEURL/#event:$eventNo";
 
-	if (! $CHOIR) die("Choir not set");
+	if (! $CHOIR) err("Choir not set");
 	$row = query("select `name`, `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
-	if (! $row) die("Invalid choir");
+	if (! $row) err("Invalid choir");
 	$sender = $row["name"] . " Officers <" . $row['admin'] . ">";
 	$recipient = $row["name"] . " <" . $row['list'] . ">";
 	//$recipient = "Matthew Schauer <awesome@gatech.edu>";
@@ -82,14 +82,14 @@ function eventEmail($eventNo)
 	if ($typeName == "Volunteer Gig") $message .= $yesform . "&nbsp;&nbsp;" . $noform;
 	else if ($typeName == "Tutti Gig") $message .= $yesform;
 	$message .= '</body></html>';
-	if (! mail($recipient, $subject, $message, $headers)) die("Failed to send event email");
+	if (! mail($recipient, $subject, $message, $headers)) err("Failed to send event email");
 }
 
 // Add to event, and everyone's attending
 function createEvent($name, $type, $call, $done, $location, $points, $sem, $comments, $gigcount, $section, $defattend)
 {
 	global $SEMESTER, $CHOIR; // FIXME Why are we using $sem in some places and $SEMESTER in others?  I think this is wrong.
-	if (! $CHOIR) die("No choir currently selected");
+	if (! $CHOIR) err("No choir currently selected");
 	$eventNo = query(
 		"insert into event (name, choir, callTime, releaseTime, points, comments, type, location, semester, gigcount, defaultAttend) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		[$name, $CHOIR, $call, $done, $points, $comments, $type, $location, $sem, $gigcount, $defattend], QID
@@ -120,8 +120,8 @@ function createGig($name, $tutti, $call, $perform, $done, $location, $points, $s
 // Add to event, and only one section is attending if defined by $section
 function createRehearsal($name, $type, $call, $done, $location, $points, $sem, $comments, $section, $defattend)
 {
-	if ($type != 'rehearsal' && $type != 'sectional') die("Internal error 1 in createRehearsal; type is $type");
-	if ($type == 'rehearsal' && $section != 0) die("Internal error 2 in createRehearsal; type is $type");
+	if ($type != 'rehearsal' && $type != 'sectional') err("Internal error 1 in createRehearsal; type is $type");
+	if ($type == 'rehearsal' && $section != 0) err("Internal error 2 in createRehearsal; type is $type");
 
 	$attend = 0;
 	if ($section) $attend = $section;
@@ -135,43 +135,43 @@ $eventNo = array();
 $repeat = $_POST['repeat'];
 $type = $_POST['type'];
 $defattend = isset($_POST['defaultAttend']) ? 1 : 0;
-if (! in_array($type, array("volunteer", "tutti", "rehearsal", "sectional", "ombuds", "other"))) die("Bad event type \"$type\"");
-if (! hasEventTypePermission("create", $type)) die("Access denied");
+if (! in_array($type, array("volunteer", "tutti", "rehearsal", "sectional", "ombuds", "other"))) err("Bad event type \"$type\"");
+if (! hasEventTypePermission("create", $type)) err("Access denied");
 
-if (! valid_date($_POST['calldate'])) die("Bad call date");
-if (! valid_date($_POST['donedate'])) die("Bad done date");
-if (! valid_time($_POST['calltime'])) die("Bad call time");
-if (! valid_time($_POST['donetime'])) die("Bad done time");
+if (! valid_date($_POST['calldate'])) err("Bad call date");
+if (! valid_date($_POST['donedate'])) err("Bad done date");
+if (! valid_time($_POST['calltime'])) err("Bad call time");
+if (! valid_time($_POST['donetime'])) err("Bad done time");
 
 $unixcall = strtotime($_POST['calltime'] . ' ' . $_POST['calldate']);
 $call = date('Y-m-d H:i:s', $unixcall);
 $unixdone = strtotime($_POST['donetime'] . ' ' . $_POST['donedate']);
 $done = date('Y-m-d H:i:s', $unixdone);
-if ($unixdone <= $unixcall) die("Event ends before it begins");
+if ($unixdone <= $unixcall) err("Event ends before it begins");
 $interval = "";
 
 if ($type == 'volunteer' || $type == 'tutti')
 {
 	$perftime = $_POST['perftime'];
 	if ($perftime == '') $perftime = $_POST['calltime'];
-	if (! valid_time($perftime)) die("Bad performance time");
+	if (! valid_time($perftime)) err("Bad performance time");
 	$unixperform = strtotime($perftime . ' ' . $_POST['calldate']);
 	$perform = date('Y-m-d H:i:s', $unixperform);
-	if ($unixperform < $unixcall || $unixperform > $unixdone) die("Performance time not between start and end");
+	if ($unixperform < $unixcall || $unixperform > $unixdone) err("Performance time not between start and end");
 	$eventNo[] = createGig($_POST['name'], ($type == 'tutti' ? 1 : 0), $call, $perform, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], $_POST['uniform'], $_POST['cname'], $_POST['cemail'], $_POST['cphone'], $_POST['price'], isset($_POST['gigcount']) ? 1 : 0, isset($_POST['public']) ? 1 : 0, $_POST['summary'], $_POST['description'], $defattend);
 }
 else
 {
 	if ($repeat != '' && $repeat != 'no')
 	{
-		if (! valid_date($_POST['until'])) die("Bad repeat-until date");
+		if (! valid_date($_POST['until'])) err("Bad repeat-until date");
 		$dur = $unixdone - $unixcall;
 		if ($repeat == "daily") $interval = '+1 day';
 		else if ($repeat == "weekly") $interval = '+1 week';
 		else if ($repeat == "biweekly") $interval = '+2 weeks';
 		else if ($repeat == "monthly") $interval = '+1 month';
 		else if ($repeat == "yearly") $interval = '+1 year';
-		else die("Bad repeat mode");
+		else err("Bad repeat mode");
 		$end = strtotime('11:59 PM ' . $_POST['until']);
 		$cur = $unixcall;
 		while ($cur < $end)
@@ -188,7 +188,7 @@ else
 	else $eventNo[] = createEvent($_POST['name'], $type, $call, $done, $_POST['location'], $_POST['points'], $_POST['semester'], $_POST['comments'], 0, 0, $defattend);
 }
 
-if ($eventNo[0] < 0) die("Error " . $eventNo[0]);
+if ($eventNo[0] < 0) err("Error " . $eventNo[0]);
 if (($type == 'volunteer' || $type == 'tutti') && $unixcall > strtotime('now')) eventEmail($eventNo[0]);
 gcalEvent($eventNo, $unesc_name, $unesc_location, $unesc_comments, $unixcall, $unixdone, $interval);
 echo $eventNo[0];

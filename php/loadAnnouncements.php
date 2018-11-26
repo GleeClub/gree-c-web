@@ -1,6 +1,6 @@
 <?php
 require_once('functions.php');
-if (! $CHOIR) die("Choir not set");
+if (! $CHOIR) err("Choir not set");
 echo "<div class='span6 block'>";
 	foreach (query("select * from `announcement` where `choir` = ? order by `timePosted` desc", [$CHOIR], QALL) as $announcement)
 	{

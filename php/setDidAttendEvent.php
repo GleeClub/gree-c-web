@@ -1,7 +1,7 @@
 <?php
 require_once('./functions.php');
 
-if (! isset($_POST['eventNo'])) die("Missing event ID");
+if (! isset($_POST['eventNo'])) err("Missing event ID");
 $eventNo = $_POST["eventNo"];
 $memberID = $_POST["email"];
 $didAttend = $_POST["didAttend"];
@@ -14,7 +14,7 @@ else query("update `attends` set `confirmed` = ?, `didAttend` = ? where `memberI
 
 //get the user's first and last name
 $member = query("select * from `member` where `email` = ?", [$memberID], QONE);
-if (! $member) die("No such member");
+if (! $member) err("No such member");
 $firstName = $member["firstName"];
 $lastName = $member["lastName"];
 

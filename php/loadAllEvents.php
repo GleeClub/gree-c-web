@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
-if (! $USER) die("<p>It would seem that you are logged out.</p>");
-if (! $CHOIR) die("Choir not set");
+if (! $USER) err("<p>It would seem that you are logged out.</p>");
+if (! $CHOIR) err("Choir not set");
 
 $type = $_POST['type'];
 $cond = ["`choir` = ?"];

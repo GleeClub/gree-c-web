@@ -1,6 +1,6 @@
 <?php
 	require_once('./functions.php');
-	if (! $USER) die();
+	if (! $USER) err();
 	$nameType = 'prefName';
 	if(isset($_POST['nameType'])) $nameType = $_POST['nameType'];
 	$arr = array();

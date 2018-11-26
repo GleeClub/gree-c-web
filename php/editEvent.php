@@ -6,20 +6,20 @@ $event = array();
 $hasValue = false;
 if ($eventNo)
 {
-	if (! hasEventPermission("modify", $eventNo)) die("DENIED");
+	if (! hasEventPermission("modify", $eventNo)) err("DENIED");
 	$hasValue = true;
 	$eventresult = query("select * from `event` where `eventNo` = ?", [$eventNo], QONE);
-	if (! $eventresult) die("No such event exists");
+	if (! $eventresult) err("No such event exists");
 	$gigresult = query("select * from `gig` where `eventNo` = ?", [$eventNo], QONE);
-	// if (! $gigresult) die("That event is not a gig"); // FIXME Should we check for a null gig result?
+	// if (! $gigresult) err("That event is not a gig"); // FIXME Should we check for a null gig result?
 	$event = (array) $eventresult + (array) $gigresult;
 }
-else if (! hasEventTypePermission("create")) die("DENIED");
+else if (! hasEventTypePermission("create")) err("DENIED");
 else if (isset($_POST["gigreq"]))
 {
 	$hasValue = true;
 	$event = query("select * from `gigreq` where `id` = ?", [$_POST["gigreq"]], QONE);
-	if (! $event) die("No such gig request exists");
+	if (! $event) err("No such gig request exists");
 	$event["callTime"] = date("Y-m-d H:i:s", strtotime($event["startTime"]) - 30 * 60);
 	$event["releaseTime"] = date("Y-m-d H:i:s", strtotime($event["startTime"]) + 60 * 60);;
 	$event["performanceTime"] = $event["startTime"];

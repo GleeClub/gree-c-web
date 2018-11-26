@@ -6,8 +6,8 @@ $title = $_POST['name'];
 $info = $_POST['desc'];
 $note = $_POST['note'];
 $current = $_POST['current'];
-if (! $CHOIR) die("Choir is not set");
-if (! $USER || ! hasPermission("edit-repertoire")) die("UNAUTHORIZED");
+if (! $CHOIR) err("Choir is not set");
+if (! $USER || ! hasPermission("edit-repertoire")) err("UNAUTHORIZED");
 if ($action == "add")
 	echo query("insert into `song` (`choir`, `title`, `info`) values (?, ?, ?)", [$CHOIR, $title, $info], QID);
 else if ($action == "delete")
