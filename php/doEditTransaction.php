@@ -6,7 +6,7 @@ if (! hasPermission("edit-transaction")) err("DENIED");
 $id = $_POST['id'];
 $action = $_POST['action'];
 if (! isset($id))
-	err("NO_ID");
+	err("Missing parameter `id`");
 if ($action == 'remove')
 	query("delete from `transaction` where `transactionID` = ?", [$id]);
 else if ($action == 'resolve')
@@ -14,5 +14,6 @@ else if ($action == 'resolve')
 else if ($action == 'unresolve')
 	 query("update `transaction` set `resolved` = '0'  where `transactionID` = ?", [$id]);
 else
-	echo "HUH?";
+	err("Unknown action");
+echo "OK";
 ?>

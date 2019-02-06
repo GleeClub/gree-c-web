@@ -50,7 +50,7 @@ if (isset($_POST["type"]))
 		{
 			$sqlbase = "delete from `rolePermission` where `role` = ? and `permission` = ?";
 			if ($evtype) query($sqlbase . " and `eventType` = ?", [$role, $perm, $evtype]);
-			else query($sqlbase . " and `eventType` is null`", [$role, $perm]);
+			else query($sqlbase . " and `eventType` is null", [$role, $perm]);
 		}
 	}
 	else if ($_POST["type"] == "uniform")

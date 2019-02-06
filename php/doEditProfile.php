@@ -82,7 +82,7 @@ if (! $user) check(query("insert into `activeSemester` (`member`, `semester`, `c
 if (! $user || ($active && $newsect != $oldsect)) check(updateSection($newemail, $SEMESTER, $choir, $newsect, $user));
 if (! $user) check(query("insert into `attends` (`memberID`, `eventNo`, `shouldAttend`) select ?, `eventNo`, `defaultAttend` from `event` where `choir` = ? and `semester` = ? and (`section` = 0 or `section` = ?) and `type` != 'sectional'", [$newemail, $choir, $SEMESTER, $newsect], QERR));
 $DB->commit();
-if (! $user || $user == $email) setcookie("email", cookie_string($newemail), time() + 60 * 60 * 24 * 120, "/", false, false);
+if (! $user || $user == $email) setcookie("email", encrypt2($newemail), time() + 60 * 60 * 24 * 120, "/", false, false);
 if (! $user) setcookie("choir", $choir, time() + 60 * 60 * 24 * 120, "/", false, false);
 echo "OK";
 ?>

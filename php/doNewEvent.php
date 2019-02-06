@@ -82,7 +82,7 @@ function eventEmail($eventNo)
 	if ($typeName == "Volunteer Gig") $message .= $yesform . "&nbsp;&nbsp;" . $noform;
 	else if ($typeName == "Tutti Gig") $message .= $yesform;
 	$message .= '</body></html>';
-	if (! mail($recipient, $subject, $message, $headers)) err("Failed to send event email");
+	if (! mail($recipient, $subject, $message, $headers)) err("Failed to send event email", array("recipient" => $recipient, "subject" => $subject, "message" => $message, "headers" => $headers));
 }
 
 // Add to event, and everyone's attending

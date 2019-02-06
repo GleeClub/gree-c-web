@@ -198,7 +198,7 @@ function attendanceTable($memberID, $officer = false, $semester = "", $media = "
 		$didAttend = $event["didAttend"];
 		$minutesLate = $event["late"];
 		$pointChange = $event["pointChange"];
-		$tip = $event["tip"];
+		$tip = $event["explanation"];
 		$score = $event["partialScore"];
 		if ($officer)
 		{

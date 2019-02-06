@@ -1,18 +1,6 @@
 <?php
 require_once('php/functions.php');
 
-function actionOptions($USER)
-{
-	$officerOptions = '';
-	if (hasPermission("process-gig-requests")) $officerOptions .= '<li><a href="#gigreqs">Gig Requests</a></li>';
-	if (hasPermission("edit-announcements")) $officerOptions .= '<li><a href="#addAnnouncement">Make an Announcement</a></li>';
-	if (hasPermission("edit-transaction")) $officerOptions .= '<li><a href="#money">Add Transactions</a></li>';
-	if (hasPermission("process-absence-requests")) $officerOptions .= '<li><a href="#absenceRequest">Absence Requests</a></li>';
-	if (hasPermission("edit-semester")) $officerOptions .= '<li><a href="#semester">Edit Semester</a></li><li><a href="#timeMachine">Past Semesters</a></li>';
-	if (hasPosition($USER, "President") || hasPosition($USER, "Webmaster")) $officerOptions .= '<li><a href="#settings">Site Settings</a></li>';
-	echo $officerOptions;
-}
-
 if ($_SERVER['HTTP_HOST'] != $domain) header("Location: $BASEURL");
 $choirname = choirname($CHOIR);
 ?>
@@ -65,7 +53,17 @@ $choirname = choirname($CHOIR);
 					<li><a href="#feedback">Feedback</a></li>
 					<li><a href="#suggestSong">Suggest a song</a></li>
 					<li><a href="#roster">Members</a></li>
-					<?php if ($USER) actionOptions($USER); ?>
+					<?php if ($USER && $CHOIR)
+					{
+						$officerOptions = '';
+						if (hasPermission("process-gig-requests")) $officerOptions .= '<li><a href="#gigreqs">Gig Requests</a></li>';
+						if (hasPermission("edit-announcements")) $officerOptions .= '<li><a href="#addAnnouncement">Make an Announcement</a></li>';
+						if (hasPermission("edit-transaction")) $officerOptions .= '<li><a href="#money">Add Transactions</a></li>';
+						if (hasPermission("process-absence-requests")) $officerOptions .= '<li><a href="#absenceRequest">Absence Requests</a></li>';
+						if (hasPermission("edit-semester")) $officerOptions .= '<li><a href="#semester">Edit Semester</a></li><li><a href="#timeMachine">Past Semesters</a></li>';
+						if (hasPosition($USER, "President") || hasPosition($USER, "Webmaster")) $officerOptions .= '<li><a href="#settings">Site Settings</a></li>';
+						echo $officerOptions;
+					}?>
 				</ul>
 			</li>
 			<?php } if ($CHOIR) { ?>

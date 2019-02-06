@@ -9,13 +9,13 @@ $result = query("SELECT `event`.`eventNo`, `event`.`name`, `event`.`callTime`, `
 		AND (`eventType`.`id` = 'volunteer' OR `eventType`.`id` = 'tutti')
 		AND TIMESTAMPDIFF(HOUR, CURRENT_TIMESTAMP, `event`.`callTime`) = 48
 		AND `event`.`choir` = `choir`.`id`
+		AND `uniform`.`choir` = `choir`.`id`
 	ORDER BY `event`.`callTime` ASC", [], QALL);
 
 foreach($result as $event)
 {
 	$sender = $event["choir"] . " Officers <" . $event["fromEmail"] . ">";
 	$recipient = $event["choir"] . " <" . $event["toEmail"] . ">";
-	//$recipient = "Matthew Schauer <awesome@gatech.edu>";
 	$headers = "Content-type:text/html;\n" .
 		"Reply-To: $sender\n" .
 		"From: $sender\n" .

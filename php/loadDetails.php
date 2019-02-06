@@ -41,6 +41,7 @@ function uniform($id) # FIXME Use the values stored in the database rather than 
 	return "<div class='infoblock' style='background: $background'><div>$html</div></div>";
 }
 
+if (! $USER) err("Not logged in");
 $event = query("select * from `event` where eventNo = ?", [$eventNo], QONE);
 if (! $event) err("The requested event could not be found: $eventNo.");
 $attends = query("select `shouldAttend`, `confirmed` from `attends` where `eventNo` = ? and `memberID` = ?", [$eventNo, $USER], QONE);

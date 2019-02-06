@@ -47,6 +47,7 @@ else if ($action == "confirmed")
 else if ($action == "excuse_all")
 {
 	query("update `attends` set `shouldAttend` = '0' where `eventNo` = ? and `confirmed` = '0'", [$eventNo]);
+	exit(0);
 }
 else err("Unknown action");
 

@@ -100,4 +100,13 @@ function updateSection($member, $semester, $choir, $section, $new = false)
 	return $err;
 }
 
+function checkRsvp($id)
+{
+	$event = query("select * from `event` where `eventNo` = ?", [$id], QONE);
+	if (! $event) return "Invalid event";
+	$forbidden = ["tutti", "sectional", "rehearsal"];
+	if (in_array($event["type"], $forbidden)) return "You cannot RSVP for " . $event["type"] . " events";
+	if ((strtotime($event["callTime"]) - time()) < 86400) return "Responses are closed for this event";
+	return null;
+}
 ?>

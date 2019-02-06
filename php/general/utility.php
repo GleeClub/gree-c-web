@@ -1,22 +1,6 @@
 <?php
 /**** Utility functions ****/
 
-function encrypt2($string)
-{
-	return base64_encode($string ^ "12345678900987654321qwertyuiopasdfghjklzxcvbnm,.");
-}
-
-function decrypt2($string)
-{
-	return base64_decode($string) ^ "12345678900987654321qwertyuiopasdfghjklzxcvbnm,.";
-}
-
-function cookie_string($value)
-{
-	global $sessionkey;
-	return base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $sessionkey, $value, MCRYPT_MODE_ECB));
-}
-
 function valid_date($string)
 {
 	$re_date = '/^\s*\d\d\d\d-\d\d-\d\d\s*$/';
@@ -77,6 +61,10 @@ function memberName($email, $kind = "full", $member = null)
 		return "$first $last";
 	case "real": // First Last
 		return "$first $last";
+	case "all":
+		$full = "$first $last";
+		if ($usePref) $full = "$pref $last";
+		return array("first" => $first, "pref" => $pref, "last" => $last, "full" => $full);
 	}
 }
 
@@ -89,28 +77,27 @@ function memberInfo($member)
 	$info = query("select * from `member` where `email` = ?", [$member], QONE);
 	if (! $info) err("Invalid member");
 	$ret["positions"] = positions($member); // TODO
-	$ret["name"] = memberName($email, "full", $info);
-	if ($info["about"] == "") $ret["quote"] = "I don't have a quote";
-	else $ret["quote"] = $info["about"];
-	if ($info["picture"] == "") $ret["picture"] = "http://lorempixel.com/g/256/256";
+	$ret["name"] = memberName($email, "all", $info);
+	if ($info["about"] == "") $ret["about"] = null; // "I don't have a quote";
+	else $ret["about"] = $info["about"];
+	if ($info["picture"] == "") $ret["picture"] = null; // "http://lorempixel.com/g/256/256";
 	else $ret["picture"] = $info["picture"];
 	$ret["email"] = $info["email"];
 	$ret["phone"] = $info["phone"];
 	$ret["location"] = $info["location"];
+	$ret["onCampus"] = $info["onCampus"] != "0";
 	$ret["car"] = $info["passengers"];
-	if ($info["passengers"] == 0) $ret["car"] = "No";
-	else $ret["car"] = $info["passengers"] . " passengers";
 	$ret["major"] = $info["major"];
-	$ret["techYear"] = $info["techYear"];
-	$active = query("select `activeSemester`.`enrollment`, `sectionType`.`name` as `section` from `activeSemester`, `sectionType` where `activeSemester`.`member` = ? and `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ? and `sectionType`.`id` = `activeSemester`.`section`", [$member, $SEMESTER, $CHOIR], QONE);
-	$ret["section"] = $active ? $active["section"] : "None";
+	$ret["year"] = $info["techYear"];
+	$active = query("select * from `activeSemester` where `member` = ? and `semester` = ? and `choir` = ?", [$member, $SEMESTER, $CHOIR], QONE);
+	$ret["section"] = $active ? $active["section"] : null;
 	if ($USER == $member || hasPermission("view-user-private-details"))
 	{
 		$semesters = [];
 		//foreach (query("select `semester`.`semester` from `activeSemester`, `semester` where `activeSemester`.`member` = ? and `activeSemester`.`semester` = `semester`.`semester` order by `semester`.`beginning` desc", [$member], QALL) as $row)
 		//	$semesters[] = $row["semester"];
 		//$ret["activeSemesters"] = $semesters;
-		$ret["enrollment"] = ucfirst($active ? $active["enrollment"] : "inactive");
+		$ret["enrollment"] = $active ? $active["enrollment"] : "inactive";
 		$attendance = attendance($member);
 		$ret["hometown"] = $info["hometown"];
 		$ret["gigs"] = $attendance["gigCount"];
@@ -149,7 +136,7 @@ function listMembers($conditions = ["active"])
 		[$SEMESTER]
 	),
 	);
-	if (count($conditions) == 0) $res = query("select `email` from `member`", [], QALL);
+	if (count($conditions) == 0) $res = query("select `email` from `member` order by `lastName` asc", [], QALL);
 	else
 	{
 		$conds = [];
@@ -161,7 +148,7 @@ function listMembers($conditions = ["active"])
 			$conds[] = $query[0];
 			foreach ($query[1] as $var) $vars[] = $var;
 		}
-		$res = query("select * from `member` where " . implode(" and ", $conds), $vars, QALL);
+		$res = query("select * from `member` where " . implode(" and ", $conds) . " order by `lastName` asc", $vars, QALL);
 	}
 	$ret = [];
 	foreach ($res as $row) $ret[$row["email"]] = memberName($row["email"], "full", $row);
@@ -206,6 +193,16 @@ function sectionFromEmail($email, $friendly = 0, $semester = "") // TODO Delete
 	$result = query("select `sectionType`.`id`, `sectionType`.`name` from `activeSemester`, `sectionType` where `activeSemester`.`member` = ? and `activeSemester`.`section` = `sectionType`.`id` and `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ?", [$email, $semester, $CHOIR], QONE);
 	if (! $result) return ($friendly ? "None" : 0);
 	return $friendly ? $result["name"] : $result["id"];
+}
+
+function permissions()
+{
+	global $USER, $CHOIR;
+	if (hasPosition($USER, "President") || hasPosition($USER, "Webmaster")) $query = query("select `name` from `permission`", [], QALL);
+	else $query = query("select `permission` from `rolePermission` where `role` in (select distinct `role`.`id` from `role`, `memberRole` where `memberRole`.`member` = ? and `memberRole`.`role` = `role`.`id` and `role`.`choir` = ? or `role`.`rank` = 99)", [$USER, $CHOIR], QALL);
+	$ret = [];
+	foreach ($query as $row) $ret[] = $row["permission"];
+	return $ret;
 }
 
 function hasPermission($perm, $eventType = "any")

@@ -24,7 +24,7 @@ foreach ($types as $type)
 	{
 		$prefix = "";
 		if ($type["storage"] == "local") $prefix = "$musicdir/";
-		else if ($type["id"] == "video") $prefix = "http://www.youtube.com/watch?v=";
+		else if ($type["typeid"] == "video") $prefix = "http://www.youtube.com/watch?v=";
 		echo "<div id='file_" . $link["id"] . "'><span class=link_actions></span> <span class='link_main'>";
 		if ($link["name"] == "") echo "<a href='about:blank' style='color: red;'>NO NAME</a>";
 		else if ($link["target"] == "") echo "<a href='about:blank' style='color: red;'>" . $link["name"] . "</a>";

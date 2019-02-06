@@ -14,7 +14,7 @@ if (! $USER)
 		</div>
 	';
 	echo $html;
-	err();
+	exit();
 }
 
 function user_money_table($memberID)

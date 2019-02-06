@@ -1,20 +1,30 @@
 <?php
 require_once('/var/www/vhosts/mensgleeclub.gatech.edu/httpsdocs/creds.php');
 
+function encrypt2($string)
+{
+	global $serverkey;
+	return openssl_encrypt($string, "aes-256-cbc", $serverkey);
+}
+
+function decrypt2($string)
+{
+	global $serverkey;
+	return openssl_decrypt($string, "aes-256-cbc", $serverkey);
+}
+
 function getuser()
 {
-	global $sessionkey;
 	$auth = "";
 	//if (isset($_POST["identity"])) $auth = $_POST["identity"];
 	if (isset($_SERVER["HTTP_X_IDENTITY"])) $auth = $_SERVER["HTTP_X_IDENTITY"];
 	else if (isset($_COOKIE["email"])) $auth = $_COOKIE["email"];
 	else return false;
-	return rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $sessionkey, base64_decode($auth), MCRYPT_MODE_ECB), "\0");
+	return decrypt2($auth);
 }
 
 function getchoir()
 {
-	global $sessionkey;
 	//if (isset($_POST["choir"])) $choir = $_POST["choir"];
 	if (isset($_COOKIE["choir"])) $choir = $_COOKIE["choir"];
 	else return false;
@@ -37,7 +47,7 @@ function json_error($err)
 	echo "{ \"status\": \"internal_error\", \"message\": \"JSON encoding error: $err\"}";
 }
 
-function utf8ize($mixed) // https://stackoverflow.com/questions/10199017/how-to-solve-json-error-utf8-error-in-php-json-decode
+function utf8ize($mixed) // https://stackoverflow.com/questions/10199017/how-to-solve-json-error-utf8-error-in-php-json-decode // TODO Remove
 {
 	if (is_array($mixed))
 		foreach ($mixed as $key => $value)
@@ -49,7 +59,8 @@ function utf8ize($mixed) // https://stackoverflow.com/questions/10199017/how-to-
 
 function json_reply($arr)
 {
-	$ret = json_encode(utf8ize($arr));
+	header("Content-Type: application/json; charset=utf-8");
+	$ret = json_encode($arr);
 	switch (json_last_error())
 	{
 		case JSON_ERROR_NONE: echo($ret); break;

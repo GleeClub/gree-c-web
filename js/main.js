@@ -2192,9 +2192,10 @@ function loadSong(songid, canEdit)
 						$('#spinner').css('display', 'inline');
 						$.post('php/doEditLink.php', { action : "new", type : section, song : songid }, function(data) {
 							$('#spinner').css('display', 'none');
-							if (! /^\d+$/.test(data)) alert("Error:  " + data);
+							if (! /^OK /.test(data)) alert("Error:  " + data.message);
 							else
 							{
+								data = data.substr(3);
 								$('#block_' + section).append("<div id=\"file_" + data + "\"><span class=\"link_actions\"><a class=\"rep_remove\"><i class=\"icon-remove\"></i></a> <a class=\"rep_rename\"><i class=\"icon-pencil\"></i></a></span> <span class=\"link_main\"><a name=\"null\" href=\"#\" target=\"_blank\"></a></span></div>");
 								$('#file_' + data + ' .rep_rename').click(function() { link_edit($(this).parent().parent().attr('id').replace("file_", "")); });
 								$('#file_' + data + ' .rep_remove').click(function() { rep_remove($(this).parent().parent().attr('id').replace('file_', '')); });
@@ -2212,14 +2213,14 @@ function loadSong(songid, canEdit)
 							$.post('php/doEditLink.php', { id : linkid, action : "delete" }, function(data) {
 								$('#spinner').css('display', 'none');
 								if (data == "OK") $('#file_' + linkid).remove();
-								else alert("Error:  " + data);
+								else alert("Error:  " + data.message);
 							});
 							return;
 						}
 						$.post('php/doEditLink.php', { id : linkid, action : "delete" }, function(data) {
 							$('#spinner').css('display', 'none');
 							if (data == "OK") $('#file_' + linkid).remove();
-							else alert("Error:  " + data);
+							else alert("Error:  " + data.message);
 						});
 					}
 					$('.rep_rename').click(function() { link_edit($(this).parent().parent().attr('id').replace("file_", ""), false); });
@@ -2254,14 +2255,7 @@ function loadSong(songid, canEdit)
 									$('#file_remove').click(perform_remove);
 									link_main.find('a').prop('name', '');
 								}
-								else
-								{
-									var msg;
-									if (data == 'BAD_FNAME') msg = "Bad filename.  Acceptable characters are:  A-Za-z0-9_., -";
-									else if (data == 'BAD_UPLOAD') msg = "The file could not be uploaded";
-									else msg = data;
-									alert("Error:  " + msg);
-								}
+								else alert("Error:  " + data.message);
 							}, error : function(data) { $('#spinner').css('display', 'none'); alert("Error:  " + data); } });
 						}
 						function perform_remove()
@@ -2276,8 +2270,7 @@ function loadSong(songid, canEdit)
 									$('#file_upload').change(perform_upload);
 									empty = true;
 								}
-								else if (data == 'NODEL') alert("File could not be removed.");
-								else alert("Error:  " + data);
+								else alert("Error:  " + data.message);
 							});
 						}
 						link_main.html("<form method=\"post\" action=\"php/doEditLink.php\" id=\"link_form\" style=\"display: none; background: #DDD; border: 4px solid #AAA; border-radius: 4px; padding: 10px; margin: 4px 0px;\">Name:  <input type=\"text\" name=\"link_name\" id=\"link_name\"><br>Target:  </form>");
@@ -2326,7 +2319,7 @@ function loadSong(songid, canEdit)
 									$('.link_actions').css('display', 'inline');
 									$('.rep_actions').css('display', 'inline');
 								}
-								else alert("Error:  " + data);
+								else alert("Error:  " + data.message);
 							});
 							return false;
 						});
