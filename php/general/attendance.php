@@ -86,7 +86,7 @@ function getSingleEventAttendanceRow($eventNo, $memberID)
 
 // Takes care of updating sectional attendance when section is changed
 // Assumes that the member has been confirmed active
-function updateSection($member, $semester, $choir, $section, $new = false)
+function updateSection($member, $semester, $choir, $section, $new = false) // TODO This is no longer used by the new GCW.  Remove it.
 {
 	$err = NULL;
 	if (! $err) $err = query("update `activeSemester` set `section` = ? where `member` = ? and `semester` = ? and `choir` = ?", [$section, $member, $semester, $choir], QERR); // Change their section registration in activeSemester
@@ -100,13 +100,19 @@ function updateSection($member, $semester, $choir, $section, $new = false)
 	return $err;
 }
 
-function checkRsvp($id)
+function checkRsvp($id, $attend)
 {
+	global $USER;
+	if (! $USER) err("You are not logged in");
 	$event = query("select * from `event` where `eventNo` = ?", [$id], QONE);
 	if (! $event) return "Invalid event";
+	if ($attend) return null;
+	$result = query("select * from `attends` where `eventNo` = ? and `memberID` = ?", [$id, $USER], QONE);
+	if (! $result) return null; // If there's no attend relation, you can opt-in
+	if ($result["shouldAttend"] == "0") return null;
+	if ((strtotime($event["callTime"]) - time()) < 86400) return "Responses are closed for this event";
 	$forbidden = ["tutti", "sectional", "rehearsal"];
 	if (in_array($event["type"], $forbidden)) return "You cannot RSVP for " . $event["type"] . " events";
-	if ((strtotime($event["callTime"]) - time()) < 86400) return "Responses are closed for this event";
 	return null;
 }
 ?>

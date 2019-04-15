@@ -1,7 +1,7 @@
 <?php
 require_once('functions.php');
 
-if (! isset($USER) || $USER === null) err("<html><head><title>Log In</title></head><body>You must be logged in to respond via this link.  <a href=\"$BASEURL\">Log in</a> and then try again.</body></html>");
+if (! isset($USER) || ! $USER) err("<html><head><title>Log In</title></head><body>You must be logged in to respond via this link.  <a href=\"$BASEURL\">Log in</a> and then try again.</body></html>");
 
 $event = $_GET["id"];
 if ($_GET["attend"] == "true") $attend = 1;

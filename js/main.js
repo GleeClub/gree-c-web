@@ -53,6 +53,14 @@ function readableFromJSON(json) {
 	return arr;
 }
 
+function loggedIn()
+{
+	var ret = false;
+	$.ajax({type: "get", url: "api.php", data: { action: "user" }, async: false, success: function(data) { ret = data.authenticated; }});
+	return ret;
+	//return document.cookie.indexOf("email") != -1;
+}
+
 var timer = null;
 function checkHash()
 {
@@ -61,7 +69,7 @@ function checkHash()
 	if (h == 'forgotPassword') loadForgotPassword();
 	else if (h == 'editProfile') editProfile();
 	else if (h == 'minutes') showMinutes();
-	else if (document.cookie.indexOf("email") == -1 && h.indexOf(':') <= 0) loadLogin();
+	else if (! loggedIn() && h.indexOf(':') <= 0) loadLogin();
 	else if (h == "stats" || h == '') loadStats();
 	else if (h == 'events') loadEvents('all');
 	else if (h == 'event') addOrRemoveEvent();
@@ -84,7 +92,7 @@ function checkHash()
 		var arg = h.substring(h.indexOf(':') + 1);
 		if (query == 'minutes') showMinutes(arg);
 		else if (query == 'doc') loaddoc(arg);
-		else if (document.cookie.indexOf("email") == -1) loadLogin();
+		else if (! loggedIn()) loadLogin();
 		else if (query == 'events') loadEvents(arg);
 		else if (query == 'event') loadEvents('all', arg);
 		else if (query == 'profile') loadProfile(arg);
@@ -111,7 +119,7 @@ function signIn()
        var email = $('#email').prop('value');
        var password = $('#password').prop('value');
        $.post("php/checkLogin.php", { email : email, password : password }, function(data) {
-               if (data != 'OK') alert(data);
+               if (data != 'OK') alert(data.message);
                else location.reload();
        });
        return false;
@@ -386,7 +394,7 @@ function sendPasswordResetEmail() {
 		array,
 		function(data) {
 			alert(data);
-			loadStats();
+			loadLogin();
 		});
 }
 

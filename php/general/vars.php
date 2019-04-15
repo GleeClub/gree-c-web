@@ -86,7 +86,7 @@ function err($msg, $info = null)
 	{
 		$backtrace = debug_backtrace();
 		array_shift($backtrace);
-		$content = print_r(array("info" => $info, "environment" => array("USER" => $USER, "CHOIR" => $CHOIR), "backtrace" => $backtrace), true);
+		$content = print_r(array("info" => $info, "environment" => array("USER" => $USER, "CHOIR" => $CHOIR, "REFERER" => $_SERVER["HTTP_REFERER"]), "backtrace" => $backtrace), true);
 		mail("Matthew Schauer <awesome@gatech.edu>", "Gree-C-Web Internal Error", $content);
 	}
 	json_reply(array("status" => $info ? "internal_error" : "error", "message" => $msg));

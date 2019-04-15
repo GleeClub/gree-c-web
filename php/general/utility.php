@@ -73,6 +73,7 @@ function memberName($email, $kind = "full", $member = null)
 function memberInfo($member)
 {
 	global $USER, $SEMESTER, $CHOIR;
+	if (! $CHOIR) err("Choir is not set");
 	$ret = [];
 	$info = query("select * from `member` where `email` = ?", [$member], QONE);
 	if (! $info) err("Invalid member");
@@ -188,6 +189,7 @@ function getPosition($position = "Member")
 function sectionFromEmail($email, $friendly = 0, $semester = "") // TODO Delete
 {
 	global $SEMESTER, $CHOIR;
+	if (! $CHOIR) err("Choir is not set");
 	if ($semester == "") $semester = $SEMESTER;
 	if ($email == "") return ($friendly ? "None" : 0);
 	$result = query("select `sectionType`.`id`, `sectionType`.`name` from `activeSemester`, `sectionType` where `activeSemester`.`member` = ? and `activeSemester`.`section` = `sectionType`.`id` and `activeSemester`.`semester` = ? and `activeSemester`.`choir` = ?", [$email, $semester, $CHOIR], QONE);
@@ -199,9 +201,9 @@ function permissions()
 {
 	global $USER, $CHOIR;
 	if (hasPosition($USER, "President") || hasPosition($USER, "Webmaster")) $query = query("select `name` from `permission`", [], QALL);
-	else $query = query("select `permission` from `rolePermission` where `role` in (select distinct `role`.`id` from `role`, `memberRole` where `memberRole`.`member` = ? and `memberRole`.`role` = `role`.`id` and `role`.`choir` = ? or `role`.`rank` = 99)", [$USER, $CHOIR], QALL);
+	else $query = query("select `permission` as `name` from `rolePermission` where `role` in (select distinct `role`.`id` from `role`, `memberRole` where `memberRole`.`member` = ? and `memberRole`.`role` = `role`.`id` and `role`.`choir` = ? or `role`.`rank` = 99)", [$USER, $CHOIR], QALL);
 	$ret = [];
-	foreach ($query as $row) $ret[] = $row["permission"];
+	foreach ($query as $row) $ret[] = $row["name"];
 	return $ret;
 }
 
@@ -243,7 +245,7 @@ function hasEventTypePermission($perm, $type = "any", $sect = 0)
 		case "view-attendance":
 		case "edit-attendance":
 			if (hasPermission($perm, $type)) return true;
-			if (sectionFromEmail($USER) != $sect) return false;
+			if ($sect != 0 && sectionFromEmail($USER) != $sect) return false;
 			return hasPermission("$perm-own-section", $type);
 		default: err("Failed to check permissions", "Unknown event permission $perm");
 	}

@@ -44,6 +44,20 @@ function rowcast($res, $ints = [], $bools = []) // Ick.  This should be moved in
 	return $res;
 }
 
+function keyarray($arr, $key)
+{
+	$ret = [];
+	foreach ($arr as $item)
+	{
+		$k = $item[$key];
+		unset($item[$key]);
+		if (count($item) > 1) $ret[$k] = $item;
+		else if (count($item) == 1) $ret[$k] = $item[array_keys($item)[0]];
+		else $ret[] = $k;
+	}
+	return $ret;
+}
+
 function param($source, $var, $default = null)
 {
 	if (! isset($source[$var]))
@@ -117,10 +131,11 @@ switch ($action)
 {
 case "info": // TODO Document
 	$ret = query("select * from `variables`", [], QONE);
-	$sects = query("select `id`, `name` from `sectionType` where `choir` = ?", [$CHOIR], QALL);
-	$sections = array("0" => "None");
-	foreach ($sects as $sect) $sections[$sect["id"]] = $sect["name"];
-	$ret["sections"] = $sections;
+	$ret["sections"] = keyarray(query("select `id`, `name` from `sectionType` where `choir` = ?", [$CHOIR], QALL), "id");
+	$ret["sections"]["0"] = "None";
+	$ret["eventTypes"] = keyarray(query("select * from `eventType` order by `weight` asc", [], QALL), "id");
+	$ret["uniforms"] = keyarray(query("select `id`, `name`, `description`, `color` from `uniform` where `choir` = ?", [$CHOIR], QALL), "id");
+	$ret["documents"] = keyarray(query("select `name`, `url` from `gdocs` where `choir` = ?", [$CHOIR], QALL), "name");
 	reply("ok", array("info" => $ret));
 case "publicEvents":
 case "publicevents": # TODO Remove
@@ -171,23 +186,35 @@ if (! $USER) err("Not logged in");
 
 switch ($action)
 {
-case "attendance":
-	$sem = get("semester", $SEMESTER);
-	$member = get("member", $USER);
-	if ($member != $USER) priv("view-attendance");
-	reply("ok", attendance($member, $sem));
 case "events":
 	$sem = get("semester", $SEMESTER);
 	$member = get("member", $USER);
 	if ($member != $USER) priv("view-attendance");
-	$events = query("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`event`.`callTime`) as `call`, unix_timestamp(`gig`.`performanceTime`) as `perform`, unix_timestamp(`event`.`releaseTime`) as `release`, `event`.`points` as `points`, `event`.`comments` as `comments`, `event`.`type` as `type`, `event`.`location` as `location`, `sectionType`.`name` as `section`, `event`.`gigcount` as `gigcount`, `gig`.`uniform` as `uniform`, `gig`.`cemail` as `contact`, `attends`.`shouldAttend` as `shouldAttend`, `attends`.`didAttend` as `didAttend`, `attends`.`confirmed` as `confirmed`, `attends`.`minutesLate` as `late` from `event` natural left join `gig`, `attends`, `sectionType` where `event`.`choir` = ? and `attends`.`memberID` = ? and `event`.`semester` = ? and `attends`.`eventNo` = `event`.`eventNo` and `event`.`section` = `sectionType`.`id`", [$CHOIR, $member, $sem], QALL);
+	$events = query("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`event`.`callTime`) as `call`, unix_timestamp(`gig`.`performanceTime`) as `perform`, unix_timestamp(`event`.`releaseTime`) as `release`, `event`.`points` as `points`, `event`.`comments` as `comments`, `event`.`type` as `type`, `event`.`location` as `location`, `sectionType`.`name` as `section`, `event`.`gigcount` as `gigCount`, `gig`.`uniform` as `uniform`, `gig`.`cemail` as `contact`, `attends`.`shouldAttend` as `shouldAttend`, `attends`.`didAttend` as `didAttend`, `attends`.`confirmed` as `confirmed`, `attends`.`minutesLate` as `late` from `event` natural left join `gig`, `attends`, `sectionType` where `event`.`choir` = ? and `attends`.`memberID` = ? and `event`.`semester` = ? and `attends`.`eventNo` = `event`.`eventNo` and `event`.`section` = `sectionType`.`id` order by `call` desc", [$CHOIR, $member, $sem], QALL);
+	$attendance = attendance($member, $sem);
+	$attends = keyarray($attendance["attendance"], "eventNo");
 	$ret = [];
-	foreach (rowcast($events, [], ["gigcount", "shouldAttend", "didAttend", "confirmed"]) as $event)
+	foreach (rowcast($events, [], ["gigCount", "shouldAttend", "didAttend", "confirmed"]) as $event)
 	{
-		$event["cannotDecline"] = checkRsvp($event["id"]);
+		$event["disabled"] = checkRsvp($event["id"], $event["shouldAttend"] == "0");
+		$attend = $attends[$event["id"]];
+		if ($attend)
+		{
+			$event["late"] = $attend["late"];
+			$event["pointChange"] = $attend["pointChange"];
+			$event["partialScore"] = $attend["partialScore"];
+			$event["explanation"] = $attend["explanation"];
+		}
+		else
+		{
+			$event["late"] = null;
+			$event["pointChange"] = null;
+			$event["partialScore"] = null;
+			$event["explanation"] = null;
+		}
 		$ret[] = $event;
 	}
-	reply("ok", array("events" => $ret));
+	reply("ok", array("finalScore" => $attendance["finalScore"], "gigCount" => $attendance["gigCount"], "gigReq" => $attendance["gigReq"], "events" => $ret));
 case "attendees":
 	$event = get("event");
 	$ret = rowcast(query("select `attends`.`memberID` as `id`, `attends`.`shouldAttend`, `attends`.`confirmed` from `attends`, `member` where `eventNo` = ? and `attends`.`memberID` = `member`.`email` order by `member`.`lastName` asc", [$event], QALL), [], ["shouldAttend", "confirmed"]);
@@ -201,16 +228,25 @@ case "rsvp": // TODO Document
 	$event = get("event");
 	$attend = get("attend");
 	if ($attend != "1" && $attend != "0") err("Invalid attend value");
-	$denied = checkRsvp($event);
-	if ($attend == "0" && $denied) err($denied);
+	$denied = checkRsvp($event, $attend != "0");
+	if ($denied) err($denied);
 	query("update `attends` set `shouldAttend` = ?, confirmed = '1' where `memberID` = ? and `eventNo` = ?", [$attend, $USER, $event]);
-	reply("ok");
+	reply("ok", array("disabled" => checkRsvp($event, $attend == "0")));
 case "songs":
 	$ret = [];
 	foreach (query("select * from `song` where `choir` = ?", [$CHOIR], QALL) as $song)
 	{
 		$song["current"] = (bool) $song["current"];
-		$song["links"] = query("select `id`, `type`, `name`, `target` from `songLink` where `song` = ?", [$song["id"]], QALL);
+		$links = query("select `id`, `type`, `name`, `target` from `songLink` where `song` = ?", [$song["id"]], QALL);
+		$linkcats = [];
+		foreach ($links as $link)
+		{
+			$type = $link["type"];
+			unset($link["type"]);
+			if (! array_key_exists($type, $linkcats)) $linkcats[$type] = [];
+			$linkcats[$type][] = $link;
+		}
+		$song["links"] = $linkcats;
 		$ret[] = $song;
 	}
 	reply("ok", array("songs" => $ret, "music_dir" => $musicdir));
@@ -227,6 +263,14 @@ case "carpools":
 	$ret = [];
 	foreach ($res as $carpool) $ret[] = $carpool;
 	reply("ok", array("carpools" => $ret));
+case "requestAbsence": // TODO Document
+	//$recipients = implode(", ", getPosition("Vice President")) . ", " . implode(", ", getPosition("President"));
+	$recipients = "awesome@gatech.edu"; // TODO Debug remove
+	if (! query("select * from `event` where `eventNo` = ?", [post("event")], QONE)) err("That event does not exist");
+	if (query("select * from `absencerequest` where `memberID` = ? and `eventNo` = ?", [$USER, post("event")], QONE)) err("You have already submitted an absence request for this event");
+	query("insert into `absencerequest` (reason, memberID, eventNo) values (?, ?, ?)", [post("reason"), $USER, post("event")]);
+	mail($recipients, "Absence Request from " . memberName($USER, "real"), "Name:  " . memberName($USER, "real") . "\nEvent:  " . getEventName(post("event")) . "\nReason:  " . post("reason") . "\n\nView and update absence requests at https://gleeclub.gatech.edu/buzz/#absenceRequest .");
+	reply("ok");
 case "setList": // TODO Document
 	$ret = query("select `song`.`id`, `song`.`title`, `song`.`key`, `song`.`pitch` from `song`, `gigSong` where `gigSong`.`song` = `song`.`id` and `gigSong`.`event` = ? order by `gigSong`.`order` asc", [get("event")], QALL);
 	reply("ok", array("songs" => $ret));
@@ -240,8 +284,55 @@ case "confirmAccount":
 	if ($err) err($err);
 	query("update `member` set `location` = ?, `onCampus` = ? where `email` = ?", [$loc, $onCampus, $USER]);
 	reply("ok");
-case "updateCarpools":
 case "minutes":
+	$id = get("id", "");
+	if ($id == "")
+	{
+		$minutes = query("select `id`, `name` from `minutes` order by `date` asc", [], QALL);
+		reply("ok", array("minutes" => $minutes));
+	}
+	else
+	{
+		$res = query("select * from `minutes` where `id` = ? and `choir` = ?", [$id, $CHOIR], QONE);
+		if (! $res) err("Those minutes do not exist");
+		$ret = array("name" => $res["name"], "date" => $res["date"], "public" => $res["public"]);
+		if (hasPermission("view-complete-minutes")) $ret["private"] = $res["private"];
+		reply("ok", $ret);
+	}
+case "officers":
+	$roles = [];
+	foreach (query("select * from `role` where `rank` > 0 and `rank` < 90 and `choir` = ? order by `rank` asc", [$CHOIR], QALL) as $role)
+	{
+		$officers = keyarray(query("select `member` from `memberRole` where `role` = ?", [$role["id"]], QALL), "member");
+		while (count($officers) < $role["quantity"]) $officers[] = null;
+		$roles[(int) $role["id"]] = array("name" => $role["name"], "rank" => (int) $role["rank"], "officers" => $officers);
+	}
+	reply("ok", array("roles" => $roles));
+case "semesters":
+	$ret = query("select `semester`, unix_timestamp(`beginning`) as `start`, unix_timestamp(`end`) as `end` from `semester` order by `beginning` asc", [], QALL);
+	reply("ok", array("semesters" => $ret));
+case "absenceRequests":
+	priv("process-absence-requests");
+	$requests = query("select `absencerequest`.`eventNo` as `event`, unix_timestamp(`absencerequest`.`time`) as `timestamp`, `absencerequest`.`reason`, `absencerequest`.`replacement`, `absencerequest`.`memberID` as `member`, `absencerequest`.`state`, unix_timestamp(`event`.`callTime`) as `call`, `event`.`name` as `name` from  `absencerequest`, `member`, `event` where `absencerequest`.`eventNo` = `event`.`eventNo` and `absencerequest`.`memberID` = `member`.`email` and `event`.`semester` = ? order by `member`.`lastName` asc , `member`.`firstName` asc , `absencerequest`.`time` desc", [$SEMESTER], QALL);
+	reply("ok", array("requests" => $requests));
+case "dues":
+	$vars = query("select * from `variables`", [], QONE);
+	reply("ok", array("dues" => $vars["duesAmount"], "deposit" => $vars["tieDeposit"], "lateFee" => $vars["lateFee"]));
+case "permissions":
+case "docLinks":
+case "editMinutes":
+case "addEvent":
+case "editEvent":
+case "updateCarpools":
+case "announce":
+case "updateAbsenceRequests":
+case "addSemester":
+case "editSemester":
+	priv("edit-semesters");
+case "editOfficer":
+	priv("edit-officers");
+case "setPermission":
+case "editUniforms":
 	err("Unimplemented");
 default:
 	err("Unknown action \"$action\"");
