@@ -17,6 +17,5 @@ $subject = "Important message from your $position!";
 $headers = "Reply-To: $sender\n" .
 			"From: $sender\n" .
 			'X-Mailer: PHP/' . phpversion();
-mail($recipient, $subject, $text, $headers);
-//sendMessageEmail($recipient, $from, $text, $subject);
+if (query("select * from `emailSettings` where `id` = ? and `enabled` != '0'`", ["new-announcement"], QCOUNT) > 0) mail($recipient, $subject, $text, $headers);
 ?>

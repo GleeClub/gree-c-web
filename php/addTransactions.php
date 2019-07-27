@@ -31,7 +31,7 @@ if(isset($_POST['emails']))
 	{
 		if ($email == "") continue; // Ignore transactions with nobody
 		query("insert into transaction (memberID, choir, amount, description, semester, type) values (?, ?, ?, ?, ?, ?)", [$email, $CHOIR, $amountArr[$count], $descriptionArr[$count], $semArr[$count], $typeArr[$count]]);
-		if ($sendArr[$count])
+		if ($sendArr[$count] && query("select * from `emailSettings` where `id` = ? and `enabled` != '0'`", ["new-transaction"], QCOUNT) > 0)
 		{
 			$name = memberName($email);
 			$msg = "Keep this receipt for your records.";

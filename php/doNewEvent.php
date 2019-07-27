@@ -189,7 +189,10 @@ else
 }
 
 if ($eventNo[0] < 0) err("Error " . $eventNo[0]);
-if (($type == 'volunteer' || $type == 'tutti') && $unixcall > strtotime('now')) eventEmail($eventNo[0]);
+if (($type == 'volunteer' || $type == 'tutti') && $unixcall > strtotime('now'))
+{
+	if (query("select * from `emailSettings` where `id` = ? and `enabled` != '0'`", ["new-event"], QCOUNT) > 0) eventEmail($eventNo[0]);
+}
 gcalEvent($eventNo, $unesc_name, $unesc_location, $unesc_comments, $unixcall, $unixdone, $interval);
 echo $eventNo[0];
 ?>

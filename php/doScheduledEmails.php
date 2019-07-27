@@ -12,6 +12,8 @@ $result = query("SELECT `event`.`eventNo`, `event`.`name`, `event`.`callTime`, `
 		AND `uniform`.`choir` = `choir`.`id`
 	ORDER BY `event`.`callTime` ASC", [], QALL);
 
+if (query("select * from `emailSettings` where `id` = ? and `enabled` != '0'`", ["gig-48h"], QCOUNT) == 0) exit();
+
 foreach($result as $event)
 {
 	$sender = $event["choir"] . " Officers <" . $event["fromEmail"] . ">";

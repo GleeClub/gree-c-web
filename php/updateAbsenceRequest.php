@@ -99,7 +99,7 @@ query("update `attends` set `shouldAttend` = ?, `confirmed` = ? where `memberID`
 // Notify the requester
 $evname = query("select `name` from `event` where `eventNo` = ?", [$eventNo], QONE);
 if (! $evname) err("Could not find event");
-absenceEmail($email, $state, $evname["name"]);
+if (query("select * from `emailSettings` where `id` = ? and `enabled` != '0'`", ["absence-request-status"], QCOUNT) > 0) absenceEmail($email, $state, $evname["name"]);
 
 //get the updated information to plug back into the row
 $request = query("select  `absencerequest`.`eventNo` ,  `absencerequest`.`time` ,  `absencerequest`.`reason` ,  `absencerequest`.`replacement` ,  `absencerequest`.`memberID` ,  `absencerequest`.`state` ,  `event`.`callTime` , `event`.`name` ,  `member`.`firstName` ,  `member`.`lastName` from  `absencerequest` ,  `member` ,  `event` where  `absencerequest`.`eventNo` = ? and `event`.`eventNo` = ? and `absencerequest`.`memberID` = ? and `member`.`email` = ?", [$eventNo, $eventNo, $email, $email], QONE);
