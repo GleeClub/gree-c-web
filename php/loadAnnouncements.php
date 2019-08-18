@@ -10,7 +10,8 @@ echo "<div class='span6 block'>";
 		$op = $announcement['memberID'];
 		$mid = $announcement['announcementNo'];
 		$name = memberName($op, "pref");
-		$text = nl2br(htmlspecialchars($announcement["announcement"]));
+		//$text = nl2br(htmlspecialchars($announcement["announcement"]));
+		$text = nl2br($announcement["announcement"]);
 		echo "<div class='block'><p><b>$dayPosted $timePosted</b><br>".$text."<br><br><small style='color:grey'>&mdash; $name</small></p></div>";
 	}
 	echo "</div>";
