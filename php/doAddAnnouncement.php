@@ -14,7 +14,9 @@ $position = positions($USER)[0];
 
 $subject = "Important message from your $position!";
 
-$headers = "Reply-To: $sender\n" .
+$headers = "Content-type: text/html\n".
+			"charset=UTF-8\n".
+			"Reply-To: $sender\n" .
 			"From: $sender\n" .
 			'X-Mailer: PHP/' . phpversion();
 if (query("select * from `emailSettings` where `id` = ? and `enabled` != '0'`", ["new-announcement"], QCOUNT) > 0) mail($recipient, $subject, $text, $headers);
