@@ -28,7 +28,7 @@ foreach ($types as $type)
 		echo "<div id='file_" . $link["id"] . "'><span class=link_actions></span> <span class='link_main'>";
 		if ($link["name"] == "") echo "<a href='about:blank' style='color: red;'>NO NAME</a>";
 		else if ($link["target"] == "") echo "<a href='about:blank' style='color: red;'>" . $link["name"] . "</a>";
-		else echo "<a href='$prefix" . $link["target"] . "' target='_blank'>" . $link["name"] . "</a>";
+		else echo "<a href='$prefix" . htmlspecialchars($link["target"], ENT_QUOTES) . "' target='_blank'>" . $link["name"] . "</a>";
 		echo "</span></div>";
 	}
 	echo "</div>";

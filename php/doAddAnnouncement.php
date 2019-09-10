@@ -19,5 +19,5 @@ $headers = "Content-type: text/html\n".
 			"Reply-To: $sender\n" .
 			"From: $sender\n" .
 			'X-Mailer: PHP/' . phpversion();
-if (query("select * from `emailSettings` where `id` = ? and `enabled` != '0'`", ["new-announcement"], QCOUNT) > 0) mail($recipient, $subject, $text, $headers);
+if (query("select * from `emailSettings` where `id` = ? and `enabled` != '0'", ["new-announcement"], QCOUNT) > 0) mail($recipient, $subject, $text, $headers);
 ?>

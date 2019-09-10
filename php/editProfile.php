@@ -1,6 +1,7 @@
 <div class="span11 block">
 <?php
 require_once('./functions.php');
+if ($USER && !$CHOIR) die("You need to choose a choir from the dropdown menu in the top right corner before editing your profile.");
 echo "<h2>" . ($USER ? "Edit" : "Create") . " Profile</h2>";
 ?>
 <p>Required items are marked with red asterisks.  Note that this registration is not mandatory.  If you are unwilling to provide any of the required information, let an officer know and we will work out alternate means of registration.</p>

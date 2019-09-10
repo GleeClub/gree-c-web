@@ -285,6 +285,10 @@ function loadDetails(id){
 		{ id : id },
 		function(data){
 			if (data == "NULL") return;
+			if ("status" in data && (data.status == "error" || data.status == "internal_error")) {
+				$("#eventDetails").html(data.message);
+				return;
+			}
 			$("#eventDetails").html(data);
 			$("#requestAbsenceButton").click(function(){
 				//requestAbsence($("#requestAbsenceButton").attr("value"));
@@ -431,6 +435,7 @@ function seeCarpools(id){
 }
 
 function peopleWithoutRides(id){
+	$("#events").html("<img style=\"display: block; margin: 0 auto\" src=\"/images/loading.gif\">");
 	$.post(
 	'php/peopleWithoutRides.php',
 	{ eventNo : id },
@@ -536,6 +541,7 @@ function editCarpools(id){
 
 function saveCarpools(id){
 	var carpools = jQueryToJSON($('.carpool')); //make this php-friendly
+	$("#events").html("<img style=\"display: block; margin: 0 auto\" src=\"/images/loading.gif\">");
 	$.post(
 	'php/saveCarpools.php',
 	{ carpools : carpools, eventNo : id },

@@ -77,7 +77,7 @@ $fields = array(
 		array('price', 'Price', 'number'),
 		array('gigcount', 'Count Toward Volunteer Gig Requirement', 'bool'),
 		array('public', 'Public Event', 'bool'),
-		array('summary', 'Public Summary', 'textarea'),
+		array('summary', 'Public Tagline', 'textarea'),
 		array('description', 'Public Description', 'textarea'),
 	),
 	'rehearsal' => array(
@@ -143,4 +143,4 @@ foreach ($fields as $category => $catfields)
 	$html .= "</table>";
 }
 echo $html;
-
+?>

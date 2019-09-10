@@ -69,7 +69,7 @@ foreach (query("select * from `carpool` where `eventNo` = ?", [$eventNo], QALL) 
 			$html .= "<div class='person' id='".$passenger['memberID']."'><table>
 			<tr>
 				<td class='carpoolLives'>".$livesAt."</td>
-				<td class='carpoolName'><a href='profile:".$passenger['memberID']."'>".memberName($passenger['memberID'])."</a></td>
+				<td class='carpoolName'><a href='#profile:".$passenger['memberID']."'>".memberName($passenger['memberID'])."</a></td>
 				<td class='carpoolSpots'>".$passengerSpots."</td>
 				<td class='carpoolShould'>".$phoneNumber."</td>
 				<td class='carpoolConfirmed'>".$isConfirmed."</td>

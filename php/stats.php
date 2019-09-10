@@ -100,7 +100,7 @@ function announcements($userEmail)
 		$op = $announcement['memberID'];
 		$mid = $announcement['announcementNo'];
 		$name = memberName($op, "pref");
-		$text = nl2br(htmlspecialchars($announcement["announcement"]));
+		$text = nl2br($announcement["announcement"]);
 		if(hasPermission("edit-announcements")) $html .= "<div class='block' id='announce".$mid."'><p><b>$dayPosted $timePosted</b><i class='icon-remove archiveButton' onclick='archiveAnnouncement(".$mid.")' style='float: right'></i><br />$text<br /><small style='color:grey'>&mdash; $name</small></p></div>";
 		else $html .= "<div class='block'><p><b>$dayPosted $timePosted</b><br />".$announcement['announcement']."<br /><small style='color:grey'>&mdash;$name</small></p></div>";
 	}

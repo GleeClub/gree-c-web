@@ -1,5 +1,6 @@
 <?php
 require_once('php/functions.php');
+require_once('php/events.php');
 $CHOIR = "glee";
 $rest_json = null;
 // FIXME Calls to third-party functions e.g. in utility.php generally die() rather than returning JSON error messages.  How do we deal with this?
@@ -138,9 +139,8 @@ case "info": // TODO Document
 	$ret["documents"] = keyarray(query("select `name`, `url` from `gdocs` where `choir` = ?", [$CHOIR], QALL), "name");
 	reply("ok", array("info" => $ret));
 case "publicEvents":
-case "publicevents": # TODO Remove
 	$sem = get("semester", $SEMESTER);
-	$ret = query("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = ? and `event`.`semester` = ? and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1", [$CHOIR, $sem], QALL);
+	$ret = query("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = ? and `event`.`semester` = ? and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1 and `event`.`releaseTime` > current_timestamp()", [$CHOIR, $sem], QALL);
 	reply("ok", array("events" => $ret));
 case "publicSongs":
 	$ret = [];
@@ -299,6 +299,15 @@ case "minutes":
 		if (hasPermission("view-complete-minutes")) $ret["private"] = $res["private"];
 		reply("ok", $ret);
 	}
+case "announcements":
+	$ann = query("select `memberID` as `poster`, unix_timestamp(`timePosted`) as `posted`, `announcement` from `announcement` where `choir` = ? and `archived` != 1 order by `timePosted` asc", [$CHOIR], QALL);
+	$announcements = [];
+	foreach ($ann as $a)
+	{
+		$a["announcement"] = nl2br(htmlspecialchars($a["announcement"]));
+		$announcements[] = $a;
+	}
+	reply("ok", array("announcements" => $announcements));
 case "officers":
 	$roles = [];
 	foreach (query("select * from `role` where `rank` > 0 and `rank` < 90 and `choir` = ? order by `rank` asc", [$CHOIR], QALL) as $role)
@@ -319,18 +328,70 @@ case "dues":
 	$vars = query("select * from `variables`", [], QONE);
 	reply("ok", array("dues" => $vars["duesAmount"], "deposit" => $vars["tieDeposit"], "lateFee" => $vars["lateFee"]));
 case "permissions":
-case "docLinks":
-case "editMinutes":
-case "addEvent":
-case "editEvent":
-case "updateCarpools":
-case "announce":
-case "updateAbsenceRequests":
-case "addSemester":
-case "editSemester":
+	$roles = keyarray(query("select `id`, `name` from `role` where `choir` = ? and `rank` > 0", [$CHOIR], QALL), "id");
+	$permissions = keyarray(query("select `name`, `description`, `type` from `permission`", [], QALL), "name");
+	$grid = [];
+	foreach ($roles as $role => $name) $grid[$role] = query("select `permission`, `eventType` from `rolePermission` where `role` = ?", [$role], QALL);
+	reply("ok", array("roles" => $roles, "permissions" => $permissions, "rolePermissions" => $grid));
+case "docLink":
+	priv("edit-links");
+	$type = get("type", "update");
+	$name = get("name");
+	if ($type == "update") query("replace into `gdocs` (`name`, `choir`, `url`) values (?, ?, ?)", [$name, $CHOIR, get("url")]);
+	else if ($type == "delete") query("delete from `gdocs` where `choir` = ? and `name` = ?", [$CHOIR, $name]);
+	else err("Invalid edit type \"$type\"");
+	reply("ok");
+case "newSemester":
 	priv("edit-semesters");
+	$name = get("name");
+	query("insert into `semester` (`semester`, `beginning`, `end`) values (?, ?, ?)". [$name, $start, $end]);
+	query("update `variables` set `semester` = ?", [$name]); // TODO Maybe wrap this in a transaction so we can't end up with inaccessible semesters hanging around
+	reply("ok");
+case "announce":
+	priv("edit-announcements");
+	$text = post("text");
+	query("insert into `announcement` (`choir`, `memberID`, `timePosted`, `announcement`) values (?, ?, current_timestamp, ?)", [$CHOIR, $USER, $text]);
+	$row = query("select `name`, `admin`, `list` from `choir` where `id` = ?", [$CHOIR], QONE);
+	$sender = $row["name"] . " Officers <" . $row["admin"] . ">";
+	$recipient = $row["name"] . " <" . $row["list"] . ">";
+	$position = positions($USER)[0];
+	$subject = "Important message from your $position!";
+	$headers = "Reply-To: $sender\n" .
+				"From: $sender\n" .
+				'X-Mailer: PHP/' . phpversion();
+	mail($recipient, $subject, $text, $headers);
+	reply("ok");
+case "archiveAnnouncement":
+	priv("edit-announcements");
+	query("update `announcement` set `archived` = 1 where `announcementNo` = ?", [get("id")]);
+	reply("ok");
+case "editMinutes":
+	priv("edit-minutes");
+	$id = post("id", "");
+	$newname = post("newname", "");
+	$private = post("private");
+	$public = post("public");
+	if ($id == "") $id = query("insert into `minutes` (`choir`, `date`, `name`, `private`, `public`) values (?, curdate(), ?, ?, ?)", [$CHOIR, $newname, $private, $public], QID);
+	else if ($newname != "") query("update `minutes` set `name` = ?, `private` = ?, `public` = ? where `id` = ?", [$newname, $private, $public, $id]);
+	else query("update `minutes` set `private` = ?, `public` = ? where `id` = ?", [$private, $public, $id]);
+	reply("ok", array("id" => $id));
+case "deleteMinutes":
+	priv("edit-minutes");
+	$id = post("id");
+	query("delete from `minutes` where `id` = ?", [$id]);
+	reply("ok");
+case "addEvent":
+	reply("ok", array("id" => doNewEvent($_POST)));
+case "editEvent":
+	doEditEvent($_POST);
+	reply("ok");
+case "deleteEvent":
+	doRemoveEvent(get("id"));
+	reply("ok");
+case "updateCarpools":
+case "updateAbsenceRequests":
 case "editOfficer":
-	priv("edit-officers");
+	#priv("edit-officers");
 case "setPermission":
 case "editUniforms":
 	err("Unimplemented");

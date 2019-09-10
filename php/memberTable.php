@@ -49,7 +49,7 @@ if (! isset($_GET["format"]) || $_GET["format"] == "normal")
 				echo $i;
 				break;
 			case "name":
-				echo "<a href='#profile:$email'>$value</a>";
+				echo "<a href='#profile:$email'>" . $value["full"] . "</a>";
 				break;
 			case "email":
 				echo "<a href='mailto:$value'>$value</a>";
@@ -72,6 +72,8 @@ if (! isset($_GET["format"]) || $_GET["format"] == "normal")
 				echo "<span style='color: $color'>$value</span>";
 				break;
 			case "section":
+				echo(query("select `name` from `sectionType` where `id` = ? and `choir` = ?", [$value, $CHOIR], QONE)["name"]);
+				break;
 			case "location":
 				echo $value;
 				break;

@@ -104,16 +104,12 @@ function basic_info($person)
 }
 
 echo "<div class='section'>" . basic_info($email) . "</div>";
-echo "<hr>";
-if (hasPermission("view-user-private-details"))
-{
-	echo "<table><tr>";
-		echo "<td class='tab'><a href='#' class='info_toggle' data-tab='details'>Details</a></td>";
-		echo "<td class='tab'><a href='#' class='info_toggle' data-tab='money'>Money</a></td>";
-		echo "<td class='tab'><a href='#' class='info_toggle' data-tab='attendance'>Attendance</a></td>";
-		echo "<td class='tab'><a href='#' class='info_toggle' data-tab='semesters'>Semesters</a></td>";
-		echo "<td class='tab'><a href='#' class='info_toggle' data-tab='tie'>Tie</a></td>";
-	echo "</tr></table><div id='tabbox'></div>";
-}
+echo "<hr><table><tr>";
+if (hasPermission("view-user-private-details")) echo "<td class='tab'><a href='#' class='info_toggle' data-tab='details'>Details</a></td>";
+if (hasPermission("view-transactions")) echo "<td class='tab'><a href='#' class='info_toggle' data-tab='money'>Money</a></td>";
+if (hasPermission("view-attendance")) echo "<td class='tab'><a href='#' class='info_toggle' data-tab='attendance'>Attendance</a></td>";
+if (hasPermission("view-users")) echo "<td class='tab'><a href='#' class='info_toggle' data-tab='semesters'>Semesters</a></td>";
+if (hasPermission("view-ties")) echo "<td class='tab'><a href='#' class='info_toggle' data-tab='tie'>Tie</a></td>";
+echo "</tr></table><div id='tabbox'></div>";
 ?>
 

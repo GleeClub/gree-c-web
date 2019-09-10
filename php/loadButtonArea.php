@@ -1,6 +1,7 @@
 <?php
 require_once('functions.php');
 
+if (! $USER) err("Not logged in");
 if (! isset($_POST['eventNo'])) err("Missing event ID");
 $eventNo = $_POST['eventNo'];
 

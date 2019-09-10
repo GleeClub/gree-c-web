@@ -46,13 +46,6 @@ if (! $user) $choir = $_POST["choir"];
 else $choir = $CHOIR;
 if ($reg != "class" && $reg != "club") err("Invalid registration");
 
-function check($msg)
-{
-	global $DB;
-	if (! $msg) return;
-	$DB->rollback();
-	err($msg);
-}
 $keys = [];
 $vals = [];
 $sql = "";
