@@ -280,12 +280,13 @@ function loadEvents(type, id){
 }
 
 function loadDetails(id){
+	$("#eventDetails").html("<img style=\"display: block; margin: 0 auto\" src=\"/images/loading.gif\">");
 	$.post(
 		'php/loadDetails.php',
 		{ id : id },
 		function(data){
 			if (data == "NULL") return;
-			if ("status" in data && (data.status == "error" || data.status == "internal_error")) {
+			if (typeof data == "object" && "status" in data && (data.status == "error" || data.status == "internal_error")) {
 				$("#eventDetails").html(data.message);
 				return;
 			}

@@ -1,6 +1,9 @@
 <?php
 require_once('functions.php');
 
+if (! $USER) err("Access denied");
+if (! $CHOIR) err("Choir not set");
+
 function csvencode($row)
 {
 	$fields = [];
@@ -72,7 +75,8 @@ if (! isset($_GET["format"]) || $_GET["format"] == "normal")
 				echo "<span style='color: $color'>$value</span>";
 				break;
 			case "section":
-				echo(query("select `name` from `sectionType` where `id` = ? and `choir` = ?", [$value, $CHOIR], QONE)["name"]);
+				if ($value) echo(query("select `name` from `sectionType` where `id` = ? and `choir` = ?", [$value, $CHOIR], QONE)["name"]);
+				else echo("<span style='color: gray'>(none)</span>");
 				break;
 			case "location":
 				echo $value;
@@ -100,6 +104,7 @@ else if ($_GET["format"] == "csv")
 		foreach ($cols as $col)
 		{
 			if ($col == "#") $row[] = "$i";
+			else if ($col == "name") $row[] = $member["name"]["full"];
 			else $row[] = $member[$col];
 		}
 		echo csvencode($row);

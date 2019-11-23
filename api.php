@@ -140,7 +140,7 @@ case "info": // TODO Document
 	reply("ok", array("info" => $ret));
 case "publicEvents":
 	$sem = get("semester", $SEMESTER);
-	$ret = query("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = ? and `event`.`semester` = ? and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1 and `event`.`releaseTime` > current_timestamp()", [$CHOIR, $sem], QALL);
+	$ret = query("select `event`.`eventNo` as `id`, `event`.`name` as `name`, unix_timestamp(`gig`.`performanceTime`) as `time`, `event`.`location` as `location`, `gig`.`summary` as `summary`, `gig`.`description` as `description` from `event`, `gig` where `event`.`choir` = ? and `event`.`semester` = ? and `event`.`eventNo` = `gig`.`eventNo` and `gig`.`public` = 1 and `event`.`releaseTime` > current_timestamp() order by `time` asc", [$CHOIR, $sem], QALL);
 	reply("ok", array("events" => $ret));
 case "publicSongs":
 	$ret = [];
